@@ -2,30 +2,41 @@
  * @tomaszjarosz/react-visualizers
  *
  * Interactive algorithm and data structure visualizers for React.
- *
- * @example
- * ```tsx
- * import { SortingVisualizer, HashMapVisualizer } from '@tomaszjarosz/react-visualizers';
- *
- * function App() {
- *   return <SortingVisualizer algorithm="quicksort" data={[5, 2, 8, 1, 9]} />;
- * }
- * ```
  */
 
-// Algorithms
-// export { BinarySearchVisualizer } from './visualizers/BinarySearchVisualizer';
-// export { SortingVisualizer } from './visualizers/SortingVisualizer';
-// export { DijkstraVisualizer } from './visualizers/DijkstraVisualizer';
+// Visualizers
+export { BinarySearchVisualizer } from './visualizers/BinarySearchVisualizer';
+export { SortingVisualizer } from './visualizers/SortingVisualizer';
+export { HashMapVisualizer } from './visualizers/HashMapVisualizer';
 
-// Collections
-// export { HashMapVisualizer } from './visualizers/HashMapVisualizer';
-// export { LinkedListVisualizer } from './visualizers/LinkedListVisualizer';
-// export { TreeSetVisualizer } from './visualizers/TreeSetVisualizer';
+// Shared components (for building custom visualizers)
+export {
+  ControlPanel,
+  CodePanel,
+  HelpPanel,
+  Legend,
+  StatusPanel,
+  ArrayInput,
+  StepHistory,
+  VisualizationArea,
+} from './shared';
 
-// Shared components
-// export { ControlPanel } from './shared/ControlPanel';
-// export { CodePanel } from './shared/CodePanel';
+// Hooks
+export { useVisualizerPlayback, useUrlState } from './shared';
 
-// Placeholder export for initial build
-export const VERSION = "0.1.0";
+// Types
+export type { ControlPanelProps } from './shared';
+export type { LegendItem, LegendProps } from './shared';
+export type { StatusPanelProps } from './shared';
+export type { ArrayInputProps } from './shared';
+export type { StepHistoryProps, Step } from './shared';
+export type { VisualizationAreaProps } from './shared';
+export type {
+  UseVisualizerPlaybackOptions,
+  UseVisualizerPlaybackReturn,
+} from './shared';
+export type {
+  VisualizerState,
+  UseUrlStateOptions,
+  UseUrlStateReturn,
+} from './shared';
