@@ -499,6 +499,64 @@ const TreeSetVisualizerComponent: React.FC<TreeSetVisualizerProps> = ({
         <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
           {/* Main Visualization */}
           <VisualizationArea minHeight={400} className={showCode ? 'flex-1' : 'w-full'}>
+            {/* BST Property - Prominent */}
+            <div className="mb-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200">
+              <div className="text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2">
+                <span className="text-lg">🌳</span> Binary Search Tree Property
+              </div>
+              <div className="font-mono text-sm bg-white rounded-lg p-3 border border-emerald-200">
+                <div className="text-center text-emerald-700 font-bold text-base mb-2">
+                  left &lt; <span className="text-gray-800">node</span> &lt; right
+                </div>
+                <div className="text-xs text-gray-500 text-center">
+                  All values in left subtree are smaller • All values in right subtree are larger
+                </div>
+              </div>
+              {/* Current comparison */}
+              {currentStepData.operation === 'add' && currentStepData.value !== undefined && currentNode !== undefined && currentNode !== currentStepData.value && (
+                <div className="mt-3 p-2 bg-white rounded-lg border border-emerald-200">
+                  <div className="text-xs text-center">
+                    <span className="font-semibold text-emerald-700">Comparing:</span>{' '}
+                    <span className="font-mono">
+                      {currentStepData.value} {currentStepData.value < currentNode ? '<' : '>'} {currentNode}
+                    </span>
+                    {' → '}
+                    <span className={`font-bold ${currentStepData.value < currentNode ? 'text-blue-600' : 'text-orange-600'}`}>
+                      Go {currentStepData.value < currentNode ? 'LEFT' : 'RIGHT'}
+                    </span>
+                  </div>
+                </div>
+              )}
+              {currentStepData.operation === 'contains' && currentStepData.value !== undefined && currentNode !== undefined && !found && path.length > 0 && path[path.length - 1] !== currentStepData.value && (
+                <div className="mt-3 p-2 bg-white rounded-lg border border-emerald-200">
+                  <div className="text-xs text-center">
+                    <span className="font-semibold text-emerald-700">Comparing:</span>{' '}
+                    <span className="font-mono">
+                      {currentStepData.value} {currentStepData.value < currentNode ? '<' : '>'} {currentNode}
+                    </span>
+                    {' → '}
+                    <span className={`font-bold ${currentStepData.value < currentNode ? 'text-blue-600' : 'text-orange-600'}`}>
+                      Go {currentStepData.value < currentNode ? 'LEFT' : 'RIGHT'}
+                    </span>
+                  </div>
+                </div>
+              )}
+              {found === true && (
+                <div className="mt-3 p-2 bg-green-100 rounded-lg border border-green-300">
+                  <div className="text-xs text-center text-green-800 font-bold">
+                    ✓ Found! {currentStepData.value} == {currentNode}
+                  </div>
+                </div>
+              )}
+              {found === false && (
+                <div className="mt-3 p-2 bg-red-100 rounded-lg border border-red-300">
+                  <div className="text-xs text-center text-red-800 font-bold">
+                    ✗ Not found! Reached null (no more children to check)
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Tree Visualization */}
             <div className="mb-4">
               <div className="text-sm font-medium text-gray-700 mb-2">
