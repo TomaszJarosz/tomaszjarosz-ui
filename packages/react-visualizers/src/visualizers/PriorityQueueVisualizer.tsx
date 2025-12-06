@@ -18,6 +18,8 @@ interface HeapStep {
   highlightIndex?: number;
   swapIndices?: [number, number];
   compareIndices?: [number, number];
+  siftPath?: number[]; // Path from current index to root (siftUp) or to leaf (siftDown)
+  currentIndex?: number; // Current position being processed
 }
 
 interface PriorityQueueVisualizerProps {
@@ -60,6 +62,7 @@ const HEAP_CODE = [
 const LEGEND_ITEMS = [
   { color: 'bg-purple-100', label: 'Root (min)', border: '#c4b5fd' },
   { color: 'bg-purple-500', label: 'Active' },
+  { color: 'bg-purple-200', label: 'Sift Path', border: '#a78bfa' },
   { color: 'bg-yellow-300', label: 'Comparing' },
   { color: 'bg-green-400', label: 'Swapped' },
 ];
@@ -81,6 +84,17 @@ function generateHeapSteps(): HeapStep[] {
       heap.push(value);
       let idx = heap.length - 1;
 
+      // Calculate path to root for this index
+      const getPathToRoot = (index: number): number[] => {
+        const path: number[] = [index];
+        let i = index;
+        while (i > 0) {
+          i = Math.floor((i - 1) / 2);
+          path.push(i);
+        }
+        return path;
+      };
+
       steps.push({
         operation: 'offer',
         value,
@@ -89,6 +103,8 @@ function generateHeapSteps(): HeapStep[] {
         codeLine: 1,
         variables: { value, index: idx },
         highlightIndex: idx,
+        siftPath: getPathToRoot(idx),
+        currentIndex: idx,
       });
 
       // Sift up
@@ -107,6 +123,8 @@ function generateHeapSteps(): HeapStep[] {
             parentVal: heap[parentIdx],
           },
           compareIndices: [idx, parentIdx],
+          siftPath: getPathToRoot(idx),
+          currentIndex: idx,
         });
 
         if (heap[idx] < heap[parentIdx]) {
@@ -121,6 +139,8 @@ function generateHeapSteps(): HeapStep[] {
             variables: { swapped: heap[parentIdx], index: parentIdx },
             swapIndices: [idx, parentIdx],
             highlightIndex: parentIdx,
+            siftPath: getPathToRoot(parentIdx),
+            currentIndex: parentIdx,
           });
 
           idx = parentIdx;
@@ -132,6 +152,8 @@ function generateHeapSteps(): HeapStep[] {
             codeLine: 7,
             variables: { index: idx },
             highlightIndex: idx,
+            siftPath: getPathToRoot(idx),
+            currentIndex: idx,
           });
           break;
         }
@@ -142,6 +164,24 @@ function generateHeapSteps(): HeapStep[] {
       const removed = heap[0];
       const last = heap.pop();
       if (last === undefined) continue;
+
+      // Calculate path from index to deepest reachable leaf
+      const getPathToLeaf = (heapSize: number, startIdx: number): number[] => {
+        const path: number[] = [startIdx];
+        let i = startIdx;
+        while (2 * i + 1 < heapSize) {
+          // Follow smaller child path
+          const left = 2 * i + 1;
+          const right = 2 * i + 2;
+          if (right < heapSize) {
+            path.push(left, right);
+          } else {
+            path.push(left);
+          }
+          i = left; // Just trace left path for visualization
+        }
+        return path;
+      };
 
       if (heap.length === 0) {
         steps.push({
@@ -165,6 +205,8 @@ function generateHeapSteps(): HeapStep[] {
         codeLine: 13,
         variables: { removed, moved: last },
         highlightIndex: 0,
+        siftPath: getPathToLeaf(heap.length, 0),
+        currentIndex: 0,
       });
 
       // Sift down
@@ -189,6 +231,7 @@ function generateHeapSteps(): HeapStep[] {
             codeLine: 14,
             variables: { index: idx, value: heap[idx] },
             highlightIndex: idx,
+            currentIndex: idx,
           });
           break;
         }
@@ -204,6 +247,8 @@ function generateHeapSteps(): HeapStep[] {
             childIdx: smallestIdx,
           },
           compareIndices: [idx, smallestIdx],
+          siftPath: [idx, leftIdx < heap.length ? leftIdx : -1, rightIdx < heap.length ? rightIdx : -1].filter(i => i >= 0),
+          currentIndex: idx,
         });
 
         [heap[idx], heap[smallestIdx]] = [heap[smallestIdx], heap[idx]];
@@ -216,6 +261,7 @@ function generateHeapSteps(): HeapStep[] {
           variables: { index: smallestIdx },
           swapIndices: [idx, smallestIdx],
           highlightIndex: smallestIdx,
+          currentIndex: smallestIdx,
         });
 
         idx = smallestIdx;
@@ -369,7 +415,7 @@ const PriorityQueueVisualizerComponent: React.FC<
     description: '',
   };
 
-  const { heap, highlightIndex, swapIndices, compareIndices, description } =
+  const { heap, highlightIndex, swapIndices, compareIndices, description, siftPath, currentIndex } =
     currentStepData;
   const positions = getTreePositions(heap.length);
 
@@ -383,10 +429,26 @@ const PriorityQueueVisualizerComponent: React.FC<
     if (compareIndices?.includes(idx)) {
       return 'fill-yellow-300 stroke-yellow-400';
     }
+    if (siftPath?.includes(idx) && idx !== currentIndex) {
+      return 'fill-purple-200 stroke-purple-400'; // Sift path highlight
+    }
     if (idx === 0) {
       return 'fill-purple-100 stroke-purple-300';
     }
     return 'fill-white stroke-gray-300';
+  };
+
+  // Check if an edge is on the sift path
+  const isEdgeOnPath = (parentIdx: number, childIdx: number): boolean => {
+    if (!siftPath || siftPath.length < 2) return false;
+    for (let i = 0; i < siftPath.length - 1; i++) {
+      const a = siftPath[i];
+      const b = siftPath[i + 1];
+      if ((a === parentIdx && b === childIdx) || (a === childIdx && b === parentIdx)) {
+        return true;
+      }
+    }
+    return false;
   };
 
   const getTextColor = (idx: number): string => {
@@ -424,6 +486,43 @@ const PriorityQueueVisualizerComponent: React.FC<
         <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
           {/* Main Visualization */}
           <VisualizationArea minHeight={400}>
+            {/* Heap Property Formula - Prominent */}
+            <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
+              <div className="text-sm font-bold text-purple-800 mb-3 flex items-center gap-2">
+                <span className="text-lg">🏔️</span> Min-Heap Property
+              </div>
+              <div className="font-mono text-sm bg-white rounded-lg p-3 border border-purple-200">
+                <div className="text-center text-purple-700 font-bold mb-2">
+                  heap[parent] ≤ heap[children]
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-gray-600">
+                  <div className="bg-purple-50 p-2 rounded text-center">
+                    <span className="font-semibold">parent(i)</span> = ⌊(i-1)/2⌋
+                  </div>
+                  <div className="bg-purple-50 p-2 rounded text-center">
+                    <span className="font-semibold">left(i)</span> = 2i + 1
+                  </div>
+                  <div className="bg-purple-50 p-2 rounded text-center">
+                    <span className="font-semibold">right(i)</span> = 2i + 2
+                  </div>
+                </div>
+              </div>
+              {/* Current Index Calculation */}
+              {currentIndex !== undefined && currentIndex >= 0 && (
+                <div className="mt-3 p-2 bg-white rounded-lg border border-purple-200">
+                  <div className="text-xs text-gray-600 text-center">
+                    <span className="font-semibold text-purple-700">Current: i = {currentIndex}</span>
+                    {currentIndex > 0 && (
+                      <span className="mx-2">→ parent({currentIndex}) = ⌊({currentIndex}-1)/2⌋ = <span className="text-purple-600 font-bold">{Math.floor((currentIndex - 1) / 2)}</span></span>
+                    )}
+                    {2 * currentIndex + 1 < heap.length && (
+                      <span className="mx-2">→ left({currentIndex}) = <span className="text-purple-600 font-bold">{2 * currentIndex + 1}</span></span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Heap Tree Visualization */}
             <div className="mb-4">
               <div className="text-sm font-medium text-gray-700 mb-2">
@@ -450,6 +549,8 @@ const PriorityQueueVisualizerComponent: React.FC<
                         (swapIndices?.includes(idx) &&
                           swapIndices?.includes(parentIdx));
 
+                      const isOnPath = isEdgeOnPath(parentIdx, idx);
+
                       return (
                         <line
                           key={`edge-${idx}`}
@@ -457,8 +558,9 @@ const PriorityQueueVisualizerComponent: React.FC<
                           y1={parentPos.y}
                           x2={childPos.x}
                           y2={childPos.y}
-                          stroke={isHighlighted ? '#a855f7' : '#d1d5db'}
-                          strokeWidth={isHighlighted ? 2 : 1}
+                          stroke={isHighlighted ? '#a855f7' : isOnPath ? '#c4b5fd' : '#d1d5db'}
+                          strokeWidth={isHighlighted ? 3 : isOnPath ? 2 : 1}
+                          strokeDasharray={isOnPath && !isHighlighted ? '4,2' : undefined}
                         />
                       );
                     })}
@@ -474,7 +576,7 @@ const PriorityQueueVisualizerComponent: React.FC<
                         >
                           <circle
                             r="18"
-                            className={`${getNodeStyle(idx)} stroke-2 transition-all`}
+                            className={`${getNodeStyle(idx)} stroke-2 transition-colors`}
                           />
                           <text
                             textAnchor="middle"
