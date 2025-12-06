@@ -340,26 +340,6 @@ const HashTableVisualizerComponent: React.FC<HashTableVisualizerProps> = ({
     key: '',
   };
   const { operation, buckets, bucketIndex, key } = currentStepData;
-
-  const getBucketStyle = (index: number): string => {
-    if (index === bucketIndex) {
-      if (operation === 'collision') return 'border-red-400 bg-red-50';
-      if (operation === 'placed') return 'border-green-400 bg-green-50';
-      if (operation === 'insert') return 'border-yellow-400 bg-yellow-50';
-    }
-    return 'border-gray-300 bg-gray-50';
-  };
-
-  const getKeyStyle = (bucketKey: string | null): string => {
-    if (
-      bucketKey === key &&
-      (operation === 'placed' || operation === 'insert')
-    ) {
-      return 'bg-yellow-200 text-yellow-900 border-yellow-400';
-    }
-    return 'bg-blue-100 text-blue-800 border-blue-300';
-  };
-
   const currentDescription = steps[currentStep]?.description || '';
 
   return (
@@ -389,9 +369,9 @@ const HashTableVisualizerComponent: React.FC<HashTableVisualizerProps> = ({
       <div className="p-4">
         <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
           {/* Main Visualization */}
-          <VisualizationArea minHeight={350}>
+          <VisualizationArea minHeight={400} className="flex-1 min-w-0">
             {/* Keys to insert */}
-            <div className="mb-4">
+            <div className="mb-6">
               <div className="text-sm font-medium text-gray-700 mb-2">
                 Keys to insert:
               </div>
@@ -403,12 +383,12 @@ const HashTableVisualizerComponent: React.FC<HashTableVisualizerProps> = ({
                   return (
                     <span
                       key={idx}
-                      className={`px-2 py-1 text-xs rounded border ${
+                      className={`px-3 py-1.5 text-sm font-medium rounded-lg border-2 transition-colors ${
                         isInserted
-                          ? 'bg-green-100 text-green-700 border-green-300'
+                          ? 'bg-green-100 text-green-700 border-green-400'
                           : k === key
-                            ? 'bg-yellow-100 text-yellow-700 border-yellow-300'
-                            : 'bg-gray-100 text-gray-600 border-gray-300'
+                            ? 'bg-yellow-100 text-yellow-700 border-yellow-400 ring-2 ring-yellow-300'
+                            : 'bg-gray-50 text-gray-600 border-gray-300'
                       }`}
                     >
                       {k}
@@ -418,57 +398,112 @@ const HashTableVisualizerComponent: React.FC<HashTableVisualizerProps> = ({
               </div>
             </div>
 
-            {/* Hash Table Buckets */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Hash Table ({buckets.length} buckets):
+            {/* Hash Calculation - Prominent */}
+            <div className="mb-6 p-4 bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl border-2 border-violet-200 min-h-[80px]">
+              <div className="text-sm font-semibold text-violet-800 mb-2">
+                Hash Calculation
               </div>
-              <div
-                className="grid gap-2"
-                style={{
-                  gridTemplateColumns: `repeat(auto-fill, minmax(120px, 1fr))`,
-                }}
-              >
-                {buckets.map((bucket, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-2 rounded border-2 min-h-[60px] transition-all ${getBucketStyle(idx)}`}
-                  >
-                    <div className="text-xs font-mono text-gray-500 mb-1">
-                      [{idx}]
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {bucket.length === 0 ? (
-                        <span className="text-xs text-gray-400 italic">
-                          empty
-                        </span>
-                      ) : (
-                        bucket.map((bucketKey, keyIdx) => (
-                          <span
-                            key={keyIdx}
-                            className={`px-1.5 py-0.5 text-xs rounded border ${getKeyStyle(bucketKey)}`}
-                          >
-                            {bucketKey}
-                          </span>
-                        ))
-                      )}
-                    </div>
+              {operation === 'insert' && key ? (
+                <div className="flex flex-col items-center gap-2">
+                  <div className="font-mono text-lg text-gray-800">
+                    hash(<span className="text-violet-600 font-bold">&quot;{key}&quot;</span>) % {buckets.length} = <span className="text-violet-600 font-bold text-xl">{bucketIndex}</span>
                   </div>
-                ))}
-              </div>
+                  <div className="text-violet-600 text-2xl animate-bounce">↓</div>
+                </div>
+              ) : operation === 'collision' ? (
+                <div className="flex flex-col items-center gap-2">
+                  <div className="font-mono text-lg text-red-700">
+                    Collision at bucket <span className="font-bold">[{bucketIndex}]</span>! Adding to chain...
+                  </div>
+                  <div className="text-red-500 text-2xl">⚠️</div>
+                </div>
+              ) : operation === 'placed' ? (
+                <div className="flex flex-col items-center gap-2">
+                  <div className="font-mono text-lg text-green-700">
+                    <span className="font-bold">&quot;{key}&quot;</span> placed in bucket <span className="font-bold">[{bucketIndex}]</span>
+                  </div>
+                  <div className="text-green-500 text-2xl">✓</div>
+                </div>
+              ) : operation === 'rehash' ? (
+                <div className="flex flex-col items-center gap-2">
+                  <div className="font-mono text-lg text-orange-700">
+                    Rehashing: expanding table...
+                  </div>
+                  <div className="text-orange-500 text-2xl">🔄</div>
+                </div>
+              ) : (
+                <div className="text-gray-400 text-center">
+                  Click Play to start visualization
+                </div>
+              )}
             </div>
 
-            {/* Hash Function Demo */}
-            {operation === 'insert' && key && (
-              <div className="mb-4 p-3 bg-gray-100 rounded-lg">
-                <div className="text-sm font-medium text-gray-700 mb-1">
-                  Hash Calculation:
-                </div>
-                <div className="font-mono text-sm">
-                  hash(&quot;{key}&quot;) mod {buckets.length} = {bucketIndex}
+            {/* Hash Table Buckets - Horizontal Row */}
+            <div className="mb-6">
+              <div className="text-sm font-medium text-gray-700 mb-3">
+                Hash Table ({buckets.length} buckets):
+              </div>
+              <div className="overflow-x-auto pb-2">
+                <div className="flex gap-1" style={{ minWidth: 'max-content' }}>
+                  {buckets.map((bucket, idx) => (
+                    <div
+                      key={idx}
+                      className="flex flex-col items-center"
+                      style={{ minWidth: '70px' }}
+                    >
+                      {/* Bucket Index */}
+                      <div
+                        className={`w-full text-center py-1 px-2 rounded-t-lg font-mono text-sm font-bold transition-colors ${
+                          idx === bucketIndex
+                            ? operation === 'collision'
+                              ? 'bg-red-500 text-white'
+                              : operation === 'placed'
+                                ? 'bg-green-500 text-white'
+                                : 'bg-yellow-400 text-yellow-900'
+                            : 'bg-gray-200 text-gray-600'
+                        }`}
+                      >
+                        [{idx}]
+                      </div>
+                      {/* Bucket Content - Vertical Chain */}
+                      <div
+                        className={`w-full border-2 rounded-b-lg min-h-[100px] p-1 transition-colors ${
+                          idx === bucketIndex
+                            ? operation === 'collision'
+                              ? 'border-red-400 bg-red-50'
+                              : operation === 'placed'
+                                ? 'border-green-400 bg-green-50'
+                                : 'border-yellow-400 bg-yellow-50'
+                            : 'border-gray-300 bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex flex-col gap-1">
+                          {bucket.length === 0 ? (
+                            <span className="text-xs text-gray-400 italic text-center py-2">
+                              empty
+                            </span>
+                          ) : (
+                            bucket.map((bucketKey, keyIdx) => (
+                              <div
+                                key={keyIdx}
+                                className={`px-2 py-1 text-xs font-medium rounded border text-center transition-colors ${
+                                  bucketKey === key &&
+                                  (operation === 'placed' || operation === 'insert')
+                                    ? 'bg-yellow-200 text-yellow-900 border-yellow-400'
+                                    : 'bg-blue-100 text-blue-800 border-blue-300'
+                                }`}
+                              >
+                                {bucketKey}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Status */}
             <StatusPanel

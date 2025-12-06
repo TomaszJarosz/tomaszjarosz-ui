@@ -315,39 +315,90 @@ const DPVisualizerComponent: React.FC<DPVisualizerProps> = ({
       <div className="p-4">
         <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
           {/* Main Visualization */}
-          <VisualizationArea minHeight={400}>
+          <VisualizationArea minHeight={450} className="flex-1 min-w-0">
+            {/* DP Recurrence Formula - Prominent */}
+            <div className="mb-6 p-4 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl border-2 border-teal-200">
+              <div className="text-sm font-semibold text-teal-800 mb-3">
+                DP Recurrence Formula
+              </div>
+              <div className="font-mono text-sm bg-white rounded-lg p-3 border border-teal-200">
+                <div className="text-gray-600 mb-2">
+                  dp[i][w] = max(
+                  <span className="text-yellow-600 font-bold"> skip</span>,
+                  <span className="text-green-600 font-bold"> take</span>
+                  )
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-xs mt-3">
+                  <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
+                    <span className="text-yellow-700 font-bold">skip</span>
+                    <span className="text-gray-600"> = dp[i-1][w]</span>
+                    <div className="text-gray-500 mt-1">Don&apos;t take item i</div>
+                  </div>
+                  <div className="bg-green-50 p-2 rounded border border-green-200">
+                    <span className="text-green-700 font-bold">take</span>
+                    <span className="text-gray-600"> = dp[i-1][w-weight] + value</span>
+                    <div className="text-gray-500 mt-1">Take item i</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Calculation */}
+              {currentI > 0 && currentW > 0 && (
+                <div className="mt-4 p-3 bg-white rounded-lg border-2 border-purple-300">
+                  <div className="text-sm font-semibold text-purple-800 mb-2">
+                    Current: dp[{currentI}][{currentW}]
+                  </div>
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="text-gray-600">
+                      Item {currentI}: <span className="font-mono">w={items[currentI-1]?.weight}, v={items[currentI-1]?.value}</span>
+                    </div>
+                    {decision && (
+                      <div className={`px-3 py-1 rounded-full font-bold ${
+                        decision === 'take'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {decision === 'take' ? '✓ TAKE' : '✗ SKIP'}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-6">
               {/* Items List */}
-              <div className="w-36">
+              <div className="w-40">
                 <div className="text-sm font-medium text-gray-700 mb-2">
-                  Items:
+                  Items (i = item index):
                 </div>
                 <div className="space-y-1">
                   {items.map((item, idx) => (
                     <div
                       key={idx}
-                      className={`px-2 py-1 rounded text-xs ${
+                      className={`px-2 py-1.5 rounded text-xs transition-colors ${
                         idx + 1 === currentI
-                          ? 'bg-purple-100 text-purple-800 font-medium'
+                          ? 'bg-purple-200 text-purple-900 font-bold ring-2 ring-purple-400'
                           : idx + 1 < currentI
                             ? 'bg-blue-50 text-blue-600'
                             : 'bg-gray-100 text-gray-500'
                       }`}
                     >
-                      Item {idx + 1}: w={item.weight}, v={item.value}
+                      <span className="font-mono">i={idx + 1}</span>: w={item.weight}, v={item.value}
+                      {idx + 1 === currentI && <span className="ml-1">← CURRENT</span>}
                     </div>
                   ))}
                 </div>
-                <div className="mt-3 text-sm">
-                  <span className="font-medium text-gray-700">Capacity:</span>{' '}
-                  <span className="text-gray-900">{capacity}</span>
+                <div className="mt-3 text-sm p-2 bg-gray-100 rounded">
+                  <span className="font-medium text-gray-700">Max Capacity:</span>{' '}
+                  <span className="text-gray-900 font-mono">{capacity}</span>
                 </div>
               </div>
 
               {/* DP Table */}
               <div className="flex-1 overflow-x-auto">
                 <div className="text-sm font-medium text-gray-700 mb-2">
-                  DP Table:
+                  DP Table (w = current capacity):
                 </div>
                 <table className="text-xs border-collapse">
                   <thead>

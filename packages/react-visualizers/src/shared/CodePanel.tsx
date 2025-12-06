@@ -23,7 +23,7 @@ export const CodePanel: React.FC<CodePanelProps> = ({
       {code.map((line, idx) => (
         <div
           key={idx}
-          className={`px-0.5 rounded transition-all whitespace-pre ${
+          className={`px-0.5 rounded transition-colors whitespace-pre ${
             idx === activeLine
               ? 'bg-yellow-500/30 text-yellow-200 border-l border-yellow-400'
               : 'text-gray-400 border-l border-transparent'
@@ -36,13 +36,13 @@ export const CodePanel: React.FC<CodePanelProps> = ({
         </div>
       ))}
     </div>
-    {variables && Object.keys(variables).length > 0 && (
-      <div className="mt-1 pt-1 border-t border-gray-700">
-        <div className="text-[8px] text-gray-500 uppercase tracking-wide mb-0.5">
-          Vars
-        </div>
-        <div className="flex flex-wrap gap-0.5">
-          {Object.entries(variables).map(([key, value]) => (
+    <div className="mt-1 pt-1 border-t border-gray-700 min-h-[36px]">
+      <div className="text-[8px] text-gray-500 uppercase tracking-wide mb-0.5">
+        Vars
+      </div>
+      <div className="flex flex-wrap gap-0.5">
+        {variables && Object.keys(variables).length > 0 ? (
+          Object.entries(variables).map(([key, value]) => (
             <span
               key={key}
               className="px-0.5 bg-gray-800 rounded text-[9px] text-gray-300"
@@ -51,10 +51,12 @@ export const CodePanel: React.FC<CodePanelProps> = ({
               <span className="text-gray-500">=</span>
               <span className="text-green-400">{value}</span>
             </span>
-          ))}
-        </div>
+          ))
+        ) : (
+          <span className="text-[9px] text-gray-600">—</span>
+        )}
       </div>
-    )}
+    </div>
   </div>
 );
 
