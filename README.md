@@ -1,78 +1,88 @@
-# Tomasz Jarosz UI
+# @tomaszjarosz/ui
 
-A collection of React UI components for building modern web applications.
+React UI component library - visualizers, markdown components, and article reading utilities.
 
 ## Packages
 
-| Package | Description | npm |
-|---------|-------------|-----|
-| [@tomaszjarosz/react-visualizers](./packages/react-visualizers) | Interactive algorithm and data structure visualizers | [![npm](https://img.shields.io/npm/v/@tomaszjarosz/react-visualizers)](https://www.npmjs.com/package/@tomaszjarosz/react-visualizers) |
-| [@tomaszjarosz/react-markdown](./packages/react-markdown) | Enhanced markdown components - code blocks, callouts, diagrams | [![npm](https://img.shields.io/npm/v/@tomaszjarosz/react-markdown)](https://www.npmjs.com/package/@tomaszjarosz/react-markdown) |
-| [@tomaszjarosz/react-article](./packages/react-article) | Article reading components - TOC, bookmarks, keyboard navigation | [![npm](https://img.shields.io/npm/v/@tomaszjarosz/react-article)](https://www.npmjs.com/package/@tomaszjarosz/react-article) |
+| Package | Description | Size |
+|---------|-------------|------|
+| [@tomaszjarosz/react-visualizers](./packages/react-visualizers) | Algorithm & data structure visualizers | 55 kB gzip |
+| [@tomaszjarosz/react-markdown](./packages/react-markdown) | Code blocks, callouts, diagrams | 374 kB gzip |
+| [@tomaszjarosz/react-article](./packages/react-article) | Reading progress, TOC, bookmarks | 4 kB gzip |
 
 ## Installation
 
 ```bash
-# Choose the package you need
-bun add @tomaszjarosz/react-visualizers
-bun add @tomaszjarosz/react-markdown
-bun add @tomaszjarosz/react-article
-
-# Or with npm/pnpm
+# Visualizers
 npm install @tomaszjarosz/react-visualizers
+
+# Markdown components
+npm install @tomaszjarosz/react-markdown
+
+# Article reading utilities
+npm install @tomaszjarosz/react-article
 ```
+
+## Requirements
+
+- React 17+ or 18+
+- Tailwind CSS (peer dependency for styling)
 
 ## Quick Start
 
 ### Visualizers
 
 ```tsx
-import { SortingVisualizer } from '@tomaszjarosz/react-visualizers';
+import { BubbleSortVisualizer } from '@tomaszjarosz/react-visualizers';
 
 function App() {
-  return <SortingVisualizer algorithm="quicksort" data={[5, 2, 8, 1, 9]} />;
+  return <BubbleSortVisualizer />;
 }
 ```
 
 ### Markdown Components
 
 ```tsx
-import { CodeBlock, Callout } from '@tomaszjarosz/react-markdown';
+import { CodeBlockWithLanguage, Callout } from '@tomaszjarosz/react-markdown';
 
 function Article() {
   return (
     <>
-      <Callout type="warning">Important notice!</Callout>
-      <CodeBlock language="typescript" code="const x = 1;" />
+      <Callout type="info" title="Note">
+        This is an info callout.
+      </Callout>
+      <CodeBlockWithLanguage
+        language="typescript"
+        code={`const hello = "world";`}
+        highlightLines={[]}
+        codeStyle={{}}
+      />
     </>
   );
 }
 ```
 
-### Article Components
+### Article Reading
 
 ```tsx
-import { TableOfContents, useActiveSection } from '@tomaszjarosz/react-article';
+import { ReadingProgressBar, TableOfContents } from '@tomaszjarosz/react-article';
 
-function ArticlePage({ headings }) {
-  const activeId = useActiveSection(headings);
+function ArticlePage() {
+  const tocItems = [
+    { id: 'intro', text: 'Introduction', level: 2, originalText: 'Introduction' },
+    { id: 'setup', text: 'Setup', level: 2, originalText: 'Setup' },
+  ];
 
   return (
-    <aside>
-      <TableOfContents headings={headings} activeId={activeId} />
-    </aside>
+    <>
+      <ReadingProgressBar showPercentage />
+      <TableOfContents items={tocItems} />
+    </>
   );
 }
 ```
 
 ## Development
-
-### Prerequisites
-
-- Node.js >= 18
-- [Bun](https://bun.sh) >= 1.0
-
-### Setup
 
 ```bash
 # Install dependencies
@@ -81,39 +91,10 @@ bun install
 # Build all packages
 bun run build
 
-# Run in dev mode (watch)
-bun run dev
-
-# Type check
-bun run typecheck
-
-# Lint
-bun run lint
+# Build specific package
+bun run build --filter=@tomaszjarosz/react-visualizers
 ```
-
-### Project Structure
-
-```
-tomaszjarosz-ui/
-├── packages/
-│   ├── react-visualizers/    # Algorithm visualizers
-│   ├── react-markdown/       # Markdown components
-│   └── react-article/        # Article reading components
-├── turbo.json                # Turborepo config
-├── pnpm-workspace.yaml       # pnpm workspaces
-└── package.json              # Root package.json
-```
-
-## Contributing
-
-Contributions are welcome! Please read the contributing guidelines before submitting a PR.
 
 ## License
 
-MIT - see [LICENSE](./LICENSE) for details.
-
-## Author
-
-**Tomasz Jarosz**
-- Website: [tomaszjarosz.dev](https://tomaszjarosz.dev)
-- GitHub: [@tomaszjarosz](https://github.com/tomaszjarosz)
+MIT

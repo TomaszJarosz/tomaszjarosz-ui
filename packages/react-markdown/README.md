@@ -1,114 +1,118 @@
 # @tomaszjarosz/react-markdown
 
-Enhanced markdown components for React - code blocks, callouts, diagrams.
+Enhanced markdown components for React - code blocks with syntax highlighting, callouts, and Mermaid diagrams.
 
 ## Installation
 
 ```bash
-pnpm add @tomaszjarosz/react-markdown
-# or
 npm install @tomaszjarosz/react-markdown
 ```
 
-## Features
+## Requirements
 
-- **Code Blocks**: Syntax highlighting, line numbers, copy button, collapsible
-- **Callouts**: Info, warning, error, success, tip callouts
-- **Diagrams**: Mermaid diagram support
+- React 17+ or 18+
+- Tailwind CSS
 
-## Usage
+## Components
 
-### Code Block
+### Code Blocks
 
 ```tsx
-import { CodeBlock } from '@tomaszjarosz/react-markdown';
+import { 
+  CodeBlockWithLanguage, 
+  SimpleCodeBlock, 
+  InlineCode,
+  CopyCodeButton 
+} from '@tomaszjarosz/react-markdown';
 
-function Example() {
-  return (
-    <CodeBlock
-      language="typescript"
-      code={`function greet(name: string) {
-  return \`Hello, \${name}!\`;
+// Full-featured code block with syntax highlighting
+<CodeBlockWithLanguage
+  language="typescript"
+  code={`function hello() {
+  return "world";
 }`}
-      showLineNumbers
-      highlightLines={[2]}
-    />
-  );
-}
+  highlightLines={[2]}
+  codeStyle={{}}
+/>
+
+// Simple code block without highlighting
+<SimpleCodeBlock code="npm install">
+  npm install
+</SimpleCodeBlock>
+
+// Inline code
+<InlineCode>const x = 1</InlineCode>
 ```
 
-### Callout
+### Callouts
 
 ```tsx
 import { Callout } from '@tomaszjarosz/react-markdown';
 
-function Example() {
-  return (
-    <>
-      <Callout type="info">
-        This is informational content.
-      </Callout>
+<Callout type="info" title="Information">
+  This is an info callout.
+</Callout>
 
-      <Callout type="warning">
-        Be careful with this operation!
-      </Callout>
+<Callout type="warning" title="Warning">
+  Be careful with this operation.
+</Callout>
 
-      <Callout type="error">
-        Something went wrong.
-      </Callout>
-    </>
-  );
-}
+<Callout type="success">
+  Operation completed successfully!
+</Callout>
+
+<Callout type="error" title="Error">
+  Something went wrong.
+</Callout>
+
+<Callout type="tip">
+  Here's a helpful tip.
+</Callout>
 ```
 
-### Mermaid Diagram
+**Available types:** `info`, `warning`, `success`, `error`, `note`, `tip`, `example`, `problem`, `solution`
+
+### Mermaid Diagrams
 
 ```tsx
 import { MermaidDiagram } from '@tomaszjarosz/react-markdown';
 
-function Example() {
-  return (
-    <MermaidDiagram
-      chart={`
-        flowchart TD
-          A[Start] --> B{Decision}
-          B -->|Yes| C[Process]
-          B -->|No| D[End]
-      `}
-    />
-  );
-}
+<MermaidDiagram
+  chart={`
+    flowchart LR
+      A[Start] --> B{Decision}
+      B -->|Yes| C[OK]
+      B -->|No| D[Cancel]
+  `}
+/>
 ```
 
-## Available Components
+Features:
+- Lazy loading (Mermaid library loaded on demand)
+- XSS protection with DOMPurify
+- Responsive SVG output
+- Error handling with source preview
 
-| Component | Description |
-|-----------|-------------|
-| `CodeBlock` | Syntax-highlighted code block with copy button |
-| `InlineCode` | Inline code styling |
-| `Callout` | Info/warning/error/success callouts |
-| `MermaidDiagram` | Mermaid diagram renderer |
+## Exports
 
-## Props
-
-### CodeBlock
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `code` | `string` | required | The code to display |
-| `language` | `string` | `'text'` | Language for syntax highlighting |
-| `showLineNumbers` | `boolean` | `false` | Show line numbers |
-| `highlightLines` | `number[]` | `[]` | Lines to highlight |
-| `collapsible` | `boolean` | `false` | Enable collapse for long code |
-| `maxHeight` | `number` | `300` | Max height before collapse |
-
-### Callout
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `type` | `'info' \| 'warning' \| 'error' \| 'success' \| 'tip'` | `'info'` | Callout type |
-| `title` | `string` | - | Optional title |
-| `children` | `ReactNode` | required | Callout content |
+```tsx
+import {
+  // Code components
+  CodeBlockWithLanguage,
+  CodeBlockHeader,
+  SimpleCodeBlock,
+  InlineCode,
+  CopyCodeButton,
+  LazyCodeHighlighter,
+  LazyCodeHighlighterWrapper,
+  
+  // Callouts
+  Callout,
+  
+  // Diagrams
+  MermaidDiagram,
+} from '@tomaszjarosz/react-markdown';
+```
 
 ## License
 
