@@ -1,0 +1,370 @@
+import React, { useMemo, useCallback } from 'react';
+import {
+  CodePanel,
+  HelpPanel,
+  ControlPanel,
+  Legend,
+  StatusPanel,
+  ShareButton,
+  useUrlState,
+  useVisualizerPlayback,
+  VisualizationArea,
+} from '../shared';
+
+interface Node {
+  value: number;
+  id: number;
+}
+
+interface LinkedListStep {
+  operation:
+    | 'addFirst'
+    | 'addLast'
+    | 'removeFirst'
+    | 'removeLast'
+    | 'get'
+    | 'init'
+    | 'done';
+  value?: number;
+  index?: number;
+  nodes: Node[];
+  description: string;
+  codeLine?: number;
+  variables?: Record<string, string | number>;
+  highlightNode?: number;
+  traverseProgress?: number;
+}
+
+interface LinkedListVisualizerProps {
+  showControls?: boolean;
+  showCode?: boolean;
+  className?: string;
+}
+
+const OPERATIONS: Array<{
+  op: 'addFirst' | 'addLast' | 'removeFirst' | 'removeLast' | 'get';
+  value?: number;
+  index?: number;
+}> = [
+  { op: 'addFirst', value: 10 },
+  { op: 'addLast', value: 20 },
+  { op: 'addLast', value: 30 },
+  { op: 'addFirst', value: 5 },
+  { op: 'addLast', value: 40 },
+  { op: 'get', index: 2 },
+  { op: 'removeFirst' },
+  { op: 'removeLast' },
+  { op: 'get', index: 1 },
+];
+
+const LINKEDLIST_CODE = [
+  'class Node { value, next, prev }',
+  '',
+  'addFirst(value):',
+  '  node = new Node(value)',
+  '  node.next = head',
+  '  head.prev = node',
+  '  head = node',
+  '',
+  'addLast(value):',
+  '  node = new Node(value)',
+  '  tail.next = node',
+  '  node.prev = tail',
+  '  tail = node',
+  '',
+  'get(index):',
+  '  node = head',
+  '  for i = 0 to index:',
+  '    node = node.next',
+  '  return node.value',
+];
+
+const LEGEND_ITEMS = [
+  { color: 'bg-white', label: 'Node', border: '#d1d5db' },
+  { color: 'bg-blue-500', label: 'Active' },
+];
+
+let nodeIdCounter = 0;
+
+function generateLinkedListSteps(): LinkedListStep[] {
+  const steps: LinkedListStep[] = [];
+  let nodes: Node[] = [];
+  nodeIdCounter = 0;
+
+  steps.push({
+    operation: 'init',
+    nodes: [],
+    description:
+      'Initialize empty LinkedList (doubly-linked). O(1) for add/remove at ends, O(n) for indexed access.',
+    codeLine: -1,
+  });
+
+  for (const { op, value, index } of OPERATIONS) {
+    if (op === 'addFirst' && value !== undefined) {
+      const newNode: Node = { value, id: nodeIdCounter++ };
+      nodes = [newNode, ...nodes];
+
+      steps.push({
+        operation: 'addFirst',
+        value,
+        nodes: [...nodes],
+        description: `addFirst(${value}): Create new node, link to old head, update head pointer → O(1)`,
+        codeLine: 2,
+        variables: { value, size: nodes.length },
+        highlightNode: newNode.id,
+      });
+    } else if (op === 'addLast' && value !== undefined) {
+      const newNode: Node = { value, id: nodeIdCounter++ };
+      nodes = [...nodes, newNode];
+
+      steps.push({
+        operation: 'addLast',
+        value,
+        nodes: [...nodes],
+        description: `addLast(${value}): Create new node, link from old tail, update tail pointer → O(1)`,
+        codeLine: 8,
+        variables: { value, size: nodes.length },
+        highlightNode: newNode.id,
+      });
+    } else if (op === 'removeFirst') {
+      const removed = nodes[0];
+      nodes = nodes.slice(1);
+
+      steps.push({
+        operation: 'removeFirst',
+        value: removed?.value,
+        nodes: [...nodes],
+        description: `removeFirst(): Remove head node (${removed?.value}), update head to next → O(1)`,
+        codeLine: 2,
+        variables: { removed: removed?.value ?? 'null', size: nodes.length },
+      });
+    } else if (op === 'removeLast') {
+      const removed = nodes[nodes.length - 1];
+      nodes = nodes.slice(0, -1);
+
+      steps.push({
+        operation: 'removeLast',
+        value: removed?.value,
+        nodes: [...nodes],
+        description: `removeLast(): Remove tail node (${removed?.value}), update tail to prev → O(1)`,
+        codeLine: 8,
+        variables: { removed: removed?.value ?? 'null', size: nodes.length },
+      });
+    } else if (op === 'get' && index !== undefined) {
+      // Show traversal
+      for (let i = 0; i <= index && i < nodes.length; i++) {
+        steps.push({
+          operation: 'get',
+          index,
+          nodes: [...nodes],
+          description:
+            i < index
+              ? `get(${index}): Traversing... at index ${i}, need to reach ${index}`
+              : `get(${index}): Found! Value = ${nodes[i]?.value} after ${i + 1} steps → O(n)`,
+          codeLine: i < index ? 16 : 17,
+          variables: { index, current: i, value: nodes[i]?.value ?? 'null' },
+          highlightNode: nodes[i]?.id,
+          traverseProgress: i,
+        });
+      }
+    }
+  }
+
+  steps.push({
+    operation: 'done',
+    nodes: [...nodes],
+    description: `✓ Done! LinkedList has ${nodes.length} elements. Remember: O(1) ends, O(n) middle access.`,
+    codeLine: -1,
+    variables: { size: nodes.length },
+  });
+
+  return steps;
+}
+
+const LinkedListVisualizerComponent: React.FC<LinkedListVisualizerProps> = ({
+  showControls = true,
+  showCode = true,
+  className = '',
+}) => {
+  const VISUALIZER_ID = 'linkedlist-visualizer';
+  const { copyUrlToClipboard } = useUrlState({ prefix: 'linkedlist', scrollToId: VISUALIZER_ID });
+
+  const generateSteps = useMemo(() => generateLinkedListSteps, []);
+
+  const {
+    steps,
+    currentStep,
+    currentStepData,
+    isPlaying,
+    speed,
+    setSpeed,
+    handlePlayPause,
+    handleStep,
+    handleStepBack,
+    handleReset,
+  } = useVisualizerPlayback<LinkedListStep>({
+    generateSteps,
+  });
+
+  const stepData = currentStepData || {
+    operation: 'init' as const,
+    nodes: [],
+    description: '',
+  };
+
+  const { nodes, highlightNode, description } = stepData;
+
+  const getStatusVariant = () => {
+    if (stepData.operation === 'done') return 'success' as const;
+    return 'default' as const;
+  };
+
+  const handleShare = useCallback(async () => {
+    return copyUrlToClipboard({ step: currentStep });
+  }, [copyUrlToClipboard, currentStep]);
+
+  return (
+    <div
+      id={VISUALIZER_ID}
+      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
+    >
+      {/* Header */}
+      <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-3">
+            <h3 className="font-semibold text-gray-900">
+              LinkedList Operations
+            </h3>
+            <div className="flex gap-2">
+              <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">
+                Ends: O(1)
+              </span>
+              <span className="px-2 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-700 rounded">
+                Index: O(n)
+              </span>
+            </div>
+          </div>
+          <ShareButton onShare={handleShare} />
+        </div>
+      </div>
+
+      {/* Visualization Area */}
+      <div className="p-4">
+        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
+          {/* Main Visualization */}
+          <VisualizationArea minHeight={350} className={showCode ? 'flex-1' : 'w-full'}>
+            {/* LinkedList Visualization */}
+            <div className="mb-4">
+              <div className="text-sm font-medium text-gray-700 mb-2">
+                Doubly-Linked List
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
+                {nodes.length > 0 ? (
+                  <div className="flex items-center gap-1 min-w-max">
+                    <div className="text-xs text-gray-500 font-mono mr-2">
+                      head →
+                    </div>
+                    {nodes.map((node, idx) => (
+                      <React.Fragment key={node.id}>
+                        <div
+                          className={`flex flex-col items-center transition-all ${
+                            node.id === highlightNode ? 'scale-110' : ''
+                          }`}
+                        >
+                          <div
+                            className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 font-medium transition-colors ${
+                              node.id === highlightNode
+                                ? 'bg-blue-500 border-blue-600 text-white'
+                                : 'bg-white border-gray-300 text-gray-700'
+                            }`}
+                          >
+                            {node.value}
+                          </div>
+                          <div className="text-[10px] text-gray-400 mt-1">
+                            idx:{idx}
+                          </div>
+                        </div>
+                        {idx < nodes.length - 1 && (
+                          <div className="flex items-center text-gray-400">
+                            <span className="text-lg">⇄</span>
+                          </div>
+                        )}
+                      </React.Fragment>
+                    ))}
+                    <div className="text-xs text-gray-500 font-mono ml-2">
+                      ← tail
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-16 flex items-center justify-center text-gray-400 text-sm">
+                    Empty list (head = tail = null)
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Pointers Info */}
+            {nodes.length > 0 && (
+              <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+                <div className="text-xs text-gray-600 flex gap-4">
+                  <span>
+                    <span className="font-medium">head:</span> {nodes[0]?.value}
+                  </span>
+                  <span>
+                    <span className="font-medium">tail:</span>{' '}
+                    {nodes[nodes.length - 1]?.value}
+                  </span>
+                  <span>
+                    <span className="font-medium">size:</span> {nodes.length}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Status */}
+            <StatusPanel
+              description={description}
+              currentStep={currentStep}
+              totalSteps={steps.length}
+              variant={getStatusVariant()}
+            />
+          </VisualizationArea>
+
+          {/* Code Panel */}
+          {showCode && (
+            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
+              <CodePanel
+                code={LINKEDLIST_CODE}
+                activeLine={currentStepData?.codeLine ?? -1}
+                variables={currentStepData?.variables}
+              />
+              <HelpPanel />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Controls */}
+      {showControls && (
+        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+          <ControlPanel
+            isPlaying={isPlaying}
+            currentStep={currentStep}
+            totalSteps={steps.length}
+            speed={speed}
+            onPlayPause={handlePlayPause}
+            onStep={handleStep}
+            onStepBack={handleStepBack}
+            onReset={handleReset}
+            onSpeedChange={setSpeed}
+            accentColor="blue"
+          />
+          <Legend items={LEGEND_ITEMS} />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const LinkedListVisualizer = React.memo(LinkedListVisualizerComponent);
+export default LinkedListVisualizer;
