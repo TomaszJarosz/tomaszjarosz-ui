@@ -485,9 +485,36 @@ const LinkedHashMapVisualizerComponent: React.FC<LinkedHashMapVisualizerProps> =
         <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
           {/* Main Visualization */}
           <VisualizationArea minHeight={400} className={showCode ? 'flex-1' : 'w-full'}>
-            {/* Dual Structure Info */}
-            <div className="mb-3 p-2 bg-amber-50 rounded text-xs text-amber-700">
-              <strong>Dual structure:</strong> Hash table (O(1) lookup) + Doubly-linked list (ordered iteration)
+            {/* Dual Structure - Prominent */}
+            <div className="mb-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border-2 border-orange-200">
+              <div className="text-sm font-bold text-orange-800 mb-3 flex items-center gap-2">
+                <span className="text-lg">🔗</span> LinkedHashMap = HashMap + LinkedList
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-white p-3 rounded-lg border border-orange-200">
+                  <div className="text-xs font-semibold text-gray-700 mb-1">
+                    🗂️ Hash Table
+                  </div>
+                  <div className="text-[10px] text-gray-500">
+                    O(1) get/put • Same as HashMap
+                  </div>
+                </div>
+                <div className="bg-white p-3 rounded-lg border border-orange-200">
+                  <div className="text-xs font-semibold text-gray-700 mb-1">
+                    🔗 Doubly Linked List
+                  </div>
+                  <div className="text-[10px] text-gray-500">
+                    {accessOrder ? 'Access order (LRU cache)' : 'Insertion order'} • O(1) reorder
+                  </div>
+                </div>
+              </div>
+              {stepData.operation === 'access' && (
+                <div className="mt-3 p-2 bg-orange-100 rounded-lg border border-orange-300">
+                  <div className="text-xs text-center text-orange-800">
+                    <span className="font-bold">LRU Update:</span> Entry &quot;{stepData.key}&quot; moved to end of list (most recently used)
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Bucket Array */}
@@ -526,31 +553,40 @@ const LinkedHashMapVisualizerComponent: React.FC<LinkedHashMapVisualizerProps> =
               </div>
             </div>
 
-            {/* Linked List Order */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                {accessOrder ? 'Access Order (LRU: oldest → newest)' : 'Insertion Order'}
+            {/* Linked List Order - Prominent */}
+            <div className="mb-4 p-3 bg-gradient-to-r from-orange-100 to-amber-100 rounded-xl border-2 border-orange-300">
+              <div className="text-sm font-semibold text-orange-800 mb-2 flex items-center gap-2">
+                <span>🔗</span> {accessOrder ? 'Access Order (LRU: oldest → newest)' : 'Insertion Order'}
               </div>
-              <div className="flex flex-wrap items-center gap-1">
-                {linkedOrder.length > 0 ? (
-                  <>
-                    <span className="text-[10px] text-gray-500">HEAD →</span>
-                    {linkedOrder.map((key, idx) => (
-                      <React.Fragment key={key}>
-                        {idx > 0 && (
-                          <span className="text-orange-400">→</span>
-                        )}
-                        <div
-                          className={`px-2 py-0.5 text-xs font-medium rounded transition-all ${getLinkedNodeStyle(key)}`}
-                        >
-                          {key}
-                        </div>
-                      </React.Fragment>
-                    ))}
-                    <span className="text-[10px] text-gray-500">→ TAIL</span>
-                  </>
-                ) : (
-                  <span className="text-xs text-gray-400 italic">Empty list</span>
+              <div className="bg-white rounded-lg p-3 border border-orange-200">
+                <div className="flex flex-wrap items-center gap-1">
+                  {linkedOrder.length > 0 ? (
+                    <>
+                      <div className="px-2 py-1 bg-gray-100 text-[10px] text-gray-600 rounded font-semibold">HEAD</div>
+                      <span className="text-orange-400 font-bold">→</span>
+                      {linkedOrder.map((key, idx) => (
+                        <React.Fragment key={key}>
+                          {idx > 0 && (
+                            <span className="text-orange-400 font-bold">⇄</span>
+                          )}
+                          <div
+                            className={`px-3 py-1 text-xs font-bold rounded-full transition-colors ${getLinkedNodeStyle(key)}`}
+                          >
+                            {key}
+                          </div>
+                        </React.Fragment>
+                      ))}
+                      <span className="text-orange-400 font-bold">→</span>
+                      <div className="px-2 py-1 bg-gray-100 text-[10px] text-gray-600 rounded font-semibold">TAIL</div>
+                    </>
+                  ) : (
+                    <span className="text-xs text-gray-400 italic">HEAD → TAIL (empty)</span>
+                  )}
+                </div>
+                {linkedOrder.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-orange-200 text-[10px] text-gray-500 text-center">
+                    Doubly linked: each entry has prev/next pointers
+                  </div>
                 )}
               </div>
             </div>
