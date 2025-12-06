@@ -384,8 +384,88 @@ const DijkstraVisualizerComponent: React.FC<DijkstraVisualizerProps> = ({
       <div className="p-4 overflow-x-auto">
         <div className="flex flex-col lg:flex-row gap-4 min-w-0">
           {/* Main Visualization */}
-          <VisualizationArea minHeight={400}>
-            {/* Graph SVG - larger */}
+          <VisualizationArea minHeight={500} className="flex-1 min-w-0">
+            {/* Distance Array - PROMINENT */}
+            <div className="mb-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border-2 border-orange-200">
+              <div className="text-sm font-semibold text-orange-800 mb-3">
+                Distance Array (shortest paths from node 0)
+              </div>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {distances.map((dist, idx) => {
+                  const isSource = idx === 0;
+                  const isCurrent = idx === current;
+                  const isVisited = visited.includes(idx);
+
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex flex-col items-center p-2 rounded-lg border-2 min-w-[60px] transition-colors ${
+                        isCurrent
+                          ? 'bg-yellow-100 border-yellow-400 ring-2 ring-yellow-300'
+                          : isVisited
+                            ? 'bg-green-100 border-green-400'
+                            : 'bg-white border-gray-300'
+                      }`}
+                    >
+                      <div className={`text-xs font-medium ${
+                        isCurrent ? 'text-yellow-800' : isVisited ? 'text-green-800' : 'text-gray-500'
+                      }`}>
+                        Node {idx}
+                        {isSource && <span className="ml-1">(src)</span>}
+                      </div>
+                      <div className={`text-xl font-bold font-mono ${
+                        isCurrent ? 'text-yellow-900' : isVisited ? 'text-green-900' : 'text-gray-700'
+                      }`}>
+                        {dist === Infinity ? '∞' : dist}
+                      </div>
+                      {isCurrent && <div className="text-xs text-yellow-700 font-bold">← PROCESSING</div>}
+                      {isVisited && !isCurrent && <div className="text-xs text-green-600">✓ Final</div>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Relaxation Explanation */}
+            <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="text-sm font-semibold text-blue-800 mb-2">
+                Relaxation Formula
+              </div>
+              <div className="font-mono text-sm text-center">
+                if dist[u] + weight(u,v) &lt; dist[v] → <span className="text-green-600 font-bold">update dist[v]</span>
+              </div>
+            </div>
+
+            {/* Priority Queue - More visible */}
+            <div className="mb-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-semibold text-orange-800">Priority Queue (min-heap)</span>
+                <span className="text-xs text-orange-600">(node:distance)</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {priorityQueue.length > 0 ? (
+                  priorityQueue
+                    .sort((a, b) => a.dist - b.dist)
+                    .map((item, index) => (
+                      <span
+                        key={index}
+                        className={`px-3 py-1.5 rounded-lg font-mono text-sm font-medium ${
+                          index === 0
+                            ? 'bg-orange-200 text-orange-900 ring-2 ring-orange-400'
+                            : 'bg-white text-orange-800 border border-orange-300'
+                        }`}
+                      >
+                        {item.node}:{item.dist}
+                        {index === 0 && <span className="ml-1 text-xs">← MIN</span>}
+                      </span>
+                    ))
+                ) : (
+                  <span className="text-sm text-gray-400 italic">empty</span>
+                )}
+              </div>
+            </div>
+
+            {/* Graph SVG */}
             <div className="bg-gray-50 rounded-lg">
               <svg viewBox="0 0 420 300" className="w-full h-64 md:h-72">
                 {/* Edges with weights */}
@@ -456,7 +536,7 @@ const DijkstraVisualizerComponent: React.FC<DijkstraVisualizerProps> = ({
                       cx={node.x}
                       cy={node.y}
                       r={22}
-                      className={`${getNodeColor(node.id)} stroke-2 transition-all duration-300`}
+                      className={`${getNodeColor(node.id)} stroke-2 transition-colors duration-300`}
                     />
                     <text
                       x={node.x}
@@ -469,47 +549,6 @@ const DijkstraVisualizerComponent: React.FC<DijkstraVisualizerProps> = ({
                   </g>
                 ))}
               </svg>
-            </div>
-
-            {/* Distances & Priority Queue - compact horizontal layout */}
-            <div className="mt-3 flex flex-wrap gap-3">
-              {/* Distance badges */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-medium text-gray-600">Dist:</span>
-                {distances.map((dist, idx) => (
-                  <span
-                    key={idx}
-                    className={`px-2 py-0.5 text-xs font-mono rounded ${
-                      idx === current
-                        ? 'bg-yellow-200 text-yellow-900'
-                        : visited.includes(idx)
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-600'
-                    }`}
-                  >
-                    {idx}:{dist === Infinity ? '∞' : dist}
-                  </span>
-                ))}
-              </div>
-
-              {/* Priority Queue badges */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-medium text-gray-600">PQ:</span>
-                {priorityQueue.length > 0 ? (
-                  priorityQueue
-                    .sort((a, b) => a.dist - b.dist)
-                    .map((item, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded font-mono"
-                      >
-                        {item.node}:{item.dist}
-                      </span>
-                    ))
-                ) : (
-                  <span className="text-xs text-gray-400">empty</span>
-                )}
-              </div>
             </div>
 
             {/* Status */}
