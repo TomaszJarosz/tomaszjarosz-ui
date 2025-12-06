@@ -1,0 +1,69 @@
+{
+  "name": "@tomaszjarosz/react-article",
+  "version": "0.1.0",
+  "description": "Article reading components for React - TOC, bookmarks, keyboard navigation, search",
+  "author": "Tomasz Jarosz <tomaszjarosz1994@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tomaszjarosz/tomaszjarosz-ui.git",
+    "directory": "packages/react-article"
+  },
+  "keywords": [
+    "react",
+    "article",
+    "table-of-contents",
+    "toc",
+    "bookmarks",
+    "keyboard-navigation",
+    "command-palette",
+    "search",
+    "blog",
+    "documentation"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "react": ">=17.0.0",
+    "react-dom": ">=17.0.0"
+  },
+  "devDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0"
+  }
+}
