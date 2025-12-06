@@ -14,9 +14,12 @@ A collection of React UI components for building modern web applications.
 
 ```bash
 # Choose the package you need
-pnpm add @tomaszjarosz/react-visualizers
-pnpm add @tomaszjarosz/react-markdown
-pnpm add @tomaszjarosz/react-article
+bun add @tomaszjarosz/react-visualizers
+bun add @tomaszjarosz/react-markdown
+bun add @tomaszjarosz/react-article
+
+# Or with npm/pnpm
+npm install @tomaszjarosz/react-visualizers
 ```
 
 ## Quick Start
@@ -67,25 +70,25 @@ function ArticlePage({ headings }) {
 ### Prerequisites
 
 - Node.js >= 18
-- pnpm >= 9
+- [Bun](https://bun.sh) >= 1.0
 
 ### Setup
 
 ```bash
 # Install dependencies
-pnpm install
+bun install
 
 # Build all packages
-pnpm build
+bun run build
 
 # Run in dev mode (watch)
-pnpm dev
+bun run dev
 
 # Type check
-pnpm typecheck
+bun run typecheck
 
 # Lint
-pnpm lint
+bun run lint
 ```
 
 ### Project Structure
