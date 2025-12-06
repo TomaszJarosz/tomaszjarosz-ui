@@ -64,7 +64,11 @@
     "vite-plugin-dts": "^4.3.0"
   },
   "dependencies": {
+    "highlight.js": "^11.11.0",
+    "isomorphic-dompurify": "^2.21.0",
+    "lowlight": "^3.2.0",
     "lucide-react": "^0.468.0",
+    "mermaid": "^11.4.0",
     "prism-react-renderer": "^2.4.1"
   }
 }

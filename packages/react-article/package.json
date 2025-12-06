@@ -1,7 +1,7 @@
 {
   "name": "@tomaszjarosz/react-article",
   "version": "0.1.0",
-  "description": "Article reading components for React - TOC, bookmarks, keyboard navigation, search",
+  "description": "Article reading components for React - progress bar, table of contents, bookmarks",
   "author": "Tomasz Jarosz <tomaszjarosz1994@gmail.com>",
   "license": "MIT",
   "repository": {
@@ -12,14 +12,11 @@
   "keywords": [
     "react",
     "article",
+    "reading-progress",
     "table-of-contents",
     "toc",
     "bookmarks",
-    "keyboard-navigation",
-    "command-palette",
-    "search",
-    "blog",
-    "documentation"
+    "scroll"
   ],
   "type": "module",
   "main": "./dist/index.cjs",
