@@ -326,7 +326,7 @@ const EnumSetVisualizerComponent: React.FC<EnumSetVisualizerProps> = ({
                       className="flex flex-col items-center"
                     >
                       <div
-                        className={`w-14 h-10 flex flex-col items-center justify-center text-xs font-medium rounded transition-all duration-200 ${getBitStyle(idx)}`}
+                        className={`w-14 h-10 flex flex-col items-center justify-center text-xs font-medium rounded transition-colors duration-200 ${getBitStyle(idx)}`}
                       >
                         <span className="text-[10px] opacity-80">bit {idx}</span>
                         <span>{isSet ? '1' : '0'}</span>
@@ -396,24 +396,39 @@ const EnumSetVisualizerComponent: React.FC<EnumSetVisualizerProps> = ({
               </div>
             </div>
 
-            {/* Comparison with HashSet */}
-            <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-              <div className="text-xs text-gray-700">
-                <span className="font-semibold text-blue-700">vs HashSet:</span>
-                <div className="mt-1 grid grid-cols-2 gap-2 text-[10px]">
-                  <div>
-                    <span className="text-green-600">EnumSet:</span> 1 long = 8 bytes
+            {/* Why EnumSet? Memory Comparison - PROMINENT */}
+            <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-lime-50 rounded-xl border-2 border-green-200">
+              <div className="text-sm font-bold text-green-800 mb-3 flex items-center gap-2">
+                <span className="text-lg">💡</span> Why EnumSet? Memory Efficiency!
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {/* EnumSet */}
+                <div className="bg-white p-3 rounded-lg border-2 border-green-300">
+                  <div className="text-sm font-bold text-green-700 mb-2">EnumSet</div>
+                  <div className="text-2xl font-bold text-green-600 mb-1">8 bytes</div>
+                  <div className="text-xs text-gray-600">
+                    1 long for up to 64 enum values
                   </div>
-                  <div>
-                    <span className="text-gray-500">HashSet:</span> ~40+ bytes per entry
-                  </div>
-                  <div>
-                    <span className="text-green-600">EnumSet:</span> O(1) bit operation
-                  </div>
-                  <div>
-                    <span className="text-gray-500">HashSet:</span> O(1) with hash overhead
+                  <div className="mt-2 text-xs text-green-600">
+                    ✓ Single CPU instruction per operation
                   </div>
                 </div>
+                {/* HashSet */}
+                <div className="bg-white p-3 rounded-lg border-2 border-gray-300">
+                  <div className="text-sm font-bold text-gray-500 mb-2">HashSet</div>
+                  <div className="text-2xl font-bold text-gray-500 mb-1">~280 bytes</div>
+                  <div className="text-xs text-gray-500">
+                    For 7 enum values (~40 bytes each)
+                  </div>
+                  <div className="mt-2 text-xs text-gray-500">
+                    Hash computation + object overhead
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 text-center">
+                <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-bold">
+                  35x smaller memory footprint!
+                </span>
               </div>
             </div>
 
