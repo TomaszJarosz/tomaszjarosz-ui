@@ -16,8 +16,10 @@ interface ArrayListStep {
   value?: number;
   index?: number;
   array: (number | null)[];
+  oldArray?: (number | null)[]; // For resize: show before state
   size: number;
   capacity: number;
+  oldCapacity?: number; // For resize
   description: string;
   codeLine?: number;
   variables?: Record<string, string | number>;
@@ -95,6 +97,7 @@ function generateArrayListSteps(): ArrayListStep[] {
     if (op === 'add' && value !== undefined) {
       if (size === capacity) {
         const oldCapacity = capacity;
+        const oldArray = [...array];
         capacity *= 2;
         const newArray: (number | null)[] = new Array(capacity).fill(null);
         for (let i = 0; i < size; i++) {
@@ -105,9 +108,11 @@ function generateArrayListSteps(): ArrayListStep[] {
         steps.push({
           operation: 'resize',
           array: [...array],
+          oldArray,
           size,
           capacity,
-          description: `Resize! Array full (${oldCapacity}/${oldCapacity}). Create new array with capacity ${capacity}, copy elements → O(n)`,
+          oldCapacity,
+          description: `Resize! Array full (${oldCapacity}/${oldCapacity}). Create new array with capacity ${capacity}, copy ${size} elements → O(n)`,
           codeLine: 2,
           variables: { oldCapacity, newCapacity: capacity, copied: size },
         });
@@ -250,7 +255,7 @@ const ArrayListVisualizerComponent: React.FC<ArrayListVisualizerProps> = ({
     description: '',
   };
 
-  const { array, size, capacity, highlightIndex, shiftIndices, description } =
+  const { array, size, capacity, highlightIndex, shiftIndices, description, oldArray, oldCapacity, operation } =
     stepData;
 
   const getCellStyle = (idx: number): string => {
@@ -305,8 +310,66 @@ const ArrayListVisualizerComponent: React.FC<ArrayListVisualizerProps> = ({
       <div className="p-4">
         <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
           {/* Main Visualization */}
-          <VisualizationArea minHeight={350} className={showCode ? 'flex-1' : 'w-full'}>
-            {/* Array Visualization */}
+          <VisualizationArea minHeight={400} className={showCode ? 'flex-1' : 'w-full'}>
+            {/* Resize Comparison - Show when resize happens */}
+            {operation === 'resize' && oldArray && (
+              <div className="mb-4 p-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-xl border-2 border-red-200">
+                <div className="text-sm font-bold text-red-700 mb-3 flex items-center gap-2">
+                  <span className="text-xl">⚠️</span> RESIZE OPERATION (O(n) cost!)
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Old Array */}
+                  <div>
+                    <div className="text-xs font-medium text-gray-600 mb-2">
+                      OLD Array (capacity: {oldCapacity}) - FULL!
+                    </div>
+                    <div className="bg-white rounded-lg p-2 border border-red-200">
+                      <div className="flex gap-1 flex-wrap">
+                        {oldArray.map((val, idx) => (
+                          <div
+                            key={idx}
+                            className="w-10 h-10 flex items-center justify-center rounded border-2 text-sm font-medium bg-red-100 border-red-300 text-red-800"
+                          >
+                            {val !== null ? val : ''}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  {/* Arrow */}
+                  <div className="hidden md:flex items-center justify-center absolute left-1/2 -translate-x-1/2">
+                    <div className="text-2xl text-orange-500">→</div>
+                  </div>
+                  {/* New Array */}
+                  <div>
+                    <div className="text-xs font-medium text-gray-600 mb-2">
+                      NEW Array (capacity: {capacity}) - 2x bigger
+                    </div>
+                    <div className="bg-white rounded-lg p-2 border border-green-200">
+                      <div className="flex gap-1 flex-wrap">
+                        {array.map((val, idx) => (
+                          <div
+                            key={idx}
+                            className={`w-10 h-10 flex items-center justify-center rounded border-2 text-sm font-medium ${
+                              idx < size
+                                ? 'bg-green-100 border-green-300 text-green-800'
+                                : 'bg-gray-100 border-gray-200 text-gray-300'
+                            }`}
+                          >
+                            {val !== null ? val : ''}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 text-xs text-red-600 text-center">
+                  All {size} elements copied to new array → This is why add() is O(1) <strong>amortized</strong>, not O(1)
+                </div>
+              </div>
+            )}
+
+            {/* Array Visualization (normal view) */}
             <div className="mb-4">
               <div className="text-sm font-medium text-gray-700 mb-2">
                 Internal Array (capacity: {capacity})
@@ -316,7 +379,7 @@ const ArrayListVisualizerComponent: React.FC<ArrayListVisualizerProps> = ({
                   {array.map((val, idx) => (
                     <div key={idx} className="flex flex-col items-center">
                       <div
-                        className={`w-12 h-12 flex items-center justify-center rounded border-2 font-medium transition-all ${getCellStyle(idx)}`}
+                        className={`w-12 h-12 flex items-center justify-center rounded border-2 font-medium transition-colors ${getCellStyle(idx)}`}
                       >
                         {val !== null ? val : ''}
                       </div>

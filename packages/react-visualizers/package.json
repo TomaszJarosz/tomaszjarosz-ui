@@ -1,6 +1,6 @@
 {
   "name": "@tomaszjarosz/react-visualizers",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Interactive algorithm and data structure visualizers for React",
   "author": "Tomasz Jarosz <tomaszjarosz1994@gmail.com>",
   "license": "MIT",
