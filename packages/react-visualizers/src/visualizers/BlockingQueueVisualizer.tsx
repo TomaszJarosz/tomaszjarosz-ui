@@ -356,6 +356,30 @@ const BlockingQueueVisualizerComponent: React.FC<
         <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
           {/* Main Visualization */}
           <VisualizationArea minHeight={350}>
+            {/* Producer-Consumer Pattern - Prominent */}
+            <div className="mb-4 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl border-2 border-cyan-200">
+              <div className="text-sm font-bold text-cyan-800 mb-3 flex items-center gap-2">
+                <span className="text-lg">🔄</span> Producer-Consumer Pattern
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="bg-green-100 p-2 rounded-lg border border-green-300 text-center">
+                  <div className="font-bold text-green-700">Producers</div>
+                  <div className="text-green-600">put() → queue</div>
+                  <div className="text-[10px] text-green-500">Block if FULL</div>
+                </div>
+                <div className="bg-gray-100 p-2 rounded-lg border border-gray-300 text-center">
+                  <div className="font-bold text-gray-700">BlockingQueue</div>
+                  <div className="text-gray-600">Thread-safe buffer</div>
+                  <div className="text-[10px] text-gray-500">Capacity: {capacity}</div>
+                </div>
+                <div className="bg-blue-100 p-2 rounded-lg border border-blue-300 text-center">
+                  <div className="font-bold text-blue-700">Consumers</div>
+                  <div className="text-blue-600">take() ← queue</div>
+                  <div className="text-[10px] text-blue-500">Block if EMPTY</div>
+                </div>
+              </div>
+            </div>
+
             {/* Producer-Consumer Layout */}
             <div className="flex items-center justify-between gap-4 mb-4">
               {/* Producers */}
@@ -367,9 +391,9 @@ const BlockingQueueVisualizerComponent: React.FC<
                   {['P1', 'P2'].map((p) => (
                     <div
                       key={p}
-                      className={`px-3 py-2 rounded-lg text-center text-sm font-medium transition-all ${
+                      className={`px-3 py-2 rounded-lg text-center text-sm font-medium transition-colors ${
                         activeThread === p
-                          ? 'bg-green-500 text-white scale-105'
+                          ? 'bg-green-500 text-white'
                           : blockedProducers.includes(p)
                             ? 'bg-red-100 text-red-700 border-2 border-red-300'
                             : 'bg-green-100 text-green-700'
@@ -395,7 +419,7 @@ const BlockingQueueVisualizerComponent: React.FC<
                       queue.map((item, idx) => (
                         <div
                           key={item.id}
-                          className={`px-2 py-1.5 bg-white rounded border text-xs font-medium text-center transition-all ${
+                          className={`px-2 py-1.5 bg-white rounded border text-xs font-medium text-center transition-colors ${
                             idx === 0
                               ? 'border-blue-300 bg-blue-50'
                               : 'border-gray-200'
@@ -413,7 +437,7 @@ const BlockingQueueVisualizerComponent: React.FC<
                   {/* Capacity indicator */}
                   <div className="mt-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                     <div
-                      className={`h-full transition-all ${
+                      className={`h-full transition-colors ${
                         queue.length === capacity ? 'bg-red-500' : 'bg-cyan-500'
                       }`}
                       style={{ width: `${(queue.length / capacity) * 100}%` }}
@@ -431,9 +455,9 @@ const BlockingQueueVisualizerComponent: React.FC<
                   {['C1', 'C2'].map((c) => (
                     <div
                       key={c}
-                      className={`px-3 py-2 rounded-lg text-center text-sm font-medium transition-all ${
+                      className={`px-3 py-2 rounded-lg text-center text-sm font-medium transition-colors ${
                         activeThread === c
-                          ? 'bg-blue-500 text-white scale-105'
+                          ? 'bg-blue-500 text-white'
                           : blockedConsumers.includes(c)
                             ? 'bg-red-100 text-red-700 border-2 border-red-300'
                             : 'bg-blue-100 text-blue-700'

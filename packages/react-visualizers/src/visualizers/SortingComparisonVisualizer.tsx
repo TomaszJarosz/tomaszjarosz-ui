@@ -496,7 +496,7 @@ const SortingComparisonVisualizerComponent: React.FC<SortingComparisonVisualizer
             {step.array.map((value, index) => (
               <div
                 key={index}
-                className={`${getBarColor(step, index)} rounded-t transition-all duration-150`}
+                className={`${getBarColor(step, index)} rounded-t transition-colors duration-150`}
                 style={{
                   height: `${(value / maxValue) * 100}%`,
                   width: `${Math.max(100 / step.array.length - 1, 6)}%`,

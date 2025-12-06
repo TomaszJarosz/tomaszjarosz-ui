@@ -393,6 +393,28 @@ const ConcurrentHashMapVisualizerComponent: React.FC<
         <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
           {/* Main Visualization */}
           <VisualizationArea minHeight={350}>
+            {/* ConcurrentHashMap vs synchronized - Prominent */}
+            <div className="mb-4 p-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-xl border-2 border-red-200">
+              <div className="text-sm font-bold text-red-800 mb-3 flex items-center gap-2">
+                <span className="text-lg">⚡</span> Why ConcurrentHashMap?
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="bg-red-100 p-2 rounded-lg border border-red-300">
+                  <div className="font-bold text-red-700">synchronized HashMap</div>
+                  <div className="text-red-600">❌ Single lock for entire map</div>
+                  <div className="text-[10px] text-red-500">All threads wait for one lock</div>
+                </div>
+                <div className="bg-green-100 p-2 rounded-lg border border-green-300">
+                  <div className="font-bold text-green-700">ConcurrentHashMap</div>
+                  <div className="text-green-600">✓ Segment-level locking</div>
+                  <div className="text-[10px] text-green-500">Threads work in parallel on different segments</div>
+                </div>
+              </div>
+              <div className="mt-2 text-[10px] text-gray-600 text-center">
+                get() never blocks • put() only locks one segment • Much better concurrency!
+              </div>
+            </div>
+
             {/* Segments */}
             <div className="mb-4">
               <div className="text-sm font-medium text-gray-700 mb-2">

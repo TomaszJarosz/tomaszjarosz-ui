@@ -300,9 +300,9 @@ const CopyOnWriteVisualizerComponent: React.FC<CopyOnWriteVisualizerProps> = ({
         {arr.map((item, idx) => (
           <div
             key={idx}
-            className={`w-10 h-10 flex items-center justify-center rounded border-2 font-medium transition-all ${
+            className={`w-10 h-10 flex items-center justify-center rounded border-2 font-medium transition-colors ${
               isNew && idx === highlightIndex
-                ? 'bg-green-500 border-green-600 text-white scale-110'
+                ? 'bg-green-500 border-green-600 text-white'
                 : isNew
                   ? 'bg-green-100 border-green-300 text-green-700'
                   : 'bg-gray-100 border-gray-300 text-gray-700'
@@ -369,6 +369,28 @@ const CopyOnWriteVisualizerComponent: React.FC<CopyOnWriteVisualizerProps> = ({
         <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
           {/* Main Visualization */}
           <VisualizationArea minHeight={350}>
+            {/* Copy-on-Write Pattern - Prominent */}
+            <div className="mb-4 p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-xl border-2 border-lime-200">
+              <div className="text-sm font-bold text-lime-800 mb-3 flex items-center gap-2">
+                <span className="text-lg">📋</span> Copy-on-Write Pattern
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="bg-blue-100 p-2 rounded-lg border border-blue-300 text-center">
+                  <div className="font-bold text-blue-700">Read (get)</div>
+                  <div className="text-2xl text-blue-600">O(1)</div>
+                  <div className="text-[10px] text-blue-500">No lock, no copy</div>
+                </div>
+                <div className="bg-orange-100 p-2 rounded-lg border border-orange-300 text-center">
+                  <div className="font-bold text-orange-700">Write (add/set)</div>
+                  <div className="text-2xl text-orange-600">O(n)</div>
+                  <div className="text-[10px] text-orange-500">Full array copy</div>
+                </div>
+              </div>
+              <div className="mt-2 text-[10px] text-gray-600 text-center">
+                Best for: Read-heavy, rarely-modified collections • Iterators never throw ConcurrentModificationException
+              </div>
+            </div>
+
             {/* Arrays Visualization */}
             <div className="mb-4 p-4 bg-gray-50 rounded-lg">
               {showCopy ? (

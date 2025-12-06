@@ -464,6 +464,28 @@ const GraphVisualizerComponent: React.FC<GraphVisualizerProps> = ({
         <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
           {/* Main Visualization */}
           <VisualizationArea minHeight={400}>
+            {/* DFS vs BFS - Prominent */}
+            <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl border-2 border-purple-200">
+              <div className="text-sm font-bold text-purple-800 mb-3 flex items-center gap-2">
+                <span className="text-lg">🔍</span> DFS vs BFS
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className={`p-2 rounded-lg border ${algorithm === 'dfs' ? 'bg-purple-100 border-purple-300' : 'bg-gray-100 border-gray-300'}`}>
+                  <div className="font-bold text-purple-700">Depth-First (DFS)</div>
+                  <div className="text-purple-600">Uses: Stack</div>
+                  <div className="text-[10px] text-purple-500">Go deep before wide</div>
+                </div>
+                <div className={`p-2 rounded-lg border ${algorithm === 'bfs' ? 'bg-indigo-100 border-indigo-300' : 'bg-gray-100 border-gray-300'}`}>
+                  <div className="font-bold text-indigo-700">Breadth-First (BFS)</div>
+                  <div className="text-indigo-600">Uses: Queue</div>
+                  <div className="text-[10px] text-indigo-500">Level by level</div>
+                </div>
+              </div>
+              <div className="mt-2 text-[10px] text-gray-600 text-center">
+                Both O(V+E) time • DFS for paths/cycles • BFS for shortest path (unweighted)
+              </div>
+            </div>
+
             <div className="flex gap-4">
               {/* Graph SVG */}
               <div className="flex-1 bg-gray-50 rounded-lg">
@@ -491,7 +513,7 @@ const GraphVisualizerComponent: React.FC<GraphVisualizerProps> = ({
                         cx={node.x}
                         cy={node.y}
                         r={20}
-                        className={`${getNodeColor(node.id)} stroke-2 transition-all duration-300`}
+                        className={`${getNodeColor(node.id)} stroke-2 transition-colors duration-300`}
                       />
                       <text
                         x={node.x}

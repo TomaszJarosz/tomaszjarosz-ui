@@ -309,7 +309,7 @@ const ImmutableCollectionsVisualizerComponent: React.FC<
                     {original.map((item, idx) => (
                       <div
                         key={idx}
-                        className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 font-bold transition-all ${
+                        className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 font-bold transition-colors ${
                           error
                             ? 'bg-red-100 border-red-300 text-red-700 animate-pulse'
                             : 'bg-violet-100 border-violet-300 text-violet-700'
