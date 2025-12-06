@@ -14,8 +14,7 @@ const meta: Meta<typeof SortingComparisonVisualizer> = {
   },
   tags: ['autodocs'],
   argTypes: {
-    showControls: { control: 'boolean' },
-    showCode: { control: 'boolean' },
+    className: { control: 'text', description: 'Additional CSS classes' },
   },
 };
 
@@ -23,9 +22,9 @@ export default meta;
 type Story = StoryObj<typeof SortingComparisonVisualizer>;
 
 export const Default: Story = {
-  args: { showControls: true, showCode: true },
+  args: {},
 };
 
-export const Minimal: Story = {
-  args: { showControls: false, showCode: false },
+export const CustomClass: Story = {
+  args: { className: 'max-w-4xl mx-auto' },
 };
