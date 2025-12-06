@@ -253,6 +253,39 @@ const LinkedListVisualizerComponent: React.FC<LinkedListVisualizerProps> = ({
         <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
           {/* Main Visualization */}
           <VisualizationArea minHeight={350} className={showCode ? 'flex-1' : 'w-full'}>
+            {/* LinkedList vs ArrayList - Prominent */}
+            <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
+              <div className="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2">
+                <span className="text-lg">🔗</span> LinkedList vs ArrayList
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="bg-white p-2 rounded-lg border border-blue-200 text-center">
+                  <div className="font-semibold text-gray-700 mb-1">Operation</div>
+                </div>
+                <div className="bg-blue-100 p-2 rounded-lg border border-blue-300 text-center">
+                  <div className="font-semibold text-blue-700 mb-1">LinkedList</div>
+                </div>
+                <div className="bg-orange-100 p-2 rounded-lg border border-orange-300 text-center">
+                  <div className="font-semibold text-orange-700 mb-1">ArrayList</div>
+                </div>
+
+                <div className="bg-white p-2 rounded-lg border border-gray-200 text-center font-medium">add/remove (ends)</div>
+                <div className="bg-green-100 p-2 rounded-lg border border-green-300 text-center font-bold text-green-700">O(1)</div>
+                <div className="bg-green-100 p-2 rounded-lg border border-green-300 text-center font-bold text-green-700">O(1)*</div>
+
+                <div className="bg-white p-2 rounded-lg border border-gray-200 text-center font-medium">add/remove (middle)</div>
+                <div className="bg-green-100 p-2 rounded-lg border border-green-300 text-center font-bold text-green-700">O(1)**</div>
+                <div className="bg-red-100 p-2 rounded-lg border border-red-300 text-center font-bold text-red-700">O(n)</div>
+
+                <div className="bg-white p-2 rounded-lg border border-gray-200 text-center font-medium">get(index)</div>
+                <div className="bg-red-100 p-2 rounded-lg border border-red-300 text-center font-bold text-red-700">O(n)</div>
+                <div className="bg-green-100 p-2 rounded-lg border border-green-300 text-center font-bold text-green-700">O(1)</div>
+              </div>
+              <div className="mt-2 text-[10px] text-gray-500 text-center">
+                * amortized | ** if you have the node reference
+              </div>
+            </div>
+
             {/* LinkedList Visualization */}
             <div className="mb-4">
               <div className="text-sm font-medium text-gray-700 mb-2">
@@ -267,7 +300,7 @@ const LinkedListVisualizerComponent: React.FC<LinkedListVisualizerProps> = ({
                     {nodes.map((node, idx) => (
                       <React.Fragment key={node.id}>
                         <div
-                          className={`flex flex-col items-center transition-all ${
+                          className={`flex flex-col items-center transition-colors ${
                             node.id === highlightNode ? 'scale-110' : ''
                           }`}
                         >

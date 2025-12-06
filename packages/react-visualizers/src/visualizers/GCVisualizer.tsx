@@ -461,14 +461,14 @@ const GCVisualizerComponent: React.FC<GCVisualizerProps> = ({
         </div>
         <div className={`h-12 ${color} rounded border border-gray-300 relative overflow-hidden`}>
           <div
-            className="absolute inset-y-0 left-0 bg-opacity-30 bg-gray-500 transition-all duration-300"
+            className="absolute inset-y-0 left-0 bg-opacity-30 bg-gray-500 transition-[width] duration-300"
             style={{ width: `${fillPercent}%` }}
           />
           <div className="absolute inset-0 flex flex-wrap items-center gap-1 p-1">
             {genObjects.map((obj) => (
               <div
                 key={obj.id}
-                className={`px-1.5 py-0.5 text-[9px] font-medium rounded transition-all duration-200 ${getObjectStyle(obj)}`}
+                className={`px-1.5 py-0.5 text-[9px] font-medium rounded transition-colors duration-200 ${getObjectStyle(obj)}`}
                 title={`${obj.id} (age: ${obj.age}, ${obj.reachable ? 'reachable' : 'garbage'})`}
               >
                 {obj.id.replace('obj', '')}
@@ -540,6 +540,33 @@ const GCVisualizerComponent: React.FC<GCVisualizerProps> = ({
         <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
           {/* Main Visualization */}
           <VisualizationArea minHeight={400} className={showCode ? 'flex-1' : 'w-full'}>
+            {/* Generational Hypothesis - Prominent */}
+            <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
+              <div className="text-sm font-bold text-purple-800 mb-3 flex items-center gap-2">
+                <span className="text-lg">🧬</span> Generational Hypothesis
+              </div>
+              <div className="font-mono text-sm bg-white rounded-lg p-3 border border-purple-200">
+                <div className="text-center text-purple-700 font-bold mb-2">
+                  &quot;Most objects die young&quot;
+                </div>
+                <div className="text-xs text-gray-500 text-center">
+                  ~95% of objects become garbage before first GC • Optimize for the common case
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-blue-100 p-2 rounded-lg border border-blue-300 text-center">
+                  <div className="font-bold text-blue-700">Young Gen</div>
+                  <div className="text-blue-600">Fast copy collection</div>
+                  <div className="text-[10px] text-blue-500">Minor GC (frequent)</div>
+                </div>
+                <div className="bg-amber-100 p-2 rounded-lg border border-amber-300 text-center">
+                  <div className="font-bold text-amber-700">Old Gen</div>
+                  <div className="text-amber-600">Mark-sweep collection</div>
+                  <div className="text-[10px] text-amber-500">Major GC (rare, slow)</div>
+                </div>
+              </div>
+            </div>
+
             {/* Heap Layout */}
             <div className="mb-4">
               <div className="text-sm font-medium text-gray-700 mb-2">

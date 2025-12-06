@@ -352,7 +352,7 @@ const ArrayDequeVisualizerComponent: React.FC<ArrayDequeVisualizerProps> = ({
     const isHighlighted = index === highlightIndex;
     const hasValue = array[index] !== null;
 
-    let baseStyle = 'border-2 transition-all duration-200 ';
+    let baseStyle = 'border-2 transition-colors duration-200 ';
 
     if (resizing) {
       baseStyle += 'bg-yellow-100 border-yellow-400 ';

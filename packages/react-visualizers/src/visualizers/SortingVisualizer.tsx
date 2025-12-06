@@ -948,7 +948,7 @@ const SortingVisualizerComponent: React.FC<SortingVisualizerProps> = ({
               {bars.map((bar, index) => (
                 <div
                   key={index}
-                  className={`${getBarColor(bar.state)} rounded-t transition-all duration-200 flex items-end justify-center relative group`}
+                  className={`${getBarColor(bar.state)} rounded-t transition-colors duration-200 flex items-end justify-center relative group`}
                   style={{
                     height: `${(bar.value / maxValue) * 100}%`,
                     width: `${Math.max(100 / bars.length - 1, 8)}%`,

@@ -339,6 +339,35 @@ const HashMapVisualizerComponent: React.FC<HashMapVisualizerProps> = ({
         <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
           {/* Main Visualization */}
           <VisualizationArea minHeight={350} className={showCode ? 'flex-1' : 'w-full'}>
+            {/* Hash Function - Prominent */}
+            <div className="mb-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200">
+              <div className="text-sm font-bold text-indigo-800 mb-3 flex items-center gap-2">
+                <span className="text-lg">#️⃣</span> Hash Function
+              </div>
+              <div className="font-mono text-sm bg-white rounded-lg p-3 border border-indigo-200">
+                <div className="text-center text-indigo-700 font-bold mb-2">
+                  index = hashCode(key) % capacity
+                </div>
+                <div className="text-xs text-gray-500 text-center">
+                  Same key → same index (deterministic) • Different keys may collide → chaining
+                </div>
+              </div>
+              {/* Current hash calculation */}
+              {stepData.hash !== undefined && stepData.key && (
+                <div className="mt-3 p-3 bg-white rounded-lg border border-indigo-200">
+                  <div className="text-xs text-center">
+                    <div className="font-mono mb-1">
+                      hashCode(<span className="text-indigo-600 font-bold">&quot;{stepData.key}&quot;</span>) = <span className="text-purple-600 font-bold">{stepData.hash}</span>
+                    </div>
+                    <div className="font-mono">
+                      <span className="text-purple-600">{stepData.hash}</span> % <span className="text-gray-600">{BUCKET_COUNT}</span> = <span className="text-indigo-600 font-bold text-lg">{stepData.bucketIndex}</span>
+                    </div>
+                    <div className="mt-2 text-indigo-600 text-lg">↓ bucket[{stepData.bucketIndex}]</div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Bucket Array */}
             <div className="mb-4">
               <div className="text-sm font-medium text-gray-700 mb-2">
@@ -376,20 +405,6 @@ const HashMapVisualizerComponent: React.FC<HashMapVisualizerProps> = ({
               </div>
             </div>
 
-            {/* Hash Visualization */}
-            {stepData.hash !== undefined && (
-              <div className="mb-4 p-3 bg-gray-100 rounded-lg">
-                <div className="text-xs text-gray-600">
-                  <span className="font-medium">Hash Calculation:</span>
-                  <div className="mt-1 font-mono text-indigo-600">
-                    hashCode("{stepData.key}") = {stepData.hash}
-                  </div>
-                  <div className="font-mono text-purple-600">
-                    {stepData.hash} % {BUCKET_COUNT} = {stepData.bucketIndex}
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Status */}
             <StatusPanel
