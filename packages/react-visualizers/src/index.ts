@@ -14,6 +14,15 @@ export { GraphVisualizer } from './visualizers/GraphVisualizer';
 
 // Collection Visualizers
 export { HashMapVisualizer } from './visualizers/HashMapVisualizer';
+export { HashMapInterviewVisualizer } from './visualizers/HashMapInterviewVisualizer';
+export { ListComparisonVisualizer } from './visualizers/ListComparisonVisualizer';
+
+// Interview Mode Visualizers
+export { TreeSetInterviewVisualizer } from './visualizers/TreeSetInterviewVisualizer';
+export { SortingInterviewVisualizer } from './visualizers/SortingInterviewVisualizer';
+export { GraphInterviewVisualizer } from './visualizers/GraphInterviewVisualizer';
+export { BloomFilterInterviewVisualizer } from './visualizers/BloomFilterInterviewVisualizer';
+export { BTreeInterviewVisualizer } from './visualizers/BTreeInterviewVisualizer';
 export { HashTableVisualizer } from './visualizers/HashTableVisualizer';
 export { LinkedListVisualizer } from './visualizers/LinkedListVisualizer';
 export { LinkedHashMapVisualizer } from './visualizers/LinkedHashMapVisualizer';
@@ -28,6 +37,16 @@ export { ConcurrentHashMapVisualizer } from './visualizers/ConcurrentHashMapVisu
 export { BlockingQueueVisualizer } from './visualizers/BlockingQueueVisualizer';
 export { CopyOnWriteVisualizer } from './visualizers/CopyOnWriteVisualizer';
 export { ImmutableCollectionsVisualizer } from './visualizers/ImmutableCollectionsVisualizer';
+
+// Probabilistic Data Structures
+export { BloomFilterVisualizer } from './visualizers/BloomFilterVisualizer';
+
+// Tree Structures
+export { BTreeVisualizer } from './visualizers/BTreeVisualizer';
+
+// Distributed Systems
+export { ConsistentHashingVisualizer } from './visualizers/ConsistentHashingVisualizer';
+export { RaftVisualizer } from './visualizers/RaftVisualizer';
 
 // Other Visualizers
 export { GCVisualizer } from './visualizers/GCVisualizer';
@@ -46,7 +65,10 @@ export {
 } from './shared';
 
 // Hooks
-export { useVisualizerPlayback, useUrlState } from './shared';
+export { useVisualizerPlayback, useUrlState, useInterviewMode } from './shared';
+
+// Interview Mode
+export { InterviewModePanel } from './shared';
 
 // Types
 export type { ControlPanelProps } from './shared';
@@ -63,4 +85,11 @@ export type {
   VisualizerState,
   UseUrlStateOptions,
   UseUrlStateReturn,
+} from './shared';
+export type {
+  InterviewQuestion,
+  InterviewResult,
+  InterviewSession,
+  UseInterviewModeOptions,
+  UseInterviewModeReturn,
 } from './shared';
