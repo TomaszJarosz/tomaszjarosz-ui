@@ -148,13 +148,14 @@ export const LazyCodeHighlighter: React.FC<LazyCodeHighlighterProps> = ({
     <pre
       className="hljs"
       style={{
-        background: 'transparent',
+        background: '#1f2937',
+        color: '#e8e8e8',
         margin: 0,
-        padding: 0,
+        padding: '1rem',
         overflow: 'auto',
       }}
     >
-      <code>
+      <code style={{ color: 'inherit' }}>
         {lines.map(({ lineNumber, content }) => {
           const isHighlighted = highlightLines.includes(lineNumber);
           return (
@@ -162,10 +163,12 @@ export const LazyCodeHighlighter: React.FC<LazyCodeHighlighterProps> = ({
               key={lineNumber}
               style={{
                 display: 'block',
+                paddingLeft: isHighlighted ? '4px' : '0',
                 ...(isHighlighted && {
                   backgroundColor: 'rgba(59, 130, 246, 0.15)',
                   borderLeft: '3px solid #3b82f6',
-                  paddingLeft: '4px',
+                  marginLeft: '-1rem',
+                  paddingLeft: 'calc(1rem + 4px)',
                 }),
               }}
             >
