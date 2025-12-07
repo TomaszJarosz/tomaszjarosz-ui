@@ -2,8 +2,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Play, Pause, RotateCcw, Shuffle } from 'lucide-react';
 import {
   VisualizationArea,
+  CodePanel,
   ALGORITHM_NAMES,
   ALGORITHM_COMPLEXITIES,
+  ALGORITHM_CODE,
 } from '../shared';
 import type { SortingAlgorithm } from '../shared';
 
@@ -25,6 +27,8 @@ interface AlgorithmState {
 }
 
 interface SortingComparisonVisualizerProps {
+  showControls?: boolean;
+  showCode?: boolean;
   className?: string;
 }
 
@@ -351,6 +355,8 @@ function generateRandomArray(size: number): number[] {
 }
 
 const SortingComparisonVisualizerComponent: React.FC<SortingComparisonVisualizerProps> = ({
+  showControls = true,
+  showCode = true,
   className = '',
 }) => {
   const [algorithm1, setAlgorithm1] = useState<SortingAlgorithm>('bubble');
@@ -555,70 +561,88 @@ const SortingComparisonVisualizerComponent: React.FC<SortingComparisonVisualizer
         </VisualizationArea>
       </div>
 
-      {/* Controls */}
-      <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-2">
-            {isPlaying && (
-              <span className="flex items-center gap-1 text-xs text-indigo-600 font-medium">
-                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
-                Racing
-              </span>
-            )}
-            <button
-              onClick={handlePlayPause}
-              className={`p-2 text-white rounded-lg transition-colors ${
-                isPlaying ? 'bg-indigo-500 hover:bg-indigo-600' : 'bg-indigo-600 hover:bg-indigo-700'
-              }`}
-              title="Play/Pause"
-            >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            </button>
-            <button
-              onClick={handleReset}
-              className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-              title="Reset"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleShuffle}
-              disabled={isPlaying}
-              className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
-              title="New Array"
-            >
-              <Shuffle className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <label className="text-xs text-gray-500">Size</label>
-              <input
-                type="range"
-                min="5"
-                max="15"
-                value={arraySize}
-                onChange={(e) => setArraySize(Number(e.target.value))}
-                disabled={isPlaying}
-                className="w-20 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer disabled:opacity-50"
-              />
-              <span className="text-xs text-gray-500 w-4">{arraySize}</span>
+      {/* Code Panels */}
+      {showCode && (
+        <div className="px-4 py-3 border-t border-gray-200">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <div className="text-xs font-medium text-indigo-600 mb-2">{ALGORITHM_NAMES[algorithm1]}</div>
+              <CodePanel code={ALGORITHM_CODE[algorithm1]} activeLine={-1} />
             </div>
-            <div className="flex items-center gap-2">
-              <label className="text-xs text-gray-500">Speed</label>
-              <input
-                type="range"
-                min="1"
-                max="100"
-                value={speed}
-                onChange={(e) => setSpeed(Number(e.target.value))}
-                className="w-20 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer"
-              />
+            <div>
+              <div className="text-xs font-medium text-purple-600 mb-2">{ALGORITHM_NAMES[algorithm2]}</div>
+              <CodePanel code={ALGORITHM_CODE[algorithm2]} activeLine={-1} />
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Controls */}
+      {showControls && (
+        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-2">
+              {isPlaying && (
+                <span className="flex items-center gap-1 text-xs text-indigo-600 font-medium">
+                  <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+                  Racing
+                </span>
+              )}
+              <button
+                onClick={handlePlayPause}
+                className={`p-2 text-white rounded-lg transition-colors ${
+                  isPlaying ? 'bg-indigo-500 hover:bg-indigo-600' : 'bg-indigo-600 hover:bg-indigo-700'
+                }`}
+                title="Play/Pause"
+              >
+                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              </button>
+              <button
+                onClick={handleReset}
+                className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                title="Reset"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleShuffle}
+                disabled={isPlaying}
+                className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
+                title="New Array"
+              >
+                <Shuffle className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-gray-500">Size</label>
+                <input
+                  type="range"
+                  min="5"
+                  max="15"
+                  value={arraySize}
+                  onChange={(e) => setArraySize(Number(e.target.value))}
+                  disabled={isPlaying}
+                  className="w-20 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer disabled:opacity-50"
+                />
+                <span className="text-xs text-gray-500 w-4">{arraySize}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-gray-500">Speed</label>
+                <input
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={speed}
+                  onChange={(e) => setSpeed(Number(e.target.value))}
+                  className="w-20 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

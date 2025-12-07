@@ -14,6 +14,8 @@ const meta: Meta<typeof SortingComparisonVisualizer> = {
   },
   tags: ['autodocs'],
   argTypes: {
+    showControls: { control: 'boolean', description: 'Show playback controls' },
+    showCode: { control: 'boolean', description: 'Show code panels' },
     className: { control: 'text', description: 'Additional CSS classes' },
   },
 };
@@ -22,9 +24,37 @@ export default meta;
 type Story = StoryObj<typeof SortingComparisonVisualizer>;
 
 export const Default: Story = {
-  args: {},
+  args: {
+    showControls: true,
+    showCode: true,
+  },
+};
+
+export const WithoutCode: Story = {
+  args: {
+    showControls: true,
+    showCode: false,
+  },
+};
+
+export const WithoutControls: Story = {
+  args: {
+    showControls: false,
+    showCode: true,
+  },
+};
+
+export const MinimalView: Story = {
+  args: {
+    showControls: false,
+    showCode: false,
+  },
 };
 
 export const CustomClass: Story = {
-  args: { className: 'max-w-4xl mx-auto' },
+  args: {
+    showControls: true,
+    showCode: true,
+    className: 'max-w-4xl mx-auto',
+  },
 };
