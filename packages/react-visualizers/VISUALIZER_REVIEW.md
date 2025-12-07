@@ -150,15 +150,15 @@ All visualizers should use these shared components:
 
 ### Hook Usage
 
-Newer visualizers use `useVisualizerPlayback` hook:
+Visualizers using `useVisualizerPlayback` hook:
 - ✅ SQLJoinVisualizer
 - ✅ ArrayListVisualizer
 - ✅ EnumSetVisualizer
-- ❌ HashTableVisualizer (manual implementation)
-- ❌ DPVisualizer (manual implementation)
-- ❌ DijkstraVisualizer (manual implementation)
-- ❌ SortingVisualizer (manual implementation)
-- ❌ SortingComparisonVisualizer (manual implementation)
+- ✅ HashTableVisualizer (migrated)
+- ✅ DPVisualizer (migrated)
+- ✅ DijkstraVisualizer (migrated)
+- ❌ SortingVisualizer (complex URL state - skip for now)
+- ❌ SortingComparisonVisualizer (comparison mode - different logic)
 
 ---
 
@@ -170,7 +170,7 @@ Newer visualizers use `useVisualizerPlayback` hook:
 ### Priority 2 (Recommended)
 1. Add educational comparison section to SortingVisualizer
 2. Add Venn diagrams to SQLJoinVisualizer
-3. Migrate remaining visualizers to `useVisualizerPlayback` hook
+3. ~~Migrate remaining visualizers to `useVisualizerPlayback` hook~~ ✅ DONE (3/5 migrated)
 
 ### Priority 3 (Nice to have)
 1. Add URL sharing to visualizers that don't have it
