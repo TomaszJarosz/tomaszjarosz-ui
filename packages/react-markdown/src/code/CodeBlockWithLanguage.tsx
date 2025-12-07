@@ -42,7 +42,7 @@ export const CodeBlockWithLanguage: React.FC<CodeBlockWithLanguageProps> = ({
 
   return (
     <div
-      className="my-1.5 rounded-md shadow-sm border border-gray-700 relative"
+      className="my-1.5 rounded-md shadow-sm overflow-hidden bg-gray-900 relative"
       style={codeStyle}
     >
       <CodeBlockHeader language={language} isDiff={isDiff} lineCount={lineCount} />

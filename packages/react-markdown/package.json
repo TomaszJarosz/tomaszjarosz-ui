@@ -1,6 +1,6 @@
 {
   "name": "@tomaszjarosz/react-markdown",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Enhanced markdown components for React - code blocks, callouts, diagrams",
   "author": "Tomasz Jarosz <tomaszjarosz1994@gmail.com>",
   "license": "MIT",
