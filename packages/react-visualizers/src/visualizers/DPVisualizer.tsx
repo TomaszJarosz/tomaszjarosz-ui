@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   CodePanel,
   HelpPanel,
@@ -6,6 +6,7 @@ import {
   Legend,
   StatusPanel,
   VisualizationArea,
+  useVisualizerPlayback,
 } from '../shared';
 
 interface Item {
@@ -158,121 +159,37 @@ const DPVisualizerComponent: React.FC<DPVisualizerProps> = ({
 }) => {
   const [items] = useState<Item[]>(DEFAULT_ITEMS);
   const [capacity] = useState(DEFAULT_CAPACITY);
-  const [speed, setSpeed] = useState(25); // Slower default
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [steps, setSteps] = useState<DPStep[]>([]);
 
-  const playingRef = useRef(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const generateSteps = useMemo(
+    () => () => generateKnapsackSteps(items, capacity),
+    [items, capacity]
+  );
 
-  const initializeDP = useCallback(() => {
-    const newSteps = generateKnapsackSteps(items, capacity);
-    setSteps(newSteps);
-    setCurrentStep(0);
-    setIsPlaying(false);
-    playingRef.current = false;
-  }, [items, capacity]);
+  const {
+    steps,
+    currentStep,
+    currentStepData,
+    isPlaying,
+    speed,
+    setSpeed,
+    handlePlayPause,
+    handleStep,
+    handleStepBack,
+    handleReset,
+  } = useVisualizerPlayback<DPStep>({
+    generateSteps,
+  });
 
-  useEffect(() => {
-    initializeDP();
-  }, [initializeDP]);
-
-  useEffect(() => {
-    if (isPlaying && currentStep < steps.length - 1) {
-      playingRef.current = true;
-      // Slower: min 100ms, max 2000ms
-      const delay = Math.max(100, 2000 - speed * 19);
-
-      timeoutRef.current = setTimeout(() => {
-        if (playingRef.current) {
-          setCurrentStep((prev) => prev + 1);
-        }
-      }, delay);
-    } else if (currentStep >= steps.length - 1) {
-      setIsPlaying(false);
-      playingRef.current = false;
-    }
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [isPlaying, currentStep, steps.length, speed]);
-
-  const handlePlayPause = () => {
-    if (currentStep >= steps.length - 1) {
-      setCurrentStep(0);
-    }
-    setIsPlaying(!isPlaying);
-    playingRef.current = !isPlaying;
-  };
-
-  const handleStep = useCallback(() => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep((prev) => prev + 1);
-    }
-  }, [currentStep, steps.length]);
-
-  const handleStepBack = useCallback(() => {
-    if (currentStep > 0) {
-      setCurrentStep((prev) => prev - 1);
-    }
-  }, [currentStep]);
-
-  // Keyboard shortcuts (P = play/pause, [ = back, ] = forward, R = reset)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      ) {
-        return;
-      }
-      // Don't intercept browser shortcuts (Ctrl/Cmd + key)
-      if (e.ctrlKey || e.metaKey) {
-        return;
-      }
-      switch (e.key) {
-        case 'p':
-        case 'P':
-          e.preventDefault();
-          handlePlayPause();
-          break;
-        case '[':
-          e.preventDefault();
-          if (!isPlaying) handleStepBack();
-          break;
-        case ']':
-          e.preventDefault();
-          if (!isPlaying) handleStep();
-          break;
-        case 'r':
-        case 'R':
-          e.preventDefault();
-          handleReset();
-          break;
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- handlePlayPause excluded to prevent infinite loop
-  }, [handleStep, handleStepBack, isPlaying]);
-
-  const handleReset = () => {
-    setIsPlaying(false);
-    playingRef.current = false;
-    setCurrentStep(0);
-  };
-
-  const currentStepData = steps[currentStep] || {
+  const stepData = currentStepData || {
     i: -1,
     w: -1,
-    table: [],
-    decision: null,
+    table: [] as number[][],
+    decision: null as 'skip' | 'take' | null,
+    description: '',
+    codeLine: -1,
+    variables: undefined,
   };
-  const { i: currentI, w: currentW, table, decision } = currentStepData;
+  const { i: currentI, w: currentW, table, decision, description } = stepData;
 
   const getCellStyle = (i: number, w: number): string => {
     if (i === currentI && w === currentW) {
@@ -285,8 +202,6 @@ const DPVisualizerComponent: React.FC<DPVisualizerProps> = ({
     }
     return 'bg-gray-50 text-gray-400';
   };
-
-  const currentDescription = steps[currentStep]?.description || '';
 
   return (
     <div
@@ -440,7 +355,7 @@ const DPVisualizerComponent: React.FC<DPVisualizerProps> = ({
             {/* Status */}
             <div className="mt-4">
               <StatusPanel
-                description={currentDescription}
+                description={description}
                 currentStep={currentStep}
                 totalSteps={steps.length}
                 variant={
@@ -459,8 +374,8 @@ const DPVisualizerComponent: React.FC<DPVisualizerProps> = ({
             <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
               <CodePanel
                 code={KNAPSACK_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
+                activeLine={stepData.codeLine ?? -1}
+                variables={stepData.variables}
               />
               <HelpPanel />
             </div>

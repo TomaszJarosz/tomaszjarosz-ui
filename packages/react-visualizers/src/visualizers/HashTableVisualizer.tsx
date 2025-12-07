@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import {
   CodePanel,
@@ -7,6 +7,7 @@ import {
   Legend,
   StatusPanel,
   VisualizationArea,
+  useVisualizerPlayback,
 } from '../shared';
 
 interface HashStep {
@@ -211,136 +212,53 @@ const HashTableVisualizerComponent: React.FC<HashTableVisualizerProps> = ({
   showCode = true,
   className = '',
 }) => {
-  const [speed, setSpeed] = useState(25); // Slower default
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [steps, setSteps] = useState<HashStep[]>([]);
   const [customKey, setCustomKey] = useState('');
   const [keys, setKeys] = useState<string[]>(SAMPLE_KEYS.slice(0, 5));
 
-  const playingRef = useRef(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const generateSteps = useMemo(
+    () => () => generateHashSteps(keys),
+    [keys]
+  );
 
-  const initializeHash = useCallback(() => {
-    const newSteps = generateHashSteps(keys);
-    setSteps(newSteps);
-    setCurrentStep(0);
-    setIsPlaying(false);
-    playingRef.current = false;
-  }, [keys]);
+  const {
+    steps,
+    currentStep,
+    currentStepData,
+    isPlaying,
+    speed,
+    setSpeed,
+    handlePlayPause,
+    handleStep,
+    handleStepBack,
+    handleReset,
+    reinitialize,
+  } = useVisualizerPlayback<HashStep>({
+    generateSteps,
+  });
 
-  useEffect(() => {
-    initializeHash();
-  }, [initializeHash]);
-
-  useEffect(() => {
-    if (isPlaying && currentStep < steps.length - 1) {
-      playingRef.current = true;
-      // Slower: min 100ms, max 2000ms
-      const delay = Math.max(100, 2000 - speed * 19);
-
-      timeoutRef.current = setTimeout(() => {
-        if (playingRef.current) {
-          setCurrentStep((prev) => prev + 1);
-        }
-      }, delay);
-    } else if (currentStep >= steps.length - 1) {
-      setIsPlaying(false);
-      playingRef.current = false;
-    }
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [isPlaying, currentStep, steps.length, speed]);
-
-  const handlePlayPause = () => {
-    if (currentStep >= steps.length - 1) {
-      setCurrentStep(0);
-    }
-    setIsPlaying(!isPlaying);
-    playingRef.current = !isPlaying;
-  };
-
-  const handleStep = useCallback(() => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep((prev) => prev + 1);
-    }
-  }, [currentStep, steps.length]);
-
-  const handleStepBack = useCallback(() => {
-    if (currentStep > 0) {
-      setCurrentStep((prev) => prev - 1);
-    }
-  }, [currentStep]);
-
-  // Keyboard shortcuts (P = play/pause, [ = back, ] = forward, R = reset)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      ) {
-        return;
-      }
-      // Don't intercept browser shortcuts (Ctrl/Cmd + key)
-      if (e.ctrlKey || e.metaKey) {
-        return;
-      }
-      switch (e.key) {
-        case 'p':
-        case 'P':
-          e.preventDefault();
-          handlePlayPause();
-          break;
-        case '[':
-          e.preventDefault();
-          if (!isPlaying) handleStepBack();
-          break;
-        case ']':
-          e.preventDefault();
-          if (!isPlaying) handleStep();
-          break;
-        case 'r':
-        case 'R':
-          e.preventDefault();
-          handleReset();
-          break;
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- handlePlayPause excluded to prevent infinite loop
-  }, [handleStep, handleStepBack, isPlaying]);
-
-  const handleReset = () => {
-    setIsPlaying(false);
-    playingRef.current = false;
-    setCurrentStep(0);
-  };
-
-  const handleAddKey = () => {
+  const handleAddKey = useCallback(() => {
     if (customKey.trim() && !keys.includes(customKey.trim())) {
       setKeys([...keys, customKey.trim()]);
       setCustomKey('');
     }
-  };
+  }, [customKey, keys]);
 
-  const handleResetKeys = () => {
+  const handleResetKeys = useCallback(() => {
     setKeys(SAMPLE_KEYS.slice(0, 5));
-    setCurrentStep(0);
-  };
+    reinitialize();
+  }, [reinitialize]);
 
-  const currentStepData = steps[currentStep] || {
-    operation: 'done',
-    buckets: [],
+  const stepData = currentStepData || {
+    operation: 'done' as const,
+    buckets: [] as (string | null)[][],
     bucketIndex: -1,
     key: '',
+    hashValue: 0,
+    description: '',
+    codeLine: -1,
+    variables: undefined,
   };
-  const { operation, buckets, bucketIndex, key } = currentStepData;
-  const currentDescription = steps[currentStep]?.description || '';
+  const { operation, buckets, bucketIndex, key, description } = stepData;
 
   return (
     <div
@@ -507,7 +425,7 @@ const HashTableVisualizerComponent: React.FC<HashTableVisualizerProps> = ({
 
             {/* Status */}
             <StatusPanel
-              description={currentDescription}
+              description={description}
               currentStep={currentStep}
               totalSteps={steps.length}
               variant={
@@ -525,8 +443,8 @@ const HashTableVisualizerComponent: React.FC<HashTableVisualizerProps> = ({
             <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
               <CodePanel
                 code={HASH_TABLE_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
+                activeLine={stepData?.codeLine ?? -1}
+                variables={stepData?.variables}
               />
               <HelpPanel />
             </div>

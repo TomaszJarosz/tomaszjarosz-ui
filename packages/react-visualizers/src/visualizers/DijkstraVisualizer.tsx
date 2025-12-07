@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   CodePanel,
   HelpPanel,
@@ -6,6 +6,7 @@ import {
   Legend,
   StatusPanel,
   VisualizationArea,
+  useVisualizerPlayback,
 } from '../shared';
 
 interface Node {
@@ -214,134 +215,39 @@ const DijkstraVisualizerComponent: React.FC<DijkstraVisualizerProps> = ({
   showCode = true,
   className = '',
 }) => {
-  const [speed, setSpeed] = useState(25); // Slower default
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [steps, setSteps] = useState<DijkstraStep[]>([]);
-  const [graph, setGraph] = useState<ReturnType<typeof generateGraph> | null>(
-    null
+  const [graph] = useState(() => generateGraph());
+
+  const generateSteps = useMemo(
+    () => () => generateDijkstraSteps(graph.nodes, graph.adjacencyList, 0),
+    [graph]
   );
 
-  const playingRef = useRef(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const {
+    steps,
+    currentStep,
+    currentStepData,
+    isPlaying,
+    speed,
+    setSpeed,
+    handlePlayPause,
+    handleStep,
+    handleStepBack,
+    handleReset,
+  } = useVisualizerPlayback<DijkstraStep>({
+    generateSteps,
+  });
 
-  const initializeGraph = useCallback(() => {
-    const newGraph = generateGraph();
-    setGraph(newGraph);
-    const newSteps = generateDijkstraSteps(
-      newGraph.nodes,
-      newGraph.adjacencyList,
-      0
-    );
-    setSteps(newSteps);
-    setCurrentStep(0);
-    setIsPlaying(false);
-    playingRef.current = false;
-  }, []);
-
-  useEffect(() => {
-    initializeGraph();
-  }, [initializeGraph]);
-
-  useEffect(() => {
-    if (isPlaying && currentStep < steps.length - 1) {
-      playingRef.current = true;
-      // Slower: min 100ms, max 2000ms
-      const delay = Math.max(100, 2000 - speed * 19);
-
-      timeoutRef.current = setTimeout(() => {
-        if (playingRef.current) {
-          setCurrentStep((prev) => prev + 1);
-        }
-      }, delay);
-    } else if (currentStep >= steps.length - 1) {
-      setIsPlaying(false);
-      playingRef.current = false;
-    }
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [isPlaying, currentStep, steps.length, speed]);
-
-  const handlePlayPause = () => {
-    if (currentStep >= steps.length - 1) {
-      setCurrentStep(0);
-    }
-    setIsPlaying(!isPlaying);
-    playingRef.current = !isPlaying;
-  };
-
-  const handleStep = useCallback(() => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep((prev) => prev + 1);
-    }
-  }, [currentStep, steps.length]);
-
-  const handleStepBack = useCallback(() => {
-    if (currentStep > 0) {
-      setCurrentStep((prev) => prev - 1);
-    }
-  }, [currentStep]);
-
-  // Keyboard shortcuts (P = play/pause, [ = back, ] = forward, R = reset)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      ) {
-        return;
-      }
-      // Don't intercept browser shortcuts (Ctrl/Cmd + key)
-      if (e.ctrlKey || e.metaKey) {
-        return;
-      }
-
-      switch (e.key) {
-        case 'p':
-        case 'P':
-          e.preventDefault();
-          handlePlayPause();
-          break;
-        case '[':
-          e.preventDefault();
-          if (!isPlaying) handleStepBack();
-          break;
-        case ']':
-          e.preventDefault();
-          if (!isPlaying) handleStep();
-          break;
-        case 'r':
-        case 'R':
-          e.preventDefault();
-          handleReset();
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- handlePlayPause excluded to prevent infinite loop
-  }, [handleStep, handleStepBack, isPlaying]);
-
-  const handleReset = () => {
-    setIsPlaying(false);
-    playingRef.current = false;
-    setCurrentStep(0);
-  };
-
-  if (!graph) return null;
-
-  const currentStepData = steps[currentStep] || {
+  const stepData = currentStepData || {
     current: -1,
-    visited: [],
-    distances: [],
-    priorityQueue: [],
+    visited: [] as number[],
+    distances: [] as number[],
+    priorityQueue: [] as { node: number; dist: number }[],
+    previous: [] as (number | null)[],
+    description: '',
+    codeLine: -1,
+    variables: undefined,
   };
-  const { current, visited, distances, priorityQueue } = currentStepData;
+  const { current, visited, distances, priorityQueue, description } = stepData;
 
   const getNodeColor = (nodeId: number): string => {
     if (nodeId === current) return 'fill-yellow-400 stroke-yellow-600';
@@ -354,8 +260,6 @@ const DijkstraVisualizerComponent: React.FC<DijkstraVisualizerProps> = ({
     if (visited.includes(nodeId)) return 'fill-green-900';
     return 'fill-blue-700';
   };
-
-  const currentDescription = steps[currentStep]?.description || '';
 
   return (
     <div
@@ -554,7 +458,7 @@ const DijkstraVisualizerComponent: React.FC<DijkstraVisualizerProps> = ({
             {/* Status */}
             <div className="mt-3">
               <StatusPanel
-                description={currentDescription}
+                description={description}
                 currentStep={currentStep}
                 totalSteps={steps.length}
               />
@@ -566,8 +470,8 @@ const DijkstraVisualizerComponent: React.FC<DijkstraVisualizerProps> = ({
             <div className="w-full lg:w-60 flex-shrink-0 space-y-2">
               <CodePanel
                 code={DIJKSTRA_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
+                activeLine={stepData.codeLine ?? -1}
+                variables={stepData.variables}
               />
               <HelpPanel />
             </div>
