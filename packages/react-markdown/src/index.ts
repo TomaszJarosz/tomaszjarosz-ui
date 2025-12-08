@@ -3,6 +3,13 @@
  *
  * Enhanced markdown components for React - code blocks, callouts, diagrams,
  * typography, and complete markdown rendering utilities.
+ *
+ * @example
+ * // Import styles in your app entry point
+ * import '@tomaszjarosz/react-markdown/styles.css';
+ *
+ * // Or import individual components
+ * import { CodeBlockWithLanguage, Callout } from '@tomaszjarosz/react-markdown';
  */
 
 // =============================================================================
@@ -108,6 +115,9 @@ export {
   // Heading ID generation
   createHeadingIdGenerator,
   generateHeadingId,
+  // Line highlight parsing
+  parseHighlightLines,
+  extractLanguage,
   // Types
   type MarkdownComponentProps,
   type MarkdownComponentPropsWithExtras,

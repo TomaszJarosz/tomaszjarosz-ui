@@ -157,23 +157,17 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({
 
   if (error) {
     return (
-      <div
-        className={`my-6 p-4 bg-red-50 border border-red-200 rounded-lg ${className}`}
-      >
-        <div className="flex items-center gap-2 text-red-700 font-medium mb-2">
-          <AlertCircle className="h-4 w-4" />
+      <div className={className || 'rm-mermaid-error'}>
+        <div className="rm-mermaid-error-header">
+          <AlertCircle />
           <span>Diagram Error</span>
         </div>
-        <p className="text-red-600 text-sm mb-3">{error}</p>
-        <details className="text-xs text-red-500">
-          <summary className="cursor-pointer hover:text-red-700">
-            Show diagram source
-          </summary>
-          <pre className="mt-2 p-2 bg-red-100 rounded text-xs overflow-auto whitespace-pre-wrap">
-            {chart}
-          </pre>
+        <p className="rm-mermaid-error-message">{error}</p>
+        <details className="rm-mermaid-error-details">
+          <summary>Show diagram source</summary>
+          <pre className="rm-mermaid-error-source">{chart}</pre>
         </details>
-        <div className="mt-3 text-xs text-red-400">
+        <div className="rm-mermaid-error-hint">
           Try refreshing the page or check the diagram syntax.
         </div>
       </div>
@@ -181,10 +175,10 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({
   }
 
   return (
-    <div className={`my-8 -mx-4 sm:mx-0 ${className}`}>
+    <div className={className || 'rm-mermaid-wrapper'}>
       {isLoading && (
-        <div className="flex items-center justify-center gap-2 p-8 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 text-sm">
-          <Loader2 className="h-4 w-4 animate-spin" />
+        <div className="rm-mermaid-loading">
+          <Loader2 />
           <span>
             {!mermaid ? 'Loading Mermaid library...' : 'Rendering diagram...'}
           </span>
@@ -193,18 +187,12 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({
 
       <div
         ref={ref}
-        className={`mermaid-diagram bg-white border border-gray-200 rounded-lg p-6 overflow-auto ${isLoading ? 'hidden' : ''}`}
-        style={{
-          minHeight: isLoading ? '0' : '120px',
-          textAlign: 'center',
-        }}
+        className={`rm-mermaid-diagram${isLoading ? ' rm-mermaid-hidden' : ''}`}
       />
 
       {!isLoading && !error && (
-        <div className="text-center mt-3">
-          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-            Mermaid Diagram
-          </span>
+        <div className="rm-mermaid-label">
+          <span>Mermaid Diagram</span>
         </div>
       )}
     </div>

@@ -9,14 +9,11 @@ interface InlineCodeProps extends React.HTMLAttributes<HTMLElement> {
  */
 export const InlineCode: React.FC<InlineCodeProps> = ({
   children,
-  className = '',
+  className,
   ...props
 }) => {
   return (
-    <code
-      className={`bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-xs font-mono border whitespace-nowrap ${className}`}
-      {...props}
-    >
+    <code className={className || 'rm-inline-code'} {...props}>
       {children}
     </code>
   );

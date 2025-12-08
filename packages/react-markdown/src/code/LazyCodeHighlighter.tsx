@@ -137,40 +137,22 @@ export const LazyCodeHighlighter: React.FC<LazyCodeHighlighterProps> = ({
 
   if (!lowlight) {
     return (
-      <div className="flex items-center justify-center gap-2 p-4 bg-gray-900 rounded-lg min-h-[60px] text-gray-400 text-sm">
-        <Loader2 className="h-4 w-4 animate-spin" />
+      <div className="rm-code-loading">
+        <Loader2 />
         <span>Loading syntax highlighter...</span>
       </div>
     );
   }
 
   return (
-    <pre
-      className="hljs"
-      style={{
-        background: '#1f2937',
-        color: '#e8e8e8',
-        margin: 0,
-        padding: '1rem',
-        overflow: 'auto',
-      }}
-    >
-      <code style={{ color: 'inherit' }}>
+    <pre className="rm-code-pre hljs">
+      <code>
         {lines.map(({ lineNumber, content }) => {
           const isHighlighted = highlightLines.includes(lineNumber);
           return (
             <div
               key={lineNumber}
-              style={{
-                display: 'block',
-                paddingLeft: isHighlighted ? '4px' : '0',
-                ...(isHighlighted && {
-                  backgroundColor: 'rgba(59, 130, 246, 0.15)',
-                  borderLeft: '3px solid #3b82f6',
-                  marginLeft: '-1rem',
-                  paddingLeft: 'calc(1rem + 4px)',
-                }),
-              }}
+              className={`rm-code-line${isHighlighted ? ' rm-code-line-highlighted' : ''}`}
             >
               {content}
               {'\n'}

@@ -15,6 +15,8 @@ interface CodeBlockWithLanguageProps {
   highlightLines: number[];
   codeStyle: React.CSSProperties;
   props?: Record<string, unknown>;
+  /** Custom class name for wrapper */
+  className?: string;
 }
 
 /**
@@ -27,6 +29,7 @@ export const CodeBlockWithLanguage: React.FC<CodeBlockWithLanguageProps> = ({
   highlightLines,
   codeStyle,
   props = {},
+  className,
 }) => {
   const isDiff = language === 'diff';
 
@@ -41,17 +44,12 @@ export const CodeBlockWithLanguage: React.FC<CodeBlockWithLanguageProps> = ({
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
 
   return (
-    <div
-      className="my-1.5 rounded-md shadow-sm overflow-hidden bg-gray-900 relative"
-      style={codeStyle}
-    >
+    <div className={className || 'rm-code-block'} style={codeStyle}>
       <CodeBlockHeader language={language} isDiff={isDiff} lineCount={lineCount} />
-      <div className="relative">
+      <div className="rm-code-content">
         <CopyCodeButton code={code} />
         <div
-          className={`overflow-x-auto transition-all duration-300 ${
-            isCollapsed && isCollapsible ? 'overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800' : ''
-          }`}
+          className={`rm-code-scroll${isCollapsed && isCollapsible ? ' rm-code-scroll-collapsed' : ''}`}
           style={{
             maxHeight: isCollapsed && isCollapsible ? COLLAPSED_HEIGHT : undefined,
           }}
@@ -63,29 +61,23 @@ export const CodeBlockWithLanguage: React.FC<CodeBlockWithLanguageProps> = ({
             props={props}
           />
         </div>
-        {/* Fade overlay when collapsed - subtle transparent darkening */}
-        {isCollapsible && isCollapsed && (
-          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
-        )}
+        {/* Fade overlay when collapsed */}
+        {isCollapsible && isCollapsed && <div className="rm-code-fade" />}
       </div>
-      {/* Expand/Collapse button - matches gradient fade */}
+      {/* Expand/Collapse button */}
       {isCollapsible && (
         <button
           onClick={toggleCollapse}
-          className={`w-full py-2.5 px-4 text-xs font-medium flex items-center justify-center gap-2 transition-all rounded-b-md ${
-            isCollapsed
-              ? 'bg-black/70 text-blue-400 hover:bg-black/80 hover:text-blue-300'
-              : 'bg-black/70 text-gray-400 hover:bg-black/80 hover:text-gray-300'
-          }`}
+          className={`rm-code-toggle${!isCollapsed ? ' rm-code-toggle-collapsed' : ''}`}
         >
           {isCollapsed ? (
             <>
-              <ChevronDown className="h-3.5 w-3.5" />
+              <ChevronDown />
               <span>Show all {lineCount} lines</span>
             </>
           ) : (
             <>
-              <ChevronUp className="h-3.5 w-3.5" />
+              <ChevronUp />
               <span>Collapse</span>
             </>
           )}

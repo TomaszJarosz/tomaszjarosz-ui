@@ -12,6 +12,11 @@ export {
   generateHeadingId,
 } from './headingUtils';
 
+export {
+  parseHighlightLines,
+  extractLanguage,
+} from './highlightUtils';
+
 export type {
   HeadingProps,
   MarkdownComponentProps,

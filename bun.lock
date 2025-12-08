@@ -35,7 +35,7 @@
     },
     "packages/react-markdown": {
       "name": "@tomaszjarosz/react-markdown",
-      "version": "0.1.0",
+      "version": "0.3.0",
       "dependencies": {
         "highlight.js": "^11.11.0",
         "isomorphic-dompurify": "^2.21.0",
@@ -45,9 +45,14 @@
         "prism-react-renderer": "^2.4.1",
       },
       "devDependencies": {
+        "@chromatic-com/storybook": "^4.1.3",
+        "@storybook/addon-a11y": "^10.1.4",
+        "@storybook/addon-docs": "^10.1.4",
+        "@storybook/react-vite": "^10.1.4",
         "@vitejs/plugin-react": "^4.3.4",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
+        "storybook": "^10.1.4",
         "typescript": "^5.7.2",
         "vite": "^6.0.3",
         "vite-plugin-dts": "^4.3.0",
@@ -59,7 +64,7 @@
     },
     "packages/react-visualizers": {
       "name": "@tomaszjarosz/react-visualizers",
-      "version": "0.2.11",
+      "version": "0.2.12",
       "dependencies": {
         "lucide-react": "^0.468.0",
       },

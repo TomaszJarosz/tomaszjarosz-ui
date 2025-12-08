@@ -53,15 +53,13 @@ export const ParagraphComponent: React.FC<ParagraphProps> = ({
 
   // If contains block-level elements, use div to avoid nesting warnings
   if (hasBlockLevelChildren) {
-    return (
-      <div className={className || "text-sm text-gray-700 leading-snug mb-1"}>{children}</div>
-    );
+    return <div className={className || 'rm-paragraph'}>{children}</div>;
   }
 
   // Multiple checkmarks - render each on new line
   if (type.hasMultipleCheckmarks) {
     return (
-      <div className={className || "mb-1 text-sm text-gray-700 leading-snug"}>
+      <div className={className || 'rm-paragraph'}>
         {React.Children.map(children, (child) => {
           if (typeof child === 'string') {
             const lines = child.split('\n').filter((line) => line.trim());
@@ -80,25 +78,19 @@ export const ParagraphComponent: React.FC<ParagraphProps> = ({
 
   // Summary items (e.g., **Title** - description)
   if (type.isSummaryItem) {
-    return (
-      <p className={className || "mb-0.5 text-sm text-gray-700 leading-snug"}>{children}</p>
-    );
+    return <p className={className || 'rm-paragraph rm-paragraph-summary'}>{children}</p>;
   }
 
   // Single checkmark items
   if (type.isCheckmarkItem) {
-    return (
-      <p className={className || "mb-1 text-sm text-gray-700 leading-snug"}>{children}</p>
-    );
+    return <p className={className || 'rm-paragraph'}>{children}</p>;
   }
 
   // List headers
   if (type.isListHeader) {
-    return (
-      <p className={className || "text-sm text-gray-700 leading-tight mb-0"}>{children}</p>
-    );
+    return <p className={className || 'rm-paragraph rm-paragraph-list-header'}>{children}</p>;
   }
 
   // Regular paragraphs
-  return <p className={className || "text-sm text-gray-700 leading-snug mb-1"}>{children}</p>;
+  return <p className={className || 'rm-paragraph'}>{children}</p>;
 };

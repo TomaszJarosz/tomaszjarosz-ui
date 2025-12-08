@@ -5,6 +5,8 @@ interface SimpleCodeBlockProps {
   children: React.ReactNode;
   code: string;
   props?: Record<string, unknown>;
+  /** Custom class name for wrapper */
+  className?: string;
 }
 
 /**
@@ -15,18 +17,12 @@ export const SimpleCodeBlock: React.FC<SimpleCodeBlockProps> = ({
   children,
   code,
   props = {},
+  className,
 }) => {
   return (
-    <div className="my-1.5 rounded-md border border-gray-200 relative overflow-x-auto">
+    <div className={className || 'rm-simple-code-block'}>
       <CopyCodeButton code={code} />
-      <pre
-        className="bg-gray-900 text-gray-100 p-1.5 pr-10 overflow-x-auto text-xs leading-snug"
-        style={{
-          fontFamily:
-            "ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-          whiteSpace: 'pre',
-        }}
-      >
+      <pre className="rm-simple-code-pre">
         <code {...props}>{children}</code>
       </pre>
     </div>

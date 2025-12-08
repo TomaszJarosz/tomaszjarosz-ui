@@ -5,12 +5,15 @@ interface CopyCodeButtonProps {
   code: string;
   onCopy?: () => void;
   onError?: (error: Error) => void;
+  /** Custom class name */
+  className?: string;
 }
 
 export const CopyCodeButton: React.FC<CopyCodeButtonProps> = ({
   code,
   onCopy,
   onError,
+  className,
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -35,18 +38,14 @@ export const CopyCodeButton: React.FC<CopyCodeButtonProps> = ({
     <>
       <button
         onClick={handleCopy}
-        className="absolute top-1.5 right-1.5 p-1.5 rounded-md bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white transition-colors z-10"
+        className={className || `rm-copy-button${copied ? ' rm-copy-button-success' : ''}`}
         aria-label={copied ? 'Code copied' : 'Copy code to clipboard'}
       >
-        {copied ? (
-          <Check className="h-4 w-4 text-green-400" />
-        ) : (
-          <Copy className="h-4 w-4" />
-        )}
+        {copied ? <Check /> : <Copy />}
       </button>
       {/* Screen reader announcement */}
       {copied && (
-        <span role="status" aria-live="polite" className="sr-only">
+        <span role="status" aria-live="polite" className="rm-sr-only">
           Code copied to clipboard
         </span>
       )}

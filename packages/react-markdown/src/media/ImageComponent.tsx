@@ -43,41 +43,29 @@ export const ImageComponent: React.FC<ImageProps> = ({
     }
 
     return (
-      <div className={className || "my-8"}>
-        <div
-          className="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-lg border border-gray-200"
-          role="img"
-          aria-label={alt || 'Image failed to load'}
-        >
-          <ImageOff className="h-12 w-12 text-gray-400 mb-2" />
-          <p className="text-sm text-gray-500">Failed to load image</p>
-          {alt && <p className="text-xs text-gray-400 mt-1 italic">{alt}</p>}
+      <div className={className || 'rm-image-wrapper'}>
+        <div className="rm-image-error" role="img" aria-label={alt || 'Image failed to load'}>
+          <ImageOff className="rm-image-error-icon" />
+          <p className="rm-image-error-text">Failed to load image</p>
+          {alt && <p className="rm-image-error-alt">{alt}</p>}
         </div>
       </div>
     );
   }
 
   return (
-    <div className={className || "my-8"}>
-      {isLoading && (
-        loadingPlaceholder || (
-          <div className="animate-pulse bg-gray-200 rounded-lg h-64 w-full" />
-        )
-      )}
+    <div className={className || 'rm-image-wrapper'}>
+      {isLoading && (loadingPlaceholder || <div className="rm-image-loading" />)}
       <img
         src={src}
         alt={alt}
         loading="lazy"
         onLoad={handleLoad}
         onError={handleError}
-        className={imageClassName || `max-w-full h-auto rounded-lg shadow-lg mx-auto border border-gray-200 ${
-          isLoading ? 'hidden' : ''
-        }`}
+        className={imageClassName || `rm-image${isLoading ? ' rm-image-hidden' : ''}`}
       />
       {showCaption && alt && !isLoading && (
-        <p className="text-center text-sm text-gray-500 mt-3 italic px-4 sm:px-0">
-          {alt}
-        </p>
+        <p className="rm-image-caption">{alt}</p>
       )}
     </div>
   );

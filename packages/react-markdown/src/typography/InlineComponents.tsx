@@ -7,17 +7,17 @@ export interface InlineProps {
 }
 
 export const Strong: React.FC<InlineProps> = ({ children, className }) => (
-  <strong className={className || "font-bold text-gray-900"}>{children}</strong>
+  <strong className={className || 'rm-strong'}>{children}</strong>
 );
 
 export const Emphasis: React.FC<InlineProps> = ({ children, className }) => (
-  <em className={className || "italic text-gray-700"}>{children}</em>
+  <em className={className || 'rm-em'}>{children}</em>
 );
 
 export const HorizontalRule: React.FC<{ className?: string }> = ({ className }) => (
-  <hr className={className || "my-3 border-t-2 border-gray-200"} />
+  <hr className={className || 'rm-hr'} />
 );
 
 export const Strikethrough: React.FC<InlineProps> = ({ children, className }) => (
-  <del className={className || "line-through text-gray-500"}>{children}</del>
+  <del className={className || 'rm-del'}>{children}</del>
 );
