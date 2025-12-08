@@ -36,7 +36,7 @@ export { Callout } from './callout';
 // DIAGRAMS
 // =============================================================================
 
-export { MermaidDiagram } from './diagram';
+export { MermaidDiagram, FlowDiagram, type FlowDiagramProps } from './diagram';
 
 // =============================================================================
 // TYPOGRAPHY
