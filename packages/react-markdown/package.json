@@ -1,7 +1,7 @@
 {
   "name": "@tomaszjarosz/react-markdown",
-  "version": "0.1.3",
-  "description": "Enhanced markdown components for React - code blocks, callouts, diagrams",
+  "version": "0.2.0",
+  "description": "Complete markdown rendering components for React - typography, code blocks, callouts, diagrams, and renderer utilities",
   "author": "Tomasz Jarosz <tomaszjarosz1994@gmail.com>",
   "license": "MIT",
   "repository": {
@@ -17,7 +17,11 @@
     "callout",
     "mermaid",
     "diagram",
-    "collapsible"
+    "collapsible",
+    "typography",
+    "headings",
+    "tables",
+    "react-markdown"
   ],
   "type": "module",
   "main": "./dist/index.cjs",
