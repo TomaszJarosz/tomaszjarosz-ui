@@ -117,7 +117,7 @@ export const BaseVisualizerLayout: React.FC<BaseVisualizerLayoutProps> = ({
         {infoBox}
 
         {/* Visualization + Side Panel */}
-        <div className={`flex gap-4 ${hasSidePanel ? 'flex-col lg:flex-row' : ''}`}>
+        <div className={`flex gap-4 ${hasSidePanel ? 'flex-col lg:flex-row lg:items-start' : ''}`}>
           {/* Main Visualization Area */}
           <VisualizationArea minHeight={minHeight} className="flex-1">
             {children}
@@ -130,9 +130,9 @@ export const BaseVisualizerLayout: React.FC<BaseVisualizerLayoutProps> = ({
             )}
           </VisualizationArea>
 
-          {/* Side Panel (Code or Custom) */}
+          {/* Side Panel (Code or Custom) - sticky on desktop */}
           {hasSidePanel && (
-            <div className="lg:w-80 flex-shrink-0 flex flex-col gap-4">
+            <div className="lg:w-80 flex-shrink-0 flex flex-col gap-4 lg:sticky lg:top-4">
               {hasCodePanel && (
                 <CodePanel
                   code={code}
