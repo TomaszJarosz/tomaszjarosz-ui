@@ -119,18 +119,18 @@ export const BaseVisualizerLayout: React.FC<BaseVisualizerLayoutProps> = ({
         {/* Info Box */}
         {infoBox}
 
+        {/* Status Panel - at top for stable layout */}
+        {status && (
+          <div className="mb-4">
+            <StatusPanel {...status} />
+          </div>
+        )}
+
         {/* Visualization + Side Panel */}
         <div className={`flex gap-4 ${hasSidePanel ? 'flex-col lg:flex-row lg:items-start' : ''}`}>
           {/* Main Visualization Area */}
           <VisualizationArea minHeight={minHeight} fixedHeight={fixedHeight} className="flex-1">
             {children}
-
-            {/* Status Panel */}
-            {status && (
-              <div className="mt-4">
-                <StatusPanel {...status} />
-              </div>
-            )}
           </VisualizationArea>
 
           {/* Side Panel (Code or Custom) - sticky on desktop */}

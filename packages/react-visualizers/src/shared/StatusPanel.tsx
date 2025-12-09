@@ -58,23 +58,12 @@ export const StatusPanel: React.FC<StatusPanelProps> = ({
 
   return (
     <div
-      className="p-3 bg-gray-50 rounded-lg overflow-hidden"
+      className="p-3 bg-gray-50 rounded-lg"
       role="status"
       aria-live="polite"
       aria-atomic="true"
     >
-      <div
-        className={`text-sm font-medium ${VARIANT_STYLES[variant]} flex items-center gap-1.5 transition-all duration-150 ${
-          isAnimating ? 'opacity-0 translate-y-1' : 'opacity-100 translate-y-0'
-        }`}
-      >
-        {Icon && (
-          <Icon className="w-4 h-4 flex-shrink-0 animate-in fade-in duration-300" aria-hidden="true" />
-        )}
-        <span className="sr-only">{srPrefix}</span>
-        {displayedDescription}
-      </div>
-      <div className="mt-2 flex items-center gap-2">
+      <div className="flex items-center gap-2 mb-2">
         <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
           <div
             className="h-full bg-indigo-500 rounded-full transition-all duration-300 ease-out"
@@ -87,6 +76,17 @@ export const StatusPanel: React.FC<StatusPanelProps> = ({
         >
           {currentStep + 1} / {totalSteps}
         </div>
+      </div>
+      <div
+        className={`text-sm font-medium ${VARIANT_STYLES[variant]} flex items-start gap-1.5 transition-all duration-150 ${
+          isAnimating ? 'opacity-0 translate-y-1' : 'opacity-100 translate-y-0'
+        }`}
+      >
+        {Icon && (
+          <Icon className="w-4 h-4 flex-shrink-0 animate-in fade-in duration-300 mt-0.5" aria-hidden="true" />
+        )}
+        <span className="sr-only">{srPrefix}</span>
+        <span>{displayedDescription}</span>
       </div>
     </div>
   );

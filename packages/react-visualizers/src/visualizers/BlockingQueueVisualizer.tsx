@@ -362,6 +362,12 @@ const BlockingQueueVisualizerComponent: React.FC<
         </div>
       </div>
 
+      {/* Flow arrows - at top for stable layout */}
+      <div className="flex justify-center gap-8 text-gray-400 text-lg mb-4">
+        <span>→ put()</span>
+        <span>take() →</span>
+      </div>
+
       {/* Producer-Consumer Layout */}
       <div className="flex items-center justify-between gap-4 mb-4">
         {/* Producers */}
@@ -396,6 +402,15 @@ const BlockingQueueVisualizerComponent: React.FC<
             Queue ({queue.length}/{capacity})
           </div>
           <div className="bg-gray-100 rounded-lg p-2 min-h-[100px]">
+            {/* Capacity indicator - at top for stable layout */}
+            <div className="mb-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-colors ${
+                  queue.length === capacity ? 'bg-red-500' : 'bg-cyan-500'
+                }`}
+                style={{ width: `${(queue.length / capacity) * 100}%` }}
+              />
+            </div>
             <div className="flex flex-col gap-1">
               {queue.length > 0 ? (
                 queue.map((item, idx) => (
@@ -415,15 +430,6 @@ const BlockingQueueVisualizerComponent: React.FC<
                   Empty
                 </div>
               )}
-            </div>
-            {/* Capacity indicator */}
-            <div className="mt-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className={`h-full transition-colors ${
-                  queue.length === capacity ? 'bg-red-500' : 'bg-cyan-500'
-                }`}
-                style={{ width: `${(queue.length / capacity) * 100}%` }}
-              />
             </div>
           </div>
         </div>
@@ -455,11 +461,6 @@ const BlockingQueueVisualizerComponent: React.FC<
         </div>
       </div>
 
-      {/* Flow arrows */}
-      <div className="flex justify-center gap-8 text-gray-400 text-lg mb-4">
-        <span>→ put()</span>
-        <span>take() →</span>
-      </div>
     </>
   );
 
