@@ -1,14 +1,8 @@
 import React, { useMemo, useCallback } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 
 interface TrieNode {
@@ -77,9 +71,14 @@ const LEGEND_ITEMS = [
   { color: 'bg-gray-100', label: 'Node', border: '#d1d5db' },
   { color: 'bg-blue-200', label: 'Current', border: '#60a5fa' },
   { color: 'bg-green-400', label: 'End of word' },
-  { color: 'bg-yellow-200', label: 'Path', border: '#fbbf24' },
+  { color: 'bg-amber-200', label: 'Path', border: '#fbbf24' },
   { color: 'bg-purple-400', label: 'Match found' },
   { color: 'bg-red-400', label: 'Not found' },
+];
+
+const BADGES = [
+  { label: 'Insert: O(m)', variant: 'teal' as const },
+  { label: 'Search: O(m)', variant: 'cyan' as const },
 ];
 
 let nodeIdCounter = 0;
@@ -402,7 +401,7 @@ const TrieNodeComponent: React.FC<{
   if (isCurrent) {
     nodeStyle = 'border-blue-400 bg-blue-100 ring-2 ring-blue-300';
   } else if (isInPath) {
-    nodeStyle = 'border-yellow-400 bg-yellow-100';
+    nodeStyle = 'border-amber-400 bg-amber-100';
   }
   if (node.isEndOfWord) {
     nodeStyle += ' ring-2 ring-green-400';
@@ -490,121 +489,91 @@ const TrieVisualizerComponent: React.FC<TrieVisualizerProps> = ({
     return copyUrlToClipboard({ step: currentStep });
   }, [copyUrlToClipboard, currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-teal-50 to-cyan-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">Trie (Prefix Tree)</h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-700 rounded">
-                Insert: O(m)
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-cyan-100 text-cyan-700 rounded">
-                Search: O(m)
-              </span>
-            </div>
-          </div>
-          <ShareButton onShare={handleShare} />
+  const visualization = (
+    <>
+      {/* Info Box */}
+      <div className="mb-4 p-3 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg border border-teal-200">
+        <div className="text-sm font-semibold text-teal-800 mb-2">
+          🌲 Trie - Prefix Tree
+        </div>
+        <div className="text-xs text-teal-700 space-y-1">
+          <div>• Each node represents a character</div>
+          <div>• Words share common prefixes (space efficient)</div>
+          <div>• Perfect for autocomplete & spell checking</div>
+          <div>• m = word length, n = number of words</div>
         </div>
       </div>
 
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={400} className={showCode ? 'flex-1' : 'w-full'}>
-            {/* Info Box */}
-            <div className="mb-4 p-3 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg border border-teal-200">
-              <div className="text-sm font-semibold text-teal-800 mb-2">
-                🌲 Trie - Prefix Tree
-              </div>
-              <div className="text-xs text-teal-700 space-y-1">
-                <div>• Each node represents a character</div>
-                <div>• Words share common prefixes (space efficient)</div>
-                <div>• Perfect for autocomplete & spell checking</div>
-                <div>• m = word length, n = number of words</div>
-              </div>
-            </div>
-
-            {/* Trie Visualization */}
-            <div className="flex justify-center overflow-x-auto py-4">
-              {stepData.nodes.size > 0 && (
-                <TrieNodeComponent
-                  nodeId={stepData.rootId}
-                  nodes={stepData.nodes}
-                  currentNodeId={stepData.currentNodeId}
-                  highlightPath={stepData.highlightPath}
-                  depth={0}
-                />
-              )}
-            </div>
-
-            {/* Matched Words */}
-            {stepData.matchedWords && stepData.matchedWords.length > 0 && (
-              <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                <div className="text-xs font-medium text-purple-800 mb-2">
-                  Words found:
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {stepData.matchedWords.map((word) => (
-                    <span
-                      key={word}
-                      className="px-2 py-1 bg-purple-100 text-purple-700 text-sm rounded font-mono"
-                    >
-                      {word}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Status */}
-            <StatusPanel
-              description={stepData.description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={getStatusVariant()}
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={TRIE_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="teal"
+      {/* Trie Visualization */}
+      <div className="flex justify-center overflow-x-auto py-4">
+        {stepData.nodes.size > 0 && (
+          <TrieNodeComponent
+            nodeId={stepData.rootId}
+            nodes={stepData.nodes}
+            currentNodeId={stepData.currentNodeId}
+            highlightPath={stepData.highlightPath}
+            depth={0}
           />
-          <Legend items={LEGEND_ITEMS} />
+        )}
+      </div>
+
+      {/* Matched Words */}
+      {stepData.matchedWords && stepData.matchedWords.length > 0 && (
+        <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+          <div className="text-xs font-medium text-purple-800 mb-2">
+            Words found:
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {stepData.matchedWords.map((word) => (
+              <span
+                key={word}
+                className="px-2 py-1 bg-purple-100 text-purple-700 text-sm rounded font-mono"
+              >
+                {word}
+              </span>
+            ))}
+          </div>
         </div>
       )}
-    </div>
+    </>
+  );
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="Trie (Prefix Tree)"
+      badges={BADGES}
+      gradient="teal"
+      className={className}
+      minHeight={400}
+      onShare={handleShare}
+      status={{
+        description: stepData.description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'teal',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? TRIE_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

@@ -12,9 +12,10 @@ describe('Legend', () => {
     it('renders all legend items', () => {
       render(<Legend items={defaultItems} />);
 
-      expect(screen.getByText('Current')).toBeInTheDocument();
-      expect(screen.getByText('Found')).toBeInTheDocument();
-      expect(screen.getByText('Not found')).toBeInTheDocument();
+      // Each label appears twice (sr-only + visible), so use getAllByText
+      expect(screen.getAllByText('Current').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Found').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Not found').length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders color boxes for each item', () => {
@@ -71,7 +72,8 @@ describe('Legend', () => {
 
       render(<Legend items={singleItem} />);
 
-      expect(screen.getByText('Processing')).toBeInTheDocument();
+      // Label appears in both sr-only and visible span
+      expect(screen.getAllByText('Processing').length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -88,7 +90,8 @@ describe('Legend', () => {
       render(<Legend items={manyItems} />);
 
       manyItems.forEach((item) => {
-        expect(screen.getByText(item.label)).toBeInTheDocument();
+        // Each label appears in both sr-only and visible span
+        expect(screen.getAllByText(item.label).length).toBeGreaterThanOrEqual(1);
       });
     });
   });

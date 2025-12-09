@@ -1,12 +1,8 @@
-import React, { useMemo, useCallback, useState } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 
 type Operation = 'get' | 'addFirst' | 'addLast' | 'addMiddle' | 'removeFirst' | 'removeLast' | 'removeMiddle';
@@ -48,10 +44,14 @@ const OPERATIONS: Array<{ op: Operation; index?: number; value?: number }> = [
   { op: 'removeMiddle', index: 2 },
 ];
 
+const BADGES = [
+  { label: 'Comparison', variant: 'blue' as const },
+];
+
 const LEGEND_ITEMS = [
   { color: 'bg-blue-500', label: 'ArrayList' },
   { color: 'bg-green-500', label: 'LinkedList' },
-  { color: 'bg-yellow-400', label: 'Current element' },
+  { color: 'bg-amber-400', label: 'Current element' },
   { color: 'bg-red-400', label: 'Shifting/Traversing' },
   { color: 'bg-purple-400', label: 'Result' },
 ];
@@ -456,7 +456,7 @@ const ListComparisonVisualizerComponent: React.FC<ListComparisonVisualizerProps>
               className={`
                 w-10 h-10 flex items-center justify-center text-sm font-mono font-bold
                 border-2 transition-all
-                ${isHighlighted ? 'bg-yellow-400 border-yellow-500' : ''}
+                ${isHighlighted ? 'bg-amber-400 border-amber-500' : ''}
                 ${isShifting ? 'bg-red-300 border-red-400' : ''}
                 ${!isHighlighted && !isShifting ? 'bg-blue-200 border-blue-300' : ''}
               `}
@@ -495,7 +495,7 @@ const ListComparisonVisualizerComponent: React.FC<ListComparisonVisualizerProps>
                 className={`
                   w-10 h-10 flex items-center justify-center text-sm font-mono font-bold
                   rounded-lg border-2 transition-all
-                  ${isHighlighted ? 'bg-yellow-400 border-yellow-500' : ''}
+                  ${isHighlighted ? 'bg-amber-400 border-amber-500' : ''}
                   ${isTraversing && !isHighlighted ? 'bg-red-300 border-red-400' : ''}
                   ${!isHighlighted && !isTraversing ? 'bg-green-200 border-green-300' : ''}
                 `}
@@ -517,29 +517,8 @@ const ListComparisonVisualizerComponent: React.FC<ListComparisonVisualizerProps>
     </div>
   );
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-green-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">ArrayList vs LinkedList</h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">
-                Comparison
-              </span>
-            </div>
-          </div>
-          <ShareButton onShare={handleShare} accentColor="blue" />
-        </div>
-      </div>
-
-      {/* Visualization Area */}
-      <div className="p-4">
-        <VisualizationArea minHeight={400}>
+  const visualization = (
+    <>
           {/* Complexity Comparison */}
           <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
             <div className="text-sm font-bold text-gray-800 mb-2">Time Complexity Comparison</div>
@@ -626,35 +605,41 @@ const ListComparisonVisualizerComponent: React.FC<ListComparisonVisualizerProps>
             </div>
           </div>
 
-          {/* Status */}
-          <StatusPanel
-            description={description}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            variant={getStatusVariant()}
-          />
-        </VisualizationArea>
-      </div>
+    </>
+  );
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="blue"
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
-    </div>
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="ArrayList vs LinkedList"
+      badges={BADGES}
+      gradient="blue"
+      className={className}
+      minHeight={400}
+      onShare={handleShare}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'blue',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

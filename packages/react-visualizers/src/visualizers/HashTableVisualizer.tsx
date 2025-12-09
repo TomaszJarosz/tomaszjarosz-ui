@@ -1,12 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  VisualizationArea,
+  BaseVisualizerLayout,
   useVisualizerPlayback,
 } from '../shared';
 
@@ -58,6 +53,11 @@ const LEGEND_ITEMS = [
   { color: 'bg-yellow-50', label: 'Hashing', border: '#facc15' },
   { color: 'bg-red-50', label: 'Collision', border: '#f87171' },
   { color: 'bg-green-50', label: 'Placed', border: '#4ade80' },
+];
+
+const BADGES = [
+  { label: 'Avg: O(1)', variant: 'purple' as const },
+  { label: 'Worst: O(n)', variant: 'purple' as const },
 ];
 
 function simpleHash(key: string, size: number): number {
@@ -260,242 +260,213 @@ const HashTableVisualizerComponent: React.FC<HashTableVisualizerProps> = ({
   };
   const { operation, buckets, bucketIndex, key, description } = stepData;
 
-  return (
-    <div
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-violet-50 to-purple-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">
-              Hash Table (Chaining)
-            </h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-violet-100 text-violet-700 rounded">
-                Avg: O(1)
+  const getStatusVariant = () => {
+    if (operation === 'collision') return 'error' as const;
+    if (operation === 'placed') return 'success' as const;
+    return 'default' as const;
+  };
+
+  const extraControls = (
+    <div className="flex items-center gap-2">
+      <input
+        type="text"
+        value={customKey}
+        onChange={(e) => setCustomKey(e.target.value)}
+        placeholder="Add key..."
+        className="px-2 py-1 text-sm border border-gray-300 rounded w-24 font-medium text-gray-900"
+        onKeyDown={(e) => e.key === 'Enter' && handleAddKey()}
+      />
+      <button
+        onClick={handleAddKey}
+        disabled={!customKey.trim()}
+        className="p-1.5 bg-violet-100 text-violet-700 rounded hover:bg-violet-200 disabled:opacity-50"
+      >
+        <Plus className="w-4 h-4" />
+      </button>
+      <button
+        onClick={handleResetKeys}
+        className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+      >
+        Reset
+      </button>
+    </div>
+  );
+
+  const visualization = (
+    <>
+      {/* Keys to insert */}
+      <div className="mb-6">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          Keys to insert:
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {keys.map((k, idx) => {
+            const isInserted = steps
+              .slice(0, currentStep + 1)
+              .some((s) => s.key === k && s.operation === 'placed');
+            return (
+              <span
+                key={idx}
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg border-2 transition-colors ${
+                  isInserted
+                    ? 'bg-green-100 text-green-700 border-green-400'
+                    : k === key
+                      ? 'bg-yellow-100 text-yellow-700 border-yellow-400 ring-2 ring-yellow-300'
+                      : 'bg-gray-50 text-gray-600 border-gray-300'
+                }`}
+              >
+                {k}
               </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
-                Worst: O(n)
-              </span>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Hash Calculation - Prominent */}
+      <div className="mb-6 p-4 bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl border-2 border-violet-200 min-h-[80px]">
+        <div className="text-sm font-semibold text-violet-800 mb-2">
+          Hash Calculation
+        </div>
+        {operation === 'insert' && key ? (
+          <div className="flex flex-col items-center gap-2">
+            <div className="font-mono text-lg text-gray-800">
+              hash(<span className="text-violet-600 font-bold">&quot;{key}&quot;</span>) % {buckets.length} = <span className="text-violet-600 font-bold text-xl">{bucketIndex}</span>
             </div>
+            <div className="text-violet-600 text-2xl animate-bounce">↓</div>
+          </div>
+        ) : operation === 'collision' ? (
+          <div className="flex flex-col items-center gap-2">
+            <div className="font-mono text-lg text-red-700">
+              Collision at bucket <span className="font-bold">[{bucketIndex}]</span>! Adding to chain...
+            </div>
+            <div className="text-red-500 text-2xl">⚠️</div>
+          </div>
+        ) : operation === 'placed' ? (
+          <div className="flex flex-col items-center gap-2">
+            <div className="font-mono text-lg text-green-700">
+              <span className="font-bold">&quot;{key}&quot;</span> placed in bucket <span className="font-bold">[{bucketIndex}]</span>
+            </div>
+            <div className="text-green-500 text-2xl">✓</div>
+          </div>
+        ) : operation === 'rehash' ? (
+          <div className="flex flex-col items-center gap-2">
+            <div className="font-mono text-lg text-orange-700">
+              Rehashing: expanding table...
+            </div>
+            <div className="text-orange-500 text-2xl">🔄</div>
+          </div>
+        ) : (
+          <div className="text-gray-400 text-center">
+            Click Play to start visualization
+          </div>
+        )}
+      </div>
+
+      {/* Hash Table Buckets - Horizontal Row */}
+      <div className="mb-6">
+        <div className="text-sm font-medium text-gray-700 mb-3">
+          Hash Table ({buckets.length} buckets):
+        </div>
+        <div className="overflow-x-auto pb-2">
+          <div className="flex gap-1" style={{ minWidth: 'max-content' }}>
+            {buckets.map((bucket, idx) => (
+              <div
+                key={idx}
+                className="flex flex-col items-center"
+                style={{ minWidth: '70px' }}
+              >
+                {/* Bucket Index */}
+                <div
+                  className={`w-full text-center py-1 px-2 rounded-t-lg font-mono text-sm font-bold transition-colors ${
+                    idx === bucketIndex
+                      ? operation === 'collision'
+                        ? 'bg-red-500 text-white'
+                        : operation === 'placed'
+                          ? 'bg-green-500 text-white'
+                          : 'bg-yellow-400 text-yellow-900'
+                      : 'bg-gray-200 text-gray-600'
+                  }`}
+                >
+                  [{idx}]
+                </div>
+                {/* Bucket Content - Vertical Chain */}
+                <div
+                  className={`w-full border-2 rounded-b-lg min-h-[100px] p-1 transition-colors ${
+                    idx === bucketIndex
+                      ? operation === 'collision'
+                        ? 'border-red-400 bg-red-50'
+                        : operation === 'placed'
+                          ? 'border-green-400 bg-green-50'
+                          : 'border-yellow-400 bg-yellow-50'
+                      : 'border-gray-300 bg-gray-50'
+                  }`}
+                >
+                  <div className="flex flex-col gap-1">
+                    {bucket.length === 0 ? (
+                      <span className="text-xs text-gray-400 italic text-center py-2">
+                        empty
+                      </span>
+                    ) : (
+                      bucket.map((bucketKey, keyIdx) => (
+                        <div
+                          key={keyIdx}
+                          className={`px-2 py-1 text-xs font-medium rounded border text-center transition-colors ${
+                            bucketKey === key &&
+                            (operation === 'placed' || operation === 'insert')
+                              ? 'bg-yellow-200 text-yellow-900 border-yellow-400'
+                              : 'bg-blue-100 text-blue-800 border-blue-300'
+                          }`}
+                        >
+                          {bucketKey}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
+    </>
+  );
 
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={400} className="flex-1 min-w-0">
-            {/* Keys to insert */}
-            <div className="mb-6">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Keys to insert:
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {keys.map((k, idx) => {
-                  const isInserted = steps
-                    .slice(0, currentStep + 1)
-                    .some((s) => s.key === k && s.operation === 'placed');
-                  return (
-                    <span
-                      key={idx}
-                      className={`px-3 py-1.5 text-sm font-medium rounded-lg border-2 transition-colors ${
-                        isInserted
-                          ? 'bg-green-100 text-green-700 border-green-400'
-                          : k === key
-                            ? 'bg-yellow-100 text-yellow-700 border-yellow-400 ring-2 ring-yellow-300'
-                            : 'bg-gray-50 text-gray-600 border-gray-300'
-                      }`}
-                    >
-                      {k}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Hash Calculation - Prominent */}
-            <div className="mb-6 p-4 bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl border-2 border-violet-200 min-h-[80px]">
-              <div className="text-sm font-semibold text-violet-800 mb-2">
-                Hash Calculation
-              </div>
-              {operation === 'insert' && key ? (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="font-mono text-lg text-gray-800">
-                    hash(<span className="text-violet-600 font-bold">&quot;{key}&quot;</span>) % {buckets.length} = <span className="text-violet-600 font-bold text-xl">{bucketIndex}</span>
-                  </div>
-                  <div className="text-violet-600 text-2xl animate-bounce">↓</div>
-                </div>
-              ) : operation === 'collision' ? (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="font-mono text-lg text-red-700">
-                    Collision at bucket <span className="font-bold">[{bucketIndex}]</span>! Adding to chain...
-                  </div>
-                  <div className="text-red-500 text-2xl">⚠️</div>
-                </div>
-              ) : operation === 'placed' ? (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="font-mono text-lg text-green-700">
-                    <span className="font-bold">&quot;{key}&quot;</span> placed in bucket <span className="font-bold">[{bucketIndex}]</span>
-                  </div>
-                  <div className="text-green-500 text-2xl">✓</div>
-                </div>
-              ) : operation === 'rehash' ? (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="font-mono text-lg text-orange-700">
-                    Rehashing: expanding table...
-                  </div>
-                  <div className="text-orange-500 text-2xl">🔄</div>
-                </div>
-              ) : (
-                <div className="text-gray-400 text-center">
-                  Click Play to start visualization
-                </div>
-              )}
-            </div>
-
-            {/* Hash Table Buckets - Horizontal Row */}
-            <div className="mb-6">
-              <div className="text-sm font-medium text-gray-700 mb-3">
-                Hash Table ({buckets.length} buckets):
-              </div>
-              <div className="overflow-x-auto pb-2">
-                <div className="flex gap-1" style={{ minWidth: 'max-content' }}>
-                  {buckets.map((bucket, idx) => (
-                    <div
-                      key={idx}
-                      className="flex flex-col items-center"
-                      style={{ minWidth: '70px' }}
-                    >
-                      {/* Bucket Index */}
-                      <div
-                        className={`w-full text-center py-1 px-2 rounded-t-lg font-mono text-sm font-bold transition-colors ${
-                          idx === bucketIndex
-                            ? operation === 'collision'
-                              ? 'bg-red-500 text-white'
-                              : operation === 'placed'
-                                ? 'bg-green-500 text-white'
-                                : 'bg-yellow-400 text-yellow-900'
-                            : 'bg-gray-200 text-gray-600'
-                        }`}
-                      >
-                        [{idx}]
-                      </div>
-                      {/* Bucket Content - Vertical Chain */}
-                      <div
-                        className={`w-full border-2 rounded-b-lg min-h-[100px] p-1 transition-colors ${
-                          idx === bucketIndex
-                            ? operation === 'collision'
-                              ? 'border-red-400 bg-red-50'
-                              : operation === 'placed'
-                                ? 'border-green-400 bg-green-50'
-                                : 'border-yellow-400 bg-yellow-50'
-                            : 'border-gray-300 bg-gray-50'
-                        }`}
-                      >
-                        <div className="flex flex-col gap-1">
-                          {bucket.length === 0 ? (
-                            <span className="text-xs text-gray-400 italic text-center py-2">
-                              empty
-                            </span>
-                          ) : (
-                            bucket.map((bucketKey, keyIdx) => (
-                              <div
-                                key={keyIdx}
-                                className={`px-2 py-1 text-xs font-medium rounded border text-center transition-colors ${
-                                  bucketKey === key &&
-                                  (operation === 'placed' || operation === 'insert')
-                                    ? 'bg-yellow-200 text-yellow-900 border-yellow-400'
-                                    : 'bg-blue-100 text-blue-800 border-blue-300'
-                                }`}
-                              >
-                                {bucketKey}
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={
-                operation === 'collision'
-                  ? 'error'
-                  : operation === 'placed'
-                    ? 'success'
-                    : 'default'
-              }
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={HASH_TABLE_CODE}
-                activeLine={stepData?.codeLine ?? -1}
-                variables={stepData?.variables}
-              />
-              <HelpPanel />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="purple"
-            extraControls={
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={customKey}
-                  onChange={(e) => setCustomKey(e.target.value)}
-                  placeholder="Add key..."
-                  className="px-2 py-1 text-sm border border-gray-300 rounded w-24 font-medium text-gray-900"
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddKey()}
-                />
-                <button
-                  onClick={handleAddKey}
-                  disabled={!customKey.trim()}
-                  className="p-1.5 bg-violet-100 text-violet-700 rounded hover:bg-violet-200 disabled:opacity-50"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={handleResetKeys}
-                  className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                >
-                  Reset
-                </button>
-              </div>
-            }
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
-    </div>
+  return (
+    <BaseVisualizerLayout
+      id="hashtable-visualizer"
+      title="Hash Table (Chaining)"
+      badges={BADGES}
+      gradient="purple"
+      className={className}
+      minHeight={400}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'purple',
+        extraControls,
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? HASH_TABLE_CODE : undefined}
+      currentCodeLine={stepData?.codeLine}
+      codeVariables={stepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

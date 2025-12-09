@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  VisualizationArea,
+  BaseVisualizerLayout,
+  AccessibleSVG,
 } from '../shared';
 
 type TraversalAlgorithm = 'dfs' | 'bfs';
@@ -84,6 +80,14 @@ const LEGEND_ITEMS = [
   { color: 'bg-yellow-400', label: 'Current', border: '#ca8a04' },
   { color: 'bg-green-400', label: 'Visited', border: '#16a34a' },
 ];
+
+const getBadgesForAlgorithm = (algorithm: TraversalAlgorithm) => {
+  const complexity = ALGORITHM_COMPLEXITIES[algorithm];
+  return [
+    { label: `Time: ${complexity.time}`, variant: 'purple' as const },
+    { label: `Space: ${complexity.space}`, variant: 'indigo' as const },
+  ];
+};
 
 // Generate a sample graph with positions
 function generateGraph(): {
@@ -416,201 +420,175 @@ const GraphVisualizerComponent: React.FC<GraphVisualizerProps> = ({
     return 'fill-blue-700';
   };
 
-  const complexity = ALGORITHM_COMPLEXITIES[algorithm];
   const currentDescription = steps[currentStep]?.description || '';
 
-  return (
-    <div
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
+  const headerExtra = showAlgorithmSelector ? (
+    <select
+      value={algorithm}
+      onChange={(e) =>
+        setAlgorithm(e.target.value as TraversalAlgorithm)
+      }
+      className="px-3 py-1.5 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+      disabled={isPlaying}
     >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">
-              {ALGORITHM_NAMES[algorithm]}
-            </h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
-                Time: {complexity.time}
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-700 rounded">
-                Space: {complexity.space}
-              </span>
-            </div>
+      {Object.entries(ALGORITHM_NAMES).map(([key, name]) => (
+        <option key={key} value={key}>
+          {name}
+        </option>
+      ))}
+    </select>
+  ) : undefined;
+
+  const visualization = (
+    <>
+      {/* DFS vs BFS - Prominent */}
+      <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl border-2 border-purple-200">
+        <div className="text-sm font-bold text-purple-800 mb-3 flex items-center gap-2">
+          <span className="text-lg">🔍</span> DFS vs BFS
+        </div>
+        <div className="grid grid-cols-2 gap-3 text-xs">
+          <div className={`p-2 rounded-lg border ${algorithm === 'dfs' ? 'bg-purple-100 border-purple-300' : 'bg-gray-100 border-gray-300'}`}>
+            <div className="font-bold text-purple-700">Depth-First (DFS)</div>
+            <div className="text-purple-600">Uses: Stack</div>
+            <div className="text-[10px] text-purple-500">Go deep before wide</div>
+          </div>
+          <div className={`p-2 rounded-lg border ${algorithm === 'bfs' ? 'bg-indigo-100 border-indigo-300' : 'bg-gray-100 border-gray-300'}`}>
+            <div className="font-bold text-indigo-700">Breadth-First (BFS)</div>
+            <div className="text-indigo-600">Uses: Queue</div>
+            <div className="text-[10px] text-indigo-500">Level by level</div>
+          </div>
+        </div>
+        <div className="mt-2 text-[10px] text-gray-600 text-center">
+          Both O(V+E) time • DFS for paths/cycles • BFS for shortest path (unweighted)
+        </div>
+      </div>
+
+      <div className="flex gap-4">
+        {/* Graph SVG */}
+        <div className="flex-1 bg-gray-50 rounded-lg">
+          <AccessibleSVG
+            viewBox="0 0 400 300"
+            className="w-full h-64"
+            title={`${ALGORITHM_NAMES[algorithm]} graph traversal visualization`}
+            description={`Graph with ${graph.nodes.length} nodes. ${visited.length} nodes visited. ${current >= 0 ? `Currently at node ${current}.` : ''}`}
+          >
+            {/* Edges */}
+            {graph.edges.map((edge, index) => {
+              const fromNode = graph.nodes[edge.from];
+              const toNode = graph.nodes[edge.to];
+              return (
+                <line
+                  key={index}
+                  x1={fromNode.x}
+                  y1={fromNode.y}
+                  x2={toNode.x}
+                  y2={toNode.y}
+                  className="stroke-gray-300 stroke-2"
+                  aria-hidden="true"
+                />
+              );
+            })}
+
+            {/* Nodes */}
+            {graph.nodes.map((node) => (
+              <g key={node.id} role="img" aria-label={`Node ${node.id}${node.id === current ? ' (current)' : visited.includes(node.id) ? ' (visited)' : ' (unvisited)'}`}>
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r={20}
+                  className={`${getNodeColor(node.id)} stroke-2 transition-colors duration-300`}
+                />
+                <text
+                  x={node.x}
+                  y={node.y + 5}
+                  textAnchor="middle"
+                  className={`text-sm font-bold ${getNodeTextColor(node.id)}`}
+                  aria-hidden="true"
+                >
+                  {node.id}
+                </text>
+              </g>
+            ))}
+          </AccessibleSVG>
+        </div>
+
+        {/* Data Structure Display */}
+        <div className="w-32 flex flex-col">
+          <div className="text-sm font-medium text-gray-700 mb-2">
+            {dataStructureName}:
+          </div>
+          <div className="flex-1 bg-gray-100 rounded-lg p-2 min-h-[100px]">
+            {dataStructure && dataStructure.length > 0 ? (
+              <div
+                className={`flex ${algorithm === 'dfs' ? 'flex-col-reverse' : 'flex-col'} gap-1`}
+              >
+                {dataStructure.map((nodeId, index) => (
+                  <div
+                    key={index}
+                    className="px-2 py-1 bg-blue-100 text-blue-800 text-center rounded text-sm font-medium"
+                  >
+                    {nodeId}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-gray-400 text-xs text-center">
+                Empty
+              </div>
+            )}
           </div>
 
-          {showAlgorithmSelector && (
-            <select
-              value={algorithm}
-              onChange={(e) =>
-                setAlgorithm(e.target.value as TraversalAlgorithm)
-              }
-              className="px-3 py-1.5 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              disabled={isPlaying}
-            >
-              {Object.entries(ALGORITHM_NAMES).map(([key, name]) => (
-                <option key={key} value={key}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          )}
+          {/* Visit Order */}
+          <div className="mt-3">
+            <div className="text-sm font-medium text-gray-700 mb-1">
+              Visited:
+            </div>
+            <div className="text-sm text-green-700 font-mono">
+              [{visited.join(', ')}]
+            </div>
+          </div>
         </div>
       </div>
+    </>
+  );
 
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={400}>
-            {/* DFS vs BFS - Prominent */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl border-2 border-purple-200">
-              <div className="text-sm font-bold text-purple-800 mb-3 flex items-center gap-2">
-                <span className="text-lg">🔍</span> DFS vs BFS
-              </div>
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className={`p-2 rounded-lg border ${algorithm === 'dfs' ? 'bg-purple-100 border-purple-300' : 'bg-gray-100 border-gray-300'}`}>
-                  <div className="font-bold text-purple-700">Depth-First (DFS)</div>
-                  <div className="text-purple-600">Uses: Stack</div>
-                  <div className="text-[10px] text-purple-500">Go deep before wide</div>
-                </div>
-                <div className={`p-2 rounded-lg border ${algorithm === 'bfs' ? 'bg-indigo-100 border-indigo-300' : 'bg-gray-100 border-gray-300'}`}>
-                  <div className="font-bold text-indigo-700">Breadth-First (BFS)</div>
-                  <div className="text-indigo-600">Uses: Queue</div>
-                  <div className="text-[10px] text-indigo-500">Level by level</div>
-                </div>
-              </div>
-              <div className="mt-2 text-[10px] text-gray-600 text-center">
-                Both O(V+E) time • DFS for paths/cycles • BFS for shortest path (unweighted)
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              {/* Graph SVG */}
-              <div className="flex-1 bg-gray-50 rounded-lg">
-                <svg viewBox="0 0 400 300" className="w-full h-64">
-                  {/* Edges */}
-                  {graph.edges.map((edge, index) => {
-                    const fromNode = graph.nodes[edge.from];
-                    const toNode = graph.nodes[edge.to];
-                    return (
-                      <line
-                        key={index}
-                        x1={fromNode.x}
-                        y1={fromNode.y}
-                        x2={toNode.x}
-                        y2={toNode.y}
-                        className="stroke-gray-300 stroke-2"
-                      />
-                    );
-                  })}
-
-                  {/* Nodes */}
-                  {graph.nodes.map((node) => (
-                    <g key={node.id}>
-                      <circle
-                        cx={node.x}
-                        cy={node.y}
-                        r={20}
-                        className={`${getNodeColor(node.id)} stroke-2 transition-colors duration-300`}
-                      />
-                      <text
-                        x={node.x}
-                        y={node.y + 5}
-                        textAnchor="middle"
-                        className={`text-sm font-bold ${getNodeTextColor(node.id)}`}
-                      >
-                        {node.id}
-                      </text>
-                    </g>
-                  ))}
-                </svg>
-              </div>
-
-              {/* Data Structure Display */}
-              <div className="w-32 flex flex-col">
-                <div className="text-sm font-medium text-gray-700 mb-2">
-                  {dataStructureName}:
-                </div>
-                <div className="flex-1 bg-gray-100 rounded-lg p-2 min-h-[100px]">
-                  {dataStructure && dataStructure.length > 0 ? (
-                    <div
-                      className={`flex ${algorithm === 'dfs' ? 'flex-col-reverse' : 'flex-col'} gap-1`}
-                    >
-                      {dataStructure.map((nodeId, index) => (
-                        <div
-                          key={index}
-                          className="px-2 py-1 bg-blue-100 text-blue-800 text-center rounded text-sm font-medium"
-                        >
-                          {nodeId}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-gray-400 text-xs text-center">
-                      Empty
-                    </div>
-                  )}
-                </div>
-
-                {/* Visit Order */}
-                <div className="mt-3">
-                  <div className="text-sm font-medium text-gray-700 mb-1">
-                    Visited:
-                  </div>
-                  <div className="text-sm text-green-700 font-mono">
-                    [{visited.join(', ')}]
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Status */}
-            <div className="mt-3">
-              <StatusPanel
-                description={currentDescription}
-                currentStep={currentStep}
-                totalSteps={steps.length}
-              />
-            </div>
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={algorithmCode}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            onShuffle={handleShuffle}
-            showShuffle={true}
-            accentColor="purple"
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
-    </div>
+  return (
+    <BaseVisualizerLayout
+      id="graph-visualizer"
+      title={ALGORITHM_NAMES[algorithm]}
+      badges={getBadgesForAlgorithm(algorithm)}
+      gradient="purple"
+      className={className}
+      minHeight={400}
+      headerExtra={headerExtra}
+      status={{
+        description: currentDescription,
+        currentStep,
+        totalSteps: steps.length,
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        onShuffle: handleShuffle,
+        showShuffle: true,
+        accentColor: 'purple',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? algorithmCode : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

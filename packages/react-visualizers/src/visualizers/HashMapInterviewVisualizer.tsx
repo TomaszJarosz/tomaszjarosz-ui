@@ -1,12 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 import { InterviewModePanel } from '../shared/InterviewModePanel';
 import { useInterviewMode, type InterviewQuestion } from '../shared/useInterviewMode';
@@ -40,7 +36,14 @@ interface HashMapInterviewVisualizerProps {
   className?: string;
 }
 
+const VISUALIZER_ID = 'hashmap-interview-visualizer';
 const BUCKET_COUNT = 8;
+
+const BADGES = [
+  { label: 'Interview Mode', variant: 'purple' as const },
+  { label: 'O(1) avg', variant: 'green' as const },
+  { label: 'Hash Table', variant: 'indigo' as const },
+];
 
 const OPERATIONS: Array<{ op: 'put' | 'get'; key: string; value?: number }> = [
   { op: 'put', key: 'Alice', value: 25 },
@@ -288,21 +291,31 @@ const HashMapInterviewVisualizerComponent: React.FC<HashMapInterviewVisualizerPr
   showControls = true,
   className = '',
 }) => {
-  const VISUALIZER_ID = 'hashmap-interview-visualizer';
   const { copyUrlToClipboard } = useUrlState({ prefix: 'hm-int', scrollToId: VISUALIZER_ID });
 
   const [mode, setMode] = useState<'visualize' | 'interview'>('visualize');
 
   const generateSteps = useMemo(() => generateHashMapSteps, []);
 
-  const playback = useVisualizerPlayback<HashMapStep>({ generateSteps });
+  const {
+    currentStep,
+    currentStepData,
+    steps,
+    isPlaying,
+    speed,
+    handlePlayPause,
+    handleStep,
+    handleStepBack,
+    handleReset,
+    setSpeed,
+  } = useVisualizerPlayback<HashMapStep>({ generateSteps });
 
   const interview = useInterviewMode({
     questions: HASHMAP_QUESTIONS,
     shuffleQuestions: true,
   });
 
-  const stepData: HashMapStep = playback.currentStepData || {
+  const stepData: HashMapStep = currentStepData || {
     operation: 'init',
     key: '',
     buckets: [],
@@ -332,150 +345,106 @@ const HashMapInterviewVisualizerComponent: React.FC<HashMapInterviewVisualizerPr
   };
 
   const handleShare = useCallback(async () => {
-    return copyUrlToClipboard({ step: playback.currentStep });
-  }, [copyUrlToClipboard, playback.currentStep]);
+    return copyUrlToClipboard({ step: currentStep });
+  }, [copyUrlToClipboard, currentStep]);
 
-  // Jump to related step when question changes
-  const handleQuestionStep = useCallback((relatedStep?: number) => {
-    if (relatedStep !== undefined && relatedStep < playback.steps.length) {
-      // Would need to add setCurrentStep to playback hook
-    }
-  }, [playback.steps.length]);
+  const getStatusVariant = () => {
+    if (stepData.operation === 'get' && found === false) return 'error';
+    if (stepData.operation === 'get' && found === true) return 'success';
+    return 'default';
+  };
+
+  const visualization = (
+    <>
+      {/* Bucket Array */}
+      <div className="mb-4">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          Bucket Array (capacity: {BUCKET_COUNT})
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {buckets.map((bucket, idx) => (
+            <div key={idx} className="flex flex-col items-center">
+              <div
+                className={`w-8 h-8 flex items-center justify-center text-xs font-medium rounded border-2 transition-colors ${getBucketStyle(idx)}`}
+              >
+                {idx}
+              </div>
+              <div className="flex flex-col items-center mt-1">
+                {bucket.entries.length > 0 ? (
+                  bucket.entries.map((entry, eIdx) => (
+                    <React.Fragment key={eIdx}>
+                      {eIdx > 0 && <div className="w-0.5 h-2 bg-gray-300" />}
+                      <div
+                        className={`px-2 py-1 text-[10px] rounded transition-colors whitespace-nowrap ${getEntryStyle(idx, eIdx)}`}
+                      >
+                        {entry.key}: {entry.value}
+                      </div>
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <div className="text-[10px] text-gray-400 mt-1">∅</div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+
+  const sidePanel = mode === 'interview' ? (
+    <InterviewModePanel
+      currentQuestion={interview.currentQuestion}
+      currentQuestionIndex={interview.session.currentQuestionIndex}
+      totalQuestions={interview.session.questions.length}
+      selectedAnswer={interview.selectedAnswer}
+      showExplanation={interview.showExplanation}
+      showHint={interview.showHint}
+      isAnswered={interview.isAnswered}
+      isComplete={interview.isComplete}
+      score={interview.score}
+      onSelectAnswer={interview.selectAnswer}
+      onNextQuestion={interview.nextQuestion}
+      onPreviousQuestion={interview.previousQuestion}
+      onUseHint={interview.useHint}
+      onRestart={interview.restartSession}
+      accentColor="indigo"
+    />
+  ) : undefined;
 
   return (
-    <div
+    <BaseVisualizerLayout
       id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
+      title="HashMap (Interview Mode)"
+      badges={BADGES}
+      gradient="indigo"
+      className={className}
+      minHeight={500}
+      onShare={handleShare}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'indigo',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      sidePanel={sidePanel}
     >
-      {/* Header with mode toggle */}
-      <div className="px-4 py-3 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">HashMap</h3>
-            <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
-              <button
-                onClick={() => setMode('visualize')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'visualize'
-                    ? 'bg-white text-indigo-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                📊 Visualize
-              </button>
-              <button
-                onClick={() => setMode('interview')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'interview'
-                    ? 'bg-white text-indigo-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                🎤 Interview
-              </button>
-            </div>
-          </div>
-          <ShareButton onShare={handleShare} accentColor="indigo" />
-        </div>
-      </div>
-
-      <div className="p-4">
-        <div className="flex gap-4 flex-col lg:flex-row">
-          {/* Visualization Panel */}
-          <VisualizationArea minHeight={350} className="flex-1">
-            {/* Bucket Array */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Bucket Array (capacity: {BUCKET_COUNT})
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {buckets.map((bucket, idx) => (
-                  <div key={idx} className="flex flex-col items-center">
-                    <div
-                      className={`w-8 h-8 flex items-center justify-center text-xs font-medium rounded border-2 transition-colors ${getBucketStyle(idx)}`}
-                    >
-                      {idx}
-                    </div>
-                    <div className="flex flex-col items-center mt-1">
-                      {bucket.entries.length > 0 ? (
-                        bucket.entries.map((entry, eIdx) => (
-                          <React.Fragment key={eIdx}>
-                            {eIdx > 0 && <div className="w-0.5 h-2 bg-gray-300" />}
-                            <div
-                              className={`px-2 py-1 text-[10px] rounded transition-colors whitespace-nowrap ${getEntryStyle(idx, eIdx)}`}
-                            >
-                              {entry.key}: {entry.value}
-                            </div>
-                          </React.Fragment>
-                        ))
-                      ) : (
-                        <div className="text-[10px] text-gray-400 mt-1">∅</div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={playback.currentStep}
-              totalSteps={playback.steps.length}
-              variant={
-                stepData.operation === 'get' && found === false
-                  ? 'error'
-                  : stepData.operation === 'get' && found === true
-                    ? 'success'
-                    : 'default'
-              }
-            />
-          </VisualizationArea>
-
-          {/* Interview Panel (conditionally shown) */}
-          {mode === 'interview' && (
-            <div className="w-full lg:w-96 flex-shrink-0">
-              <InterviewModePanel
-                currentQuestion={interview.currentQuestion}
-                currentQuestionIndex={interview.session.currentQuestionIndex}
-                totalQuestions={interview.session.questions.length}
-                selectedAnswer={interview.selectedAnswer}
-                showExplanation={interview.showExplanation}
-                showHint={interview.showHint}
-                isAnswered={interview.isAnswered}
-                isComplete={interview.isComplete}
-                score={interview.score}
-                onSelectAnswer={interview.selectAnswer}
-                onNextQuestion={interview.nextQuestion}
-                onPreviousQuestion={interview.previousQuestion}
-                onUseHint={interview.useHint}
-                onRestart={interview.restartSession}
-                accentColor="indigo"
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={playback.isPlaying}
-            currentStep={playback.currentStep}
-            totalSteps={playback.steps.length}
-            speed={playback.speed}
-            onPlayPause={playback.handlePlayPause}
-            onStep={playback.handleStep}
-            onStepBack={playback.handleStepBack}
-            onReset={playback.handleReset}
-            onSpeedChange={playback.setSpeed}
-            accentColor="indigo"
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
-    </div>
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

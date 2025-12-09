@@ -1,12 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 import { InterviewModePanel } from '../shared/InterviewModePanel';
 import { useInterviewMode, type InterviewQuestion } from '../shared/useInterviewMode';
@@ -35,6 +31,14 @@ interface GraphInterviewVisualizerProps {
   showControls?: boolean;
   className?: string;
 }
+
+const VISUALIZER_ID = 'graph-interview-visualizer';
+
+const BADGES = [
+  { label: 'Interview Mode', variant: 'purple' as const },
+  { label: 'BFS/DFS', variant: 'blue' as const },
+  { label: 'O(V+E)', variant: 'cyan' as const },
+];
 
 // Graph structure
 const NODES: GraphNode[] = [
@@ -302,7 +306,6 @@ const GraphInterviewVisualizerComponent: React.FC<GraphInterviewVisualizerProps>
   showControls = true,
   className = '',
 }) => {
-  const VISUALIZER_ID = 'graph-interview-visualizer';
   const { copyUrlToClipboard } = useUrlState({ prefix: 'graph-int', scrollToId: VISUALIZER_ID });
 
   const [mode, setMode] = useState<'visualize' | 'interview'>('visualize');
@@ -313,14 +316,25 @@ const GraphInterviewVisualizerComponent: React.FC<GraphInterviewVisualizerProps>
     [algorithm]
   );
 
-  const playback = useVisualizerPlayback<GraphStep>({ generateSteps });
+  const {
+    currentStep,
+    currentStepData,
+    steps,
+    isPlaying,
+    speed,
+    handlePlayPause,
+    handleStep,
+    handleStepBack,
+    handleReset,
+    setSpeed,
+  } = useVisualizerPlayback<GraphStep>({ generateSteps });
 
   const interview = useInterviewMode({
     questions: GRAPH_QUESTIONS,
     shuffleQuestions: true,
   });
 
-  const stepData: GraphStep = playback.currentStepData || {
+  const stepData: GraphStep = currentStepData || {
     visited: [],
     current: null,
     description: '',
@@ -344,197 +358,154 @@ const GraphInterviewVisualizerComponent: React.FC<GraphInterviewVisualizerProps>
   };
 
   const handleShare = useCallback(async () => {
-    return copyUrlToClipboard({ step: playback.currentStep });
-  }, [copyUrlToClipboard, playback.currentStep]);
+    return copyUrlToClipboard({ step: currentStep });
+  }, [copyUrlToClipboard, currentStep]);
 
   const handleAlgorithmChange = useCallback((newAlgo: 'bfs' | 'dfs') => {
     setAlgorithm(newAlgo);
-    playback.handleReset();
-  }, [playback]);
+    handleReset();
+  }, [handleReset]);
+
+  const visualization = (
+    <>
+      {/* Algorithm Toggle */}
+      <div className="mb-4 flex justify-center gap-2">
+        <button
+          onClick={() => handleAlgorithmChange('bfs')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            algorithm === 'bfs'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          BFS (Queue)
+        </button>
+        <button
+          onClick={() => handleAlgorithmChange('dfs')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            algorithm === 'dfs'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          DFS (Stack)
+        </button>
+      </div>
+
+      {/* Graph Visualization */}
+      <div className="mb-4">
+        <svg width="310" height="220" className="mx-auto">
+          {/* Edges */}
+          {EDGES.map((edge, idx) => {
+            const from = NODES.find((n) => n.id === edge.from)!;
+            const to = NODES.find((n) => n.id === edge.to)!;
+            return (
+              <line
+                key={idx}
+                x1={from.x}
+                y1={from.y}
+                x2={to.x}
+                y2={to.y}
+                stroke="#d1d5db"
+                strokeWidth="2"
+              />
+            );
+          })}
+
+          {/* Nodes */}
+          {NODES.map((node) => (
+            <g key={node.id} transform={`translate(${node.x}, ${node.y})`}>
+              <circle
+                r="20"
+                className={`${getNodeColor(node.id)} ${getNodeStroke(node.id)} transition-colors`}
+                strokeWidth="3"
+              />
+              <text
+                textAnchor="middle"
+                dy="5"
+                className="text-sm font-bold"
+                fill={node.id === current || visited.includes(node.id) ? 'white' : '#374151'}
+              >
+                {node.id}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
+
+      {/* Data Structure Display */}
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="text-sm">
+          <span className="font-medium text-gray-700">
+            {algorithm === 'bfs' ? 'Queue' : 'Stack'}:
+          </span>{' '}
+          <span className="font-mono text-blue-600">
+            [{(algorithm === 'bfs' ? queue : stack)?.join(', ') || ''}]
+          </span>
+        </div>
+        <div className="text-sm mt-1">
+          <span className="font-medium text-gray-700">Visited:</span>{' '}
+          <span className="font-mono text-green-600">
+            [{visited.join(', ')}]
+          </span>
+        </div>
+      </div>
+    </>
+  );
+
+  const sidePanel = mode === 'interview' ? (
+    <InterviewModePanel
+      currentQuestion={interview.currentQuestion}
+      currentQuestionIndex={interview.session.currentQuestionIndex}
+      totalQuestions={interview.session.questions.length}
+      selectedAnswer={interview.selectedAnswer}
+      showExplanation={interview.showExplanation}
+      showHint={interview.showHint}
+      isAnswered={interview.isAnswered}
+      isComplete={interview.isComplete}
+      score={interview.score}
+      onSelectAnswer={interview.selectAnswer}
+      onNextQuestion={interview.nextQuestion}
+      onPreviousQuestion={interview.previousQuestion}
+      onUseHint={interview.useHint}
+      onRestart={interview.restartSession}
+      accentColor="blue"
+    />
+  ) : undefined;
 
   return (
-    <div
+    <BaseVisualizerLayout
       id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
+      title="Graph Traversal (Interview Mode)"
+      badges={BADGES}
+      gradient="blue"
+      className={className}
+      minHeight={500}
+      onShare={handleShare}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: visited.length === NODES.length ? 'success' : 'default',
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'blue',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      sidePanel={sidePanel}
     >
-      {/* Header with mode toggle */}
-      <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">Graph Traversal</h3>
-            <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
-              <button
-                onClick={() => setMode('visualize')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'visualize'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Visualize
-              </button>
-              <button
-                onClick={() => setMode('interview')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'interview'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Interview
-              </button>
-            </div>
-          </div>
-          <ShareButton onShare={handleShare} accentColor="blue" />
-        </div>
-      </div>
-
-      <div className="p-4">
-        <div className="flex gap-4 flex-col lg:flex-row">
-          {/* Visualization Panel */}
-          <VisualizationArea minHeight={350} className="flex-1">
-            {/* Algorithm Toggle */}
-            <div className="mb-4 flex justify-center gap-2">
-              <button
-                onClick={() => handleAlgorithmChange('bfs')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  algorithm === 'bfs'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                BFS (Queue)
-              </button>
-              <button
-                onClick={() => handleAlgorithmChange('dfs')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  algorithm === 'dfs'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                DFS (Stack)
-              </button>
-            </div>
-
-            {/* Graph Visualization */}
-            <div className="mb-4">
-              <svg width="310" height="220" className="mx-auto">
-                {/* Edges */}
-                {EDGES.map((edge, idx) => {
-                  const from = NODES.find((n) => n.id === edge.from)!;
-                  const to = NODES.find((n) => n.id === edge.to)!;
-                  return (
-                    <line
-                      key={idx}
-                      x1={from.x}
-                      y1={from.y}
-                      x2={to.x}
-                      y2={to.y}
-                      stroke="#d1d5db"
-                      strokeWidth="2"
-                    />
-                  );
-                })}
-
-                {/* Nodes */}
-                {NODES.map((node) => (
-                  <g key={node.id} transform={`translate(${node.x}, ${node.y})`}>
-                    <circle
-                      r="20"
-                      className={`${getNodeColor(node.id)} ${getNodeStroke(node.id)} transition-colors`}
-                      strokeWidth="3"
-                    />
-                    <text
-                      textAnchor="middle"
-                      dy="5"
-                      className="text-sm font-bold"
-                      fill={node.id === current || visited.includes(node.id) ? 'white' : '#374151'}
-                    >
-                      {node.id}
-                    </text>
-                  </g>
-                ))}
-              </svg>
-            </div>
-
-            {/* Data Structure Display */}
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-              <div className="text-sm">
-                <span className="font-medium text-gray-700">
-                  {algorithm === 'bfs' ? 'Queue' : 'Stack'}:
-                </span>{' '}
-                <span className="font-mono text-blue-600">
-                  [{(algorithm === 'bfs' ? queue : stack)?.join(', ') || ''}]
-                </span>
-              </div>
-              <div className="text-sm mt-1">
-                <span className="font-medium text-gray-700">Visited:</span>{' '}
-                <span className="font-mono text-green-600">
-                  [{visited.join(', ')}]
-                </span>
-              </div>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={playback.currentStep}
-              totalSteps={playback.steps.length}
-              variant={
-                visited.length === NODES.length
-                  ? 'success'
-                  : current
-                    ? 'default'
-                    : 'default'
-              }
-            />
-          </VisualizationArea>
-
-          {/* Interview Panel */}
-          {mode === 'interview' && (
-            <div className="w-full lg:w-96 flex-shrink-0">
-              <InterviewModePanel
-                currentQuestion={interview.currentQuestion}
-                currentQuestionIndex={interview.session.currentQuestionIndex}
-                totalQuestions={interview.session.questions.length}
-                selectedAnswer={interview.selectedAnswer}
-                showExplanation={interview.showExplanation}
-                showHint={interview.showHint}
-                isAnswered={interview.isAnswered}
-                isComplete={interview.isComplete}
-                score={interview.score}
-                onSelectAnswer={interview.selectAnswer}
-                onNextQuestion={interview.nextQuestion}
-                onPreviousQuestion={interview.previousQuestion}
-                onUseHint={interview.useHint}
-                onRestart={interview.restartSession}
-                accentColor="blue"
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={playback.isPlaying}
-            currentStep={playback.currentStep}
-            totalSteps={playback.steps.length}
-            speed={playback.speed}
-            onPlayPause={playback.handlePlayPause}
-            onStep={playback.handleStep}
-            onStepBack={playback.handleStepBack}
-            onReset={playback.handleReset}
-            onSpeedChange={playback.setSpeed}
-            accentColor="blue"
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
-    </div>
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

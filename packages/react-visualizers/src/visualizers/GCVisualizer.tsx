@@ -1,13 +1,7 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
-  VisualizationArea,
   useVisualizerPlayback,
 } from '../shared';
 
@@ -76,6 +70,10 @@ const LEGEND_ITEMS = [
   { color: 'bg-red-400', label: 'Unreachable (garbage)' },
   { color: 'bg-yellow-400', label: 'Being collected' },
   { color: 'bg-blue-400', label: 'Promoted' },
+];
+
+const BADGES = [
+  { label: 'Generational GC', variant: 'purple' as const },
 ];
 
 const PROMOTION_THRESHOLD = 3;
@@ -492,172 +490,140 @@ const GCVisualizerComponent: React.FC<GCVisualizerProps> = ({
     return copyUrlToClipboard({ step: currentStep });
   }, [copyUrlToClipboard, currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
+  const dynamicBadges = gcType
+    ? [...BADGES, { label: gcType === 'major' ? 'Major GC' : 'Minor GC', variant: gcType === 'major' ? 'red' as const : 'orange' as const }]
+    : BADGES;
+
+  const headerExtra = (
+    <button
+      onClick={toggleDetails}
+      className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+        showDetails
+          ? 'bg-purple-500 text-white'
+          : 'bg-gray-200 text-gray-700'
+      }`}
     >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">JVM Garbage Collection</h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
-                Generational GC
-              </span>
-              {gcType && (
-                <span
-                  className={`px-2 py-0.5 text-xs font-medium rounded ${
-                    gcType === 'major'
-                      ? 'bg-red-100 text-red-700'
-                      : 'bg-yellow-100 text-yellow-700'
-                  }`}
-                >
-                  {gcType === 'major' ? 'Major GC' : 'Minor GC'}
-                </span>
-              )}
-            </div>
+      {showDetails ? 'Hide Ages' : 'Show Ages'}
+    </button>
+  );
+
+  const visualization = (
+    <>
+      {/* Generational Hypothesis - Prominent */}
+      <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
+        <div className="text-sm font-bold text-purple-800 mb-3 flex items-center gap-2">
+          <span className="text-lg">🧬</span> Generational Hypothesis
+        </div>
+        <div className="font-mono text-sm bg-white rounded-lg p-3 border border-purple-200">
+          <div className="text-center text-purple-700 font-bold mb-2">
+            &quot;Most objects die young&quot;
           </div>
-          <div className="flex items-center gap-2">
-            <ShareButton onShare={handleShare} />
-            <button
-              onClick={toggleDetails}
-              className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                showDetails
-                ? 'bg-purple-500 text-white'
-                : 'bg-gray-200 text-gray-700'
-            }`}
-          >
-            {showDetails ? 'Hide Ages' : 'Show Ages'}
-          </button>
+          <div className="text-xs text-gray-500 text-center">
+            ~95% of objects become garbage before first GC • Optimize for the common case
+          </div>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+          <div className="bg-blue-100 p-2 rounded-lg border border-blue-300 text-center">
+            <div className="font-bold text-blue-700">Young Gen</div>
+            <div className="text-blue-600">Fast copy collection</div>
+            <div className="text-[10px] text-blue-500">Minor GC (frequent)</div>
+          </div>
+          <div className="bg-amber-100 p-2 rounded-lg border border-amber-300 text-center">
+            <div className="font-bold text-amber-700">Old Gen</div>
+            <div className="text-amber-600">Mark-sweep collection</div>
+            <div className="text-[10px] text-amber-500">Major GC (rare, slow)</div>
           </div>
         </div>
       </div>
 
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={400} className={showCode ? 'flex-1' : 'w-full'}>
-            {/* Generational Hypothesis - Prominent */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
-              <div className="text-sm font-bold text-purple-800 mb-3 flex items-center gap-2">
-                <span className="text-lg">🧬</span> Generational Hypothesis
-              </div>
-              <div className="font-mono text-sm bg-white rounded-lg p-3 border border-purple-200">
-                <div className="text-center text-purple-700 font-bold mb-2">
-                  &quot;Most objects die young&quot;
-                </div>
-                <div className="text-xs text-gray-500 text-center">
-                  ~95% of objects become garbage before first GC • Optimize for the common case
-                </div>
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                <div className="bg-blue-100 p-2 rounded-lg border border-blue-300 text-center">
-                  <div className="font-bold text-blue-700">Young Gen</div>
-                  <div className="text-blue-600">Fast copy collection</div>
-                  <div className="text-[10px] text-blue-500">Minor GC (frequent)</div>
-                </div>
-                <div className="bg-amber-100 p-2 rounded-lg border border-amber-300 text-center">
-                  <div className="font-bold text-amber-700">Old Gen</div>
-                  <div className="text-amber-600">Mark-sweep collection</div>
-                  <div className="text-[10px] text-amber-500">Major GC (rare, slow)</div>
-                </div>
-              </div>
+      {/* Heap Layout */}
+      <div className="mb-4">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          JVM Heap Memory
+        </div>
+
+        {/* Young Generation */}
+        <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+          <div className="text-xs font-semibold text-blue-700 mb-2">
+            Young Generation
+          </div>
+          {renderGeneration('Eden Space', eden, 'bg-blue-100', 8)}
+          <div className="grid grid-cols-2 gap-2">
+            <div className={activeSurvivor === 0 ? 'ring-2 ring-blue-400 rounded' : ''}>
+              {renderGeneration('Survivor 0 (From)', survivor0, 'bg-cyan-100', 4)}
             </div>
-
-            {/* Heap Layout */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                JVM Heap Memory
-              </div>
-
-              {/* Young Generation */}
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                <div className="text-xs font-semibold text-blue-700 mb-2">
-                  Young Generation
-                </div>
-                {renderGeneration('Eden Space', eden, 'bg-blue-100', 8)}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className={activeSurvivor === 0 ? 'ring-2 ring-blue-400 rounded' : ''}>
-                    {renderGeneration('Survivor 0 (From)', survivor0, 'bg-cyan-100', 4)}
-                  </div>
-                  <div className={activeSurvivor === 1 ? 'ring-2 ring-blue-400 rounded' : ''}>
-                    {renderGeneration('Survivor 1 (To)', survivor1, 'bg-cyan-100', 4)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Old Generation */}
-              <div className="p-3 bg-amber-50 rounded-lg">
-                <div className="text-xs font-semibold text-amber-700 mb-2">
-                  Old Generation (Tenured)
-                </div>
-                {renderGeneration('Old Space', old, 'bg-amber-100', 12)}
-              </div>
+            <div className={activeSurvivor === 1 ? 'ring-2 ring-blue-400 rounded' : ''}>
+              {renderGeneration('Survivor 1 (To)', survivor1, 'bg-cyan-100', 4)}
             </div>
+          </div>
+        </div>
 
-            {/* GC Info */}
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-              <div className="text-xs text-gray-700 grid grid-cols-2 gap-2">
-                <div>
-                  <span className="font-semibold">Minor GC:</span> Collects Young Gen
-                </div>
-                <div>
-                  <span className="font-semibold">Major GC:</span> Collects Old Gen
-                </div>
-                <div>
-                  <span className="font-semibold">Promotion:</span> age {'>='} {PROMOTION_THRESHOLD}
-                </div>
-                <div>
-                  <span className="font-semibold">Algorithm:</span> Copy + Mark-Sweep
-                </div>
-              </div>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={getStatusVariant()}
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-64 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={GC_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
-            </div>
-          )}
+        {/* Old Generation */}
+        <div className="p-3 bg-amber-50 rounded-lg">
+          <div className="text-xs font-semibold text-amber-700 mb-2">
+            Old Generation (Tenured)
+          </div>
+          {renderGeneration('Old Space', old, 'bg-amber-100', 12)}
         </div>
       </div>
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="purple"
-          />
-          <Legend items={LEGEND_ITEMS} />
+      {/* GC Info */}
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="text-xs text-gray-700 grid grid-cols-2 gap-2">
+          <div>
+            <span className="font-semibold">Minor GC:</span> Collects Young Gen
+          </div>
+          <div>
+            <span className="font-semibold">Major GC:</span> Collects Old Gen
+          </div>
+          <div>
+            <span className="font-semibold">Promotion:</span> age {'>='} {PROMOTION_THRESHOLD}
+          </div>
+          <div>
+            <span className="font-semibold">Algorithm:</span> Copy + Mark-Sweep
+          </div>
         </div>
-      )}
-    </div>
+      </div>
+    </>
+  );
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="JVM Garbage Collection"
+      badges={dynamicBadges}
+      gradient="purple"
+      className={className}
+      minHeight={400}
+      onShare={handleShare}
+      headerExtra={headerExtra}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'purple',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? GC_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

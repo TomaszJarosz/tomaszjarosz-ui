@@ -1,14 +1,8 @@
 import React, { useMemo, useCallback } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 
 type NodeState = 'follower' | 'candidate' | 'leader';
@@ -56,6 +50,11 @@ interface RaftVisualizerProps {
 }
 
 const NODE_IDS = ['N1', 'N2', 'N3', 'N4', 'N5'];
+
+const BADGES = [
+  { label: 'Distributed', variant: 'orange' as const },
+  { label: 'Consensus', variant: 'red' as const },
+];
 
 const RAFT_CODE = [
   '# Raft Consensus Algorithm',
@@ -341,263 +340,233 @@ const RaftVisualizerComponent: React.FC<RaftVisualizerProps> = ({
     N5: { x: 50, y: 100 },
   };
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-orange-50 to-red-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">Raft Consensus</h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded">
-                Distributed
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
-                Consensus
-              </span>
-            </div>
-          </div>
-          <ShareButton onShare={handleShare} accentColor="orange" />
+  const visualization = (
+    <>
+      {/* Key Concept */}
+      <div className="mb-4 p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl border-2 border-orange-200">
+        <div className="text-sm font-bold text-orange-800 mb-2 flex items-center gap-2">
+          <span className="text-lg">🗳️</span> Raft Consensus Protocol
+        </div>
+        <div className="text-xs text-gray-700 space-y-1">
+          <p><strong>Purpose:</strong> Replicated state machine consensus for distributed systems</p>
+          <p><strong>Safety:</strong> At most one leader per term, committed entries never lost</p>
+          <p><strong>Liveness:</strong> System makes progress if majority of nodes are alive</p>
         </div>
       </div>
 
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={450} className={showCode ? 'flex-1' : 'w-full'}>
-            {/* Key Concept */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl border-2 border-orange-200">
-              <div className="text-sm font-bold text-orange-800 mb-2 flex items-center gap-2">
-                <span className="text-lg">🗳️</span> Raft Consensus Protocol
-              </div>
-              <div className="text-xs text-gray-700 space-y-1">
-                <p><strong>Purpose:</strong> Replicated state machine consensus for distributed systems</p>
-                <p><strong>Safety:</strong> At most one leader per term, committed entries never lost</p>
-                <p><strong>Liveness:</strong> System makes progress if majority of nodes are alive</p>
-              </div>
-            </div>
-
-            {/* Cluster Visualization */}
-            <div className="mb-4 flex justify-center">
-              <svg width="300" height="260" className="overflow-visible">
-                {/* Connection lines */}
-                {highlightEdge && (
-                  <line
-                    x1={NODE_POSITIONS[highlightEdge.from].x}
-                    y1={NODE_POSITIONS[highlightEdge.from].y}
-                    x2={NODE_POSITIONS[highlightEdge.to].x}
-                    y2={NODE_POSITIONS[highlightEdge.to].y}
-                    stroke={highlightEdge.type === 'vote' ? '#60a5fa' : '#a855f7'}
-                    strokeWidth="3"
-                    strokeDasharray="5,5"
-                    markerEnd="url(#arrowhead)"
-                  />
-                )}
-
-                {/* Arrow marker */}
-                <defs>
-                  <marker
-                    id="arrowhead"
-                    markerWidth="10"
-                    markerHeight="7"
-                    refX="9"
-                    refY="3.5"
-                    orient="auto"
-                  >
-                    <polygon
-                      points="0 0, 10 3.5, 0 7"
-                      fill={highlightEdge?.type === 'vote' ? '#60a5fa' : '#a855f7'}
-                    />
-                  </marker>
-                </defs>
-
-                {/* Nodes */}
-                {nodes.map((node) => {
-                  const pos = NODE_POSITIONS[node.id];
-                  const isHighlighted = highlightNode === node.id;
-                  const stateColor =
-                    node.state === 'leader'
-                      ? '#22c55e'
-                      : node.state === 'candidate'
-                        ? '#eab308'
-                        : '#9ca3af';
-
-                  return (
-                    <g key={node.id}>
-                      {/* Node circle */}
-                      <circle
-                        cx={pos.x}
-                        cy={pos.y}
-                        r={isHighlighted ? 28 : 25}
-                        fill={stateColor}
-                        stroke={isHighlighted ? '#fbbf24' : 'white'}
-                        strokeWidth={isHighlighted ? 4 : 2}
-                        className="transition-all"
-                      />
-
-                      {/* Node ID */}
-                      <text
-                        x={pos.x}
-                        y={pos.y}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        className="text-sm font-bold fill-white"
-                      >
-                        {node.id}
-                      </text>
-
-                      {/* State label */}
-                      <text
-                        x={pos.x}
-                        y={pos.y + 40}
-                        textAnchor="middle"
-                        className="text-[10px] fill-gray-600 font-medium"
-                      >
-                        {node.state}
-                      </text>
-
-                      {/* Term badge */}
-                      <g transform={`translate(${pos.x + 20}, ${pos.y - 20})`}>
-                        <circle r="10" fill="#3b82f6" />
-                        <text
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                          className="text-[9px] fill-white font-bold"
-                        >
-                          T{node.term}
-                        </text>
-                      </g>
-
-                      {/* Log indicator */}
-                      {node.log.length > 0 && (
-                        <g transform={`translate(${pos.x - 20}, ${pos.y - 20})`}>
-                          <rect
-                            x="-8"
-                            y="-8"
-                            width="16"
-                            height="16"
-                            rx="2"
-                            fill={node.log[0]?.committed ? '#22c55e' : '#f59e0b'}
-                          />
-                          <text
-                            textAnchor="middle"
-                            dominantBaseline="middle"
-                            className="text-[9px] fill-white font-bold"
-                          >
-                            {node.log.length}
-                          </text>
-                        </g>
-                      )}
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
-
-            {/* Message Type */}
-            {stepData.messageType && (
-              <div className="mb-4 text-center">
-                <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
-                  📨 {stepData.messageType}
-                </span>
-              </div>
-            )}
-
-            {/* Node Details Table */}
-            <div className="mb-4 overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="px-2 py-1 text-left">Node</th>
-                    <th className="px-2 py-1 text-left">State</th>
-                    <th className="px-2 py-1 text-left">Term</th>
-                    <th className="px-2 py-1 text-left">Voted For</th>
-                    <th className="px-2 py-1 text-left">Log</th>
-                    <th className="px-2 py-1 text-left">Commit</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {nodes.map((node) => (
-                    <tr
-                      key={node.id}
-                      className={highlightNode === node.id ? 'bg-yellow-100' : ''}
-                    >
-                      <td className="px-2 py-1 font-mono font-bold">{node.id}</td>
-                      <td className="px-2 py-1">
-                        <span
-                          className={`px-1.5 py-0.5 rounded text-white text-[10px] ${STATE_COLORS[node.state]}`}
-                        >
-                          {node.state}
-                        </span>
-                      </td>
-                      <td className="px-2 py-1">{node.term}</td>
-                      <td className="px-2 py-1">{node.votedFor || '-'}</td>
-                      <td className="px-2 py-1">{node.log.length} entries</td>
-                      <td className="px-2 py-1">{node.commitIndex >= 0 ? node.commitIndex : '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Raft Guarantees */}
-            <div className="mb-4 grid grid-cols-2 gap-2 text-[10px]">
-              <div className="p-2 bg-green-50 rounded border border-green-200">
-                <div className="font-bold text-green-800">Election Safety</div>
-                <div className="text-green-700">At most one leader per term</div>
-              </div>
-              <div className="p-2 bg-blue-50 rounded border border-blue-200">
-                <div className="font-bold text-blue-800">Log Matching</div>
-                <div className="text-blue-700">Same index+term = same entry</div>
-              </div>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={getStatusVariant()}
+      {/* Cluster Visualization */}
+      <div className="mb-4 flex justify-center">
+        <svg width="300" height="260" className="overflow-visible">
+          {/* Connection lines */}
+          {highlightEdge && (
+            <line
+              x1={NODE_POSITIONS[highlightEdge.from].x}
+              y1={NODE_POSITIONS[highlightEdge.from].y}
+              x2={NODE_POSITIONS[highlightEdge.to].x}
+              y2={NODE_POSITIONS[highlightEdge.to].y}
+              stroke={highlightEdge.type === 'vote' ? '#60a5fa' : '#a855f7'}
+              strokeWidth="3"
+              strokeDasharray="5,5"
+              markerEnd="url(#arrowhead)"
             />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={RAFT_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
-            </div>
           )}
-        </div>
+
+          {/* Arrow marker */}
+          <defs>
+            <marker
+              id="arrowhead"
+              markerWidth="10"
+              markerHeight="7"
+              refX="9"
+              refY="3.5"
+              orient="auto"
+            >
+              <polygon
+                points="0 0, 10 3.5, 0 7"
+                fill={highlightEdge?.type === 'vote' ? '#60a5fa' : '#a855f7'}
+              />
+            </marker>
+          </defs>
+
+          {/* Nodes */}
+          {nodes.map((node) => {
+            const pos = NODE_POSITIONS[node.id];
+            const isHighlighted = highlightNode === node.id;
+            const stateColor =
+              node.state === 'leader'
+                ? '#22c55e'
+                : node.state === 'candidate'
+                  ? '#eab308'
+                  : '#9ca3af';
+
+            return (
+              <g key={node.id}>
+                {/* Node circle */}
+                <circle
+                  cx={pos.x}
+                  cy={pos.y}
+                  r={isHighlighted ? 28 : 25}
+                  fill={stateColor}
+                  stroke={isHighlighted ? '#fbbf24' : 'white'}
+                  strokeWidth={isHighlighted ? 4 : 2}
+                  className="transition-all"
+                />
+
+                {/* Node ID */}
+                <text
+                  x={pos.x}
+                  y={pos.y}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  className="text-sm font-bold fill-white"
+                >
+                  {node.id}
+                </text>
+
+                {/* State label */}
+                <text
+                  x={pos.x}
+                  y={pos.y + 40}
+                  textAnchor="middle"
+                  className="text-[10px] fill-gray-600 font-medium"
+                >
+                  {node.state}
+                </text>
+
+                {/* Term badge */}
+                <g transform={`translate(${pos.x + 20}, ${pos.y - 20})`}>
+                  <circle r="10" fill="#3b82f6" />
+                  <text
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    className="text-[9px] fill-white font-bold"
+                  >
+                    T{node.term}
+                  </text>
+                </g>
+
+                {/* Log indicator */}
+                {node.log.length > 0 && (
+                  <g transform={`translate(${pos.x - 20}, ${pos.y - 20})`}>
+                    <rect
+                      x="-8"
+                      y="-8"
+                      width="16"
+                      height="16"
+                      rx="2"
+                      fill={node.log[0]?.committed ? '#22c55e' : '#f59e0b'}
+                    />
+                    <text
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      className="text-[9px] fill-white font-bold"
+                    >
+                      {node.log.length}
+                    </text>
+                  </g>
+                )}
+              </g>
+            );
+          })}
+        </svg>
       </div>
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="orange"
-          />
-          <Legend items={LEGEND_ITEMS} />
+      {/* Message Type */}
+      {stepData.messageType && (
+        <div className="mb-4 text-center">
+          <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+            📨 {stepData.messageType}
+          </span>
         </div>
       )}
-    </div>
+
+      {/* Node Details Table */}
+      <div className="mb-4 overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="px-2 py-1 text-left">Node</th>
+              <th className="px-2 py-1 text-left">State</th>
+              <th className="px-2 py-1 text-left">Term</th>
+              <th className="px-2 py-1 text-left">Voted For</th>
+              <th className="px-2 py-1 text-left">Log</th>
+              <th className="px-2 py-1 text-left">Commit</th>
+            </tr>
+          </thead>
+          <tbody>
+            {nodes.map((node) => (
+              <tr
+                key={node.id}
+                className={highlightNode === node.id ? 'bg-yellow-100' : ''}
+              >
+                <td className="px-2 py-1 font-mono font-bold">{node.id}</td>
+                <td className="px-2 py-1">
+                  <span
+                    className={`px-1.5 py-0.5 rounded text-white text-[10px] ${STATE_COLORS[node.state]}`}
+                  >
+                    {node.state}
+                  </span>
+                </td>
+                <td className="px-2 py-1">{node.term}</td>
+                <td className="px-2 py-1">{node.votedFor || '-'}</td>
+                <td className="px-2 py-1">{node.log.length} entries</td>
+                <td className="px-2 py-1">{node.commitIndex >= 0 ? node.commitIndex : '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Raft Guarantees */}
+      <div className="mb-4 grid grid-cols-2 gap-2 text-[10px]">
+        <div className="p-2 bg-green-50 rounded border border-green-200">
+          <div className="font-bold text-green-800">Election Safety</div>
+          <div className="text-green-700">At most one leader per term</div>
+        </div>
+        <div className="p-2 bg-blue-50 rounded border border-blue-200">
+          <div className="font-bold text-blue-800">Log Matching</div>
+          <div className="text-blue-700">Same index+term = same entry</div>
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="Raft Consensus"
+      badges={BADGES}
+      gradient="orange"
+      className={className}
+      minHeight={450}
+      onShare={handleShare}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'orange',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? RAFT_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

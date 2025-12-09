@@ -37,7 +37,7 @@ describe('CodePanel', () => {
     it('renders vars section', () => {
       render(<CodePanel code={defaultCode} activeLine={-1} />);
 
-      expect(screen.getByText('Vars')).toBeInTheDocument();
+      expect(screen.getByText('Variables')).toBeInTheDocument();
     });
 
     it('shows dash when no variables', () => {
@@ -51,7 +51,8 @@ describe('CodePanel', () => {
     it('highlights active line', () => {
       const { container } = render(<CodePanel code={defaultCode} activeLine={0} />);
 
-      const activeLine = container.querySelector('.bg-yellow-500\\/30');
+      // Updated selector for new class: bg-yellow-400/40
+      const activeLine = container.querySelector('.bg-yellow-400\\/40');
       expect(activeLine).toBeInTheDocument();
       expect(activeLine).toHaveTextContent('function hash');
     });
@@ -59,14 +60,14 @@ describe('CodePanel', () => {
     it('does not highlight when activeLine is -1', () => {
       const { container } = render(<CodePanel code={defaultCode} activeLine={-1} />);
 
-      const activeLine = container.querySelector('.bg-yellow-500\\/30');
+      const activeLine = container.querySelector('.bg-yellow-400\\/40');
       expect(activeLine).not.toBeInTheDocument();
     });
 
     it('highlights correct line based on index', () => {
       const { container } = render(<CodePanel code={defaultCode} activeLine={4} />);
 
-      const activeLine = container.querySelector('.bg-yellow-500\\/30');
+      const activeLine = container.querySelector('.bg-yellow-400\\/40');
       expect(activeLine).toHaveTextContent('index = hash(key)');
     });
   });
@@ -120,7 +121,7 @@ describe('CodePanel', () => {
       render(<CodePanel code={[]} activeLine={-1} />);
 
       expect(screen.getByText('Pseudocode')).toBeInTheDocument();
-      expect(screen.getByText('Vars')).toBeInTheDocument();
+      expect(screen.getByText('Variables')).toBeInTheDocument();
     });
 
     it('handles single line code', () => {

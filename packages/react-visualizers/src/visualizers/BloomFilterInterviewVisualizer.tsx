@@ -1,12 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 import { InterviewModePanel } from '../shared/InterviewModePanel';
 import { useInterviewMode, type InterviewQuestion } from '../shared/useInterviewMode';
@@ -25,8 +21,15 @@ interface BloomFilterInterviewVisualizerProps {
   className?: string;
 }
 
+const VISUALIZER_ID = 'bloomfilter-interview-visualizer';
 const BIT_ARRAY_SIZE = 16;
 const K_HASH_FUNCTIONS = 3;
+
+const BADGES = [
+  { label: 'Interview Mode', variant: 'purple' as const },
+  { label: 'Probabilistic', variant: 'pink' as const },
+  { label: 'No False Negatives', variant: 'indigo' as const },
+];
 
 const OPERATIONS: Array<{ op: 'add' | 'query'; element: string }> = [
   { op: 'add', element: 'apple' },
@@ -263,21 +266,31 @@ const BloomFilterInterviewVisualizerComponent: React.FC<BloomFilterInterviewVisu
   showControls = true,
   className = '',
 }) => {
-  const VISUALIZER_ID = 'bloomfilter-interview-visualizer';
   const { copyUrlToClipboard } = useUrlState({ prefix: 'bf-int', scrollToId: VISUALIZER_ID });
 
   const [mode, setMode] = useState<'visualize' | 'interview'>('visualize');
 
   const generateSteps = useMemo(() => generateBloomFilterSteps, []);
 
-  const playback = useVisualizerPlayback<BloomFilterStep>({ generateSteps });
+  const {
+    currentStep,
+    currentStepData,
+    steps,
+    isPlaying,
+    speed,
+    handlePlayPause,
+    handleStep,
+    handleStepBack,
+    handleReset,
+    setSpeed,
+  } = useVisualizerPlayback<BloomFilterStep>({ generateSteps });
 
   const interview = useInterviewMode({
     questions: BLOOM_FILTER_QUESTIONS,
     shuffleQuestions: true,
   });
 
-  const stepData: BloomFilterStep = playback.currentStepData || {
+  const stepData: BloomFilterStep = currentStepData || {
     operation: 'init',
     bitArray: new Array(BIT_ARRAY_SIZE).fill(false),
     description: '',
@@ -286,171 +299,157 @@ const BloomFilterInterviewVisualizerComponent: React.FC<BloomFilterInterviewVisu
   const { bitArray, highlightBits, description, result } = stepData;
 
   const handleShare = useCallback(async () => {
-    return copyUrlToClipboard({ step: playback.currentStep });
-  }, [copyUrlToClipboard, playback.currentStep]);
+    return copyUrlToClipboard({ step: currentStep });
+  }, [copyUrlToClipboard, currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header with mode toggle */}
-      <div className="px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">Bloom Filter</h3>
-            <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
-              <button
-                onClick={() => setMode('visualize')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'visualize'
-                    ? 'bg-white text-purple-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Visualize
-              </button>
-              <button
-                onClick={() => setMode('interview')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'interview'
-                    ? 'bg-white text-purple-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Interview
-              </button>
-            </div>
-            <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
-              Probabilistic
-            </span>
-          </div>
-          <ShareButton onShare={handleShare} accentColor="purple" />
+  const getStatusVariant = () => {
+    if (result === 'definitely_no') return 'success';
+    if (result === 'probably_yes') return 'warning';
+    return 'default';
+  };
+
+  const visualization = (
+    <>
+      {/* Key Property */}
+      <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+        <div className="text-sm text-purple-800 text-center">
+          <span className="font-medium">Key Property:</span> No false negatives!
+          <br />
+          <span className="text-xs">If it says "no" → definitely not in set</span>
         </div>
       </div>
 
-      <div className="p-4">
-        <div className="flex gap-4 flex-col lg:flex-row">
-          {/* Visualization Panel */}
-          <VisualizationArea minHeight={300} className="flex-1">
-            {/* Key Property */}
-            <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
-              <div className="text-sm text-purple-800 text-center">
-                <span className="font-medium">Key Property:</span> No false negatives!
-                <br />
-                <span className="text-xs">If it says "no" → definitely not in set</span>
-              </div>
-            </div>
-
-            {/* Bit Array Visualization */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Bit Array ({BIT_ARRAY_SIZE} bits, {K_HASH_FUNCTIONS} hash functions)
-              </div>
-              <div className="flex flex-wrap gap-1 justify-center">
-                {bitArray.map((bit, idx) => {
-                  const isHighlighted = highlightBits?.includes(idx);
-                  return (
-                    <div
-                      key={idx}
-                      className={`w-10 h-10 flex items-center justify-center rounded-lg text-xs font-mono transition-all ${
-                        isHighlighted
-                          ? 'bg-pink-400 text-white ring-2 ring-pink-500 scale-110'
-                          : bit
-                            ? 'bg-purple-500 text-white'
-                            : 'bg-gray-200 text-gray-600'
-                      }`}
-                    >
-                      <div className="text-center">
-                        <div className="text-[10px] opacity-70">{idx}</div>
-                        <div>{bit ? '1' : '0'}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Result Display */}
-            {result && (
+      {/* Bit Array Visualization */}
+      <div className="mb-4">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          Bit Array ({BIT_ARRAY_SIZE} bits, {K_HASH_FUNCTIONS} hash functions)
+        </div>
+        <div className="flex flex-wrap gap-1 justify-center">
+          {bitArray.map((bit, idx) => {
+            const isHighlighted = highlightBits?.includes(idx);
+            return (
               <div
-                className={`mb-4 p-3 rounded-lg border ${
-                  result === 'probably_yes'
-                    ? 'bg-yellow-50 border-yellow-200'
-                    : 'bg-green-50 border-green-200'
+                key={idx}
+                className={`w-10 h-10 flex items-center justify-center rounded-lg text-xs font-mono transition-all ${
+                  isHighlighted
+                    ? 'bg-pink-400 text-white ring-2 ring-pink-500 scale-110'
+                    : bit
+                      ? 'bg-purple-500 text-white'
+                      : 'bg-gray-200 text-gray-600'
                 }`}
               >
-                <div
-                  className={`text-sm font-medium text-center ${
-                    result === 'probably_yes' ? 'text-yellow-800' : 'text-green-800'
-                  }`}
-                >
-                  {result === 'probably_yes'
-                    ? '⚠️ Probably in set (could be false positive)'
-                    : '✓ Definitely NOT in set'}
+                <div className="text-center">
+                  <div className="text-[10px] opacity-70">{idx}</div>
+                  <div>{bit ? '1' : '0'}</div>
                 </div>
               </div>
-            )}
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={playback.currentStep}
-              totalSteps={playback.steps.length}
-              variant={
-                result === 'definitely_no'
-                  ? 'success'
-                  : result === 'probably_yes'
-                    ? 'warning'
-                    : 'default'
-              }
-            />
-          </VisualizationArea>
-
-          {/* Interview Panel */}
-          {mode === 'interview' && (
-            <div className="w-full lg:w-96 flex-shrink-0">
-              <InterviewModePanel
-                currentQuestion={interview.currentQuestion}
-                currentQuestionIndex={interview.session.currentQuestionIndex}
-                totalQuestions={interview.session.questions.length}
-                selectedAnswer={interview.selectedAnswer}
-                showExplanation={interview.showExplanation}
-                showHint={interview.showHint}
-                isAnswered={interview.isAnswered}
-                isComplete={interview.isComplete}
-                score={interview.score}
-                onSelectAnswer={interview.selectAnswer}
-                onNextQuestion={interview.nextQuestion}
-                onPreviousQuestion={interview.previousQuestion}
-                onUseHint={interview.useHint}
-                onRestart={interview.restartSession}
-                accentColor="purple"
-              />
-            </div>
-          )}
+            );
+          })}
         </div>
       </div>
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={playback.isPlaying}
-            currentStep={playback.currentStep}
-            totalSteps={playback.steps.length}
-            speed={playback.speed}
-            onPlayPause={playback.handlePlayPause}
-            onStep={playback.handleStep}
-            onStepBack={playback.handleStepBack}
-            onReset={playback.handleReset}
-            onSpeedChange={playback.setSpeed}
-            accentColor="purple"
-          />
-          <Legend items={LEGEND_ITEMS} />
+      {/* Result Display */}
+      {result && (
+        <div
+          className={`mb-4 p-3 rounded-lg border ${
+            result === 'probably_yes'
+              ? 'bg-amber-50 border-amber-200'
+              : 'bg-green-50 border-green-200'
+          }`}
+        >
+          <div
+            className={`text-sm font-medium text-center ${
+              result === 'probably_yes' ? 'text-amber-800' : 'text-green-800'
+            }`}
+          >
+            {result === 'probably_yes'
+              ? '⚠️ Probably in set (could be false positive)'
+              : '✓ Definitely NOT in set'}
+          </div>
         </div>
       )}
+    </>
+  );
+
+  const modeToggle = (
+    <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
+      <button
+        onClick={() => setMode('visualize')}
+        className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+          mode === 'visualize'
+            ? 'bg-white text-purple-600 shadow-sm'
+            : 'text-gray-600 hover:text-gray-800'
+        }`}
+      >
+        Visualize
+      </button>
+      <button
+        onClick={() => setMode('interview')}
+        className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+          mode === 'interview'
+            ? 'bg-white text-purple-600 shadow-sm'
+            : 'text-gray-600 hover:text-gray-800'
+        }`}
+      >
+        Interview
+      </button>
     </div>
+  );
+
+  const sidePanel = mode === 'interview' ? (
+    <InterviewModePanel
+      currentQuestion={interview.currentQuestion}
+      currentQuestionIndex={interview.session.currentQuestionIndex}
+      totalQuestions={interview.session.questions.length}
+      selectedAnswer={interview.selectedAnswer}
+      showExplanation={interview.showExplanation}
+      showHint={interview.showHint}
+      isAnswered={interview.isAnswered}
+      isComplete={interview.isComplete}
+      score={interview.score}
+      onSelectAnswer={interview.selectAnswer}
+      onNextQuestion={interview.nextQuestion}
+      onPreviousQuestion={interview.previousQuestion}
+      onUseHint={interview.useHint}
+      onRestart={interview.restartSession}
+      accentColor="purple"
+    />
+  ) : undefined;
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="Bloom Filter (Interview Mode)"
+      badges={BADGES}
+      gradient="purple"
+      className={className}
+      minHeight={500}
+      onShare={handleShare}
+      headerExtra={modeToggle}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'purple',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      sidePanel={sidePanel}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

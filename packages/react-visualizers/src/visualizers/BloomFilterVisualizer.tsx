@@ -1,14 +1,8 @@
-import React, { useMemo, useCallback, useState } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 
 interface BloomFilterStep {
@@ -62,6 +56,11 @@ const LEGEND_ITEMS = [
   { color: 'bg-yellow-400', label: 'Currently checking', border: '#fbbf24' },
   { color: 'bg-green-500', label: 'Match (probably in set)' },
   { color: 'bg-red-500', label: 'Miss (definitely not in set)' },
+];
+
+const BADGES = [
+  { label: 'Space: O(m)', variant: 'purple' as const },
+  { label: 'Probabilistic', variant: 'purple' as const },
 ];
 
 // Simple hash functions for visualization
@@ -320,176 +319,146 @@ const BloomFilterVisualizerComponent: React.FC<BloomFilterVisualizerProps> = ({
     return copyUrlToClipboard({ step: currentStep });
   }, [copyUrlToClipboard, currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">Bloom Filter</h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
-                Space: O(m)
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-pink-100 text-pink-700 rounded">
-                Probabilistic
-              </span>
+  const visualization = (
+    <>
+      {/* Key Concept */}
+      <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
+        <div className="text-sm font-bold text-purple-800 mb-2 flex items-center gap-2">
+          <span className="text-lg">🎲</span> Probabilistic Data Structure
+        </div>
+        <div className="text-xs text-gray-700 space-y-1">
+          <p><strong>False Positives:</strong> May say &quot;probably yes&quot; when element was never added</p>
+          <p><strong>No False Negatives:</strong> If it says &quot;no&quot;, element is DEFINITELY not in set</p>
+          <p><strong>No Deletion:</strong> Cannot remove elements (would cause false negatives)</p>
+        </div>
+      </div>
+
+      {/* Bit Array Visualization */}
+      <div className="mb-4">
+        <div className="text-sm font-medium text-gray-700 mb-2 flex items-center justify-between">
+          <span>Bit Array ({BIT_ARRAY_SIZE} bits, {NUM_HASH_FUNCTIONS} hash functions)</span>
+          <span className="text-xs text-gray-500">
+            Set: {bitArray.filter(b => b).length} / {BIT_ARRAY_SIZE}
+          </span>
+        </div>
+
+        {/* Bit array grid */}
+        <div className="grid grid-cols-8 gap-1 mb-2">
+          {bitArray.map((bit, idx) => (
+            <div
+              key={idx}
+              className={`
+                h-10 flex flex-col items-center justify-center rounded
+                border-2 transition-all duration-200 text-xs font-mono
+                ${getBitStyle(idx, bit)}
+              `}
+            >
+              <span className="text-[10px] opacity-60">{idx}</span>
+              <span className="font-bold">{bit ? '1' : '0'}</span>
             </div>
+          ))}
+        </div>
+
+        {/* Index labels */}
+        <div className="grid grid-cols-8 gap-1">
+          {bitArray.map((_, idx) => (
+            <div key={idx} className="text-center text-[9px] text-gray-400">
+              [{idx}]
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Current Operation */}
+      {stepData.element && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="text-sm">
+            <span className="text-gray-500">Element: </span>
+            <span className="font-mono font-bold text-purple-600">&quot;{stepData.element}&quot;</span>
+            {stepData.hashFunction && (
+              <>
+                <span className="text-gray-500 ml-4">Hash #{stepData.hashFunction}: </span>
+                <span className="font-mono font-bold text-pink-600">{stepData.hashIndex}</span>
+              </>
+            )}
           </div>
-          <ShareButton onShare={handleShare} accentColor="purple" />
-        </div>
-      </div>
-
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={400} className={showCode ? 'flex-1' : 'w-full'}>
-            {/* Key Concept */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
-              <div className="text-sm font-bold text-purple-800 mb-2 flex items-center gap-2">
-                <span className="text-lg">🎲</span> Probabilistic Data Structure
-              </div>
-              <div className="text-xs text-gray-700 space-y-1">
-                <p><strong>False Positives:</strong> May say &quot;probably yes&quot; when element was never added</p>
-                <p><strong>No False Negatives:</strong> If it says &quot;no&quot;, element is DEFINITELY not in set</p>
-                <p><strong>No Deletion:</strong> Cannot remove elements (would cause false negatives)</p>
-              </div>
-            </div>
-
-            {/* Bit Array Visualization */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2 flex items-center justify-between">
-                <span>Bit Array ({BIT_ARRAY_SIZE} bits, {NUM_HASH_FUNCTIONS} hash functions)</span>
-                <span className="text-xs text-gray-500">
-                  Set: {bitArray.filter(b => b).length} / {BIT_ARRAY_SIZE}
-                </span>
-              </div>
-
-              {/* Bit array grid */}
-              <div className="grid grid-cols-8 gap-1 mb-2">
-                {bitArray.map((bit, idx) => (
-                  <div
-                    key={idx}
-                    className={`
-                      h-10 flex flex-col items-center justify-center rounded
-                      border-2 transition-all duration-200 text-xs font-mono
-                      ${getBitStyle(idx, bit)}
-                    `}
-                  >
-                    <span className="text-[10px] opacity-60">{idx}</span>
-                    <span className="font-bold">{bit ? '1' : '0'}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Index labels */}
-              <div className="grid grid-cols-8 gap-1">
-                {bitArray.map((_, idx) => (
-                  <div key={idx} className="text-center text-[9px] text-gray-400">
-                    [{idx}]
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Current Operation */}
-            {stepData.element && (
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="text-sm">
-                  <span className="text-gray-500">Element: </span>
-                  <span className="font-mono font-bold text-purple-600">&quot;{stepData.element}&quot;</span>
-                  {stepData.hashFunction && (
-                    <>
-                      <span className="text-gray-500 ml-4">Hash #{stepData.hashFunction}: </span>
-                      <span className="font-mono font-bold text-pink-600">{stepData.hashIndex}</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Hash Functions Explanation */}
-            {stepData.operation === 'init' && (
-              <div className="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                <div className="text-xs font-medium text-indigo-800 mb-2">Hash Functions (k={NUM_HASH_FUNCTIONS})</div>
-                <div className="font-mono text-[10px] text-gray-600 space-y-1">
-                  <div>hash_1(x) = (x * 31) % {BIT_ARRAY_SIZE}</div>
-                  <div>hash_2(x) = (djb2 hash) % {BIT_ARRAY_SIZE}</div>
-                  <div>hash_3(x) = (x * 17 * pos) % {BIT_ARRAY_SIZE}</div>
-                </div>
-              </div>
-            )}
-
-            {/* Elements Summary */}
-            <div className="mb-4 grid grid-cols-2 gap-3">
-              <div className="p-2 bg-green-50 rounded-lg border border-green-200">
-                <div className="text-xs font-medium text-green-800 mb-1">Added Elements</div>
-                <div className="text-xs text-green-700">
-                  {ADD_ELEMENTS.map((el, i) => (
-                    <span key={el} className="font-mono">
-                      {el}{i < ADD_ELEMENTS.length - 1 ? ', ' : ''}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div className="p-2 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="text-xs font-medium text-blue-800 mb-1">Checking</div>
-                <div className="text-xs text-blue-700">
-                  {CHECK_ELEMENTS.map((el, i) => (
-                    <span key={el} className="font-mono">
-                      {el}{i < CHECK_ELEMENTS.length - 1 ? ', ' : ''}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={getStatusVariant()}
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={BLOOM_FILTER_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="purple"
-          />
-          <Legend items={LEGEND_ITEMS} />
         </div>
       )}
-    </div>
+
+      {/* Hash Functions Explanation */}
+      {stepData.operation === 'init' && (
+        <div className="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+          <div className="text-xs font-medium text-indigo-800 mb-2">Hash Functions (k={NUM_HASH_FUNCTIONS})</div>
+          <div className="font-mono text-[10px] text-gray-600 space-y-1">
+            <div>hash_1(x) = (x * 31) % {BIT_ARRAY_SIZE}</div>
+            <div>hash_2(x) = (djb2 hash) % {BIT_ARRAY_SIZE}</div>
+            <div>hash_3(x) = (x * 17 * pos) % {BIT_ARRAY_SIZE}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Elements Summary */}
+      <div className="mb-4 grid grid-cols-2 gap-3">
+        <div className="p-2 bg-green-50 rounded-lg border border-green-200">
+          <div className="text-xs font-medium text-green-800 mb-1">Added Elements</div>
+          <div className="text-xs text-green-700">
+            {ADD_ELEMENTS.map((el, i) => (
+              <span key={el} className="font-mono">
+                {el}{i < ADD_ELEMENTS.length - 1 ? ', ' : ''}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="p-2 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="text-xs font-medium text-blue-800 mb-1">Checking</div>
+          <div className="text-xs text-blue-700">
+            {CHECK_ELEMENTS.map((el, i) => (
+              <span key={el} className="font-mono">
+                {el}{i < CHECK_ELEMENTS.length - 1 ? ', ' : ''}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="Bloom Filter"
+      badges={BADGES}
+      gradient="purple"
+      className={className}
+      minHeight={400}
+      onShare={handleShare}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'purple',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? BLOOM_FILTER_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

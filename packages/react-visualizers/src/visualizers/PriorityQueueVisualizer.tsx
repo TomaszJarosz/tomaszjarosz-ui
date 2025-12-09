@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  VisualizationArea,
+  BaseVisualizerLayout,
 } from '../shared';
 
 interface HeapStep {
@@ -65,6 +60,11 @@ const LEGEND_ITEMS = [
   { color: 'bg-purple-200', label: 'Sift Path', border: '#a78bfa' },
   { color: 'bg-yellow-300', label: 'Comparing' },
   { color: 'bg-green-400', label: 'Swapped' },
+];
+
+const BADGES = [
+  { label: 'offer: O(log n)', variant: 'purple' as const },
+  { label: 'poll: O(log n)', variant: 'purple' as const },
 ];
 
 function generateHeapSteps(): HeapStep[] {
@@ -458,221 +458,190 @@ const PriorityQueueVisualizerComponent: React.FC<
     return '#374151';
   };
 
-  return (
-    <div
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">
-              PriorityQueue (Min-Heap)
-            </h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
-                offer: O(log n)
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-pink-100 text-pink-700 rounded">
-                poll: O(log n)
-              </span>
+  const visualization = (
+    <>
+      {/* Heap Property Formula - Prominent */}
+      <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
+        <div className="text-sm font-bold text-purple-800 mb-3 flex items-center gap-2">
+          <span className="text-lg">🏔️</span> Min-Heap Property
+        </div>
+        <div className="font-mono text-sm bg-white rounded-lg p-3 border border-purple-200">
+          <div className="text-center text-purple-700 font-bold mb-2">
+            heap[parent] ≤ heap[children]
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-gray-600">
+            <div className="bg-purple-50 p-2 rounded text-center">
+              <span className="font-semibold">parent(i)</span> = ⌊(i-1)/2⌋
+            </div>
+            <div className="bg-purple-50 p-2 rounded text-center">
+              <span className="font-semibold">left(i)</span> = 2i + 1
+            </div>
+            <div className="bg-purple-50 p-2 rounded text-center">
+              <span className="font-semibold">right(i)</span> = 2i + 2
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={400}>
-            {/* Heap Property Formula - Prominent */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
-              <div className="text-sm font-bold text-purple-800 mb-3 flex items-center gap-2">
-                <span className="text-lg">🏔️</span> Min-Heap Property
-              </div>
-              <div className="font-mono text-sm bg-white rounded-lg p-3 border border-purple-200">
-                <div className="text-center text-purple-700 font-bold mb-2">
-                  heap[parent] ≤ heap[children]
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-gray-600">
-                  <div className="bg-purple-50 p-2 rounded text-center">
-                    <span className="font-semibold">parent(i)</span> = ⌊(i-1)/2⌋
-                  </div>
-                  <div className="bg-purple-50 p-2 rounded text-center">
-                    <span className="font-semibold">left(i)</span> = 2i + 1
-                  </div>
-                  <div className="bg-purple-50 p-2 rounded text-center">
-                    <span className="font-semibold">right(i)</span> = 2i + 2
-                  </div>
-                </div>
-              </div>
-              {/* Current Index Calculation */}
-              {currentIndex !== undefined && currentIndex >= 0 && (
-                <div className="mt-3 p-2 bg-white rounded-lg border border-purple-200">
-                  <div className="text-xs text-gray-600 text-center">
-                    <span className="font-semibold text-purple-700">Current: i = {currentIndex}</span>
-                    {currentIndex > 0 && (
-                      <span className="mx-2">→ parent({currentIndex}) = ⌊({currentIndex}-1)/2⌋ = <span className="text-purple-600 font-bold">{Math.floor((currentIndex - 1) / 2)}</span></span>
-                    )}
-                    {2 * currentIndex + 1 < heap.length && (
-                      <span className="mx-2">→ left({currentIndex}) = <span className="text-purple-600 font-bold">{2 * currentIndex + 1}</span></span>
-                    )}
-                  </div>
-                </div>
+        {/* Current Index Calculation */}
+        {currentIndex !== undefined && currentIndex >= 0 && (
+          <div className="mt-3 p-2 bg-white rounded-lg border border-purple-200">
+            <div className="text-xs text-gray-600 text-center">
+              <span className="font-semibold text-purple-700">Current: i = {currentIndex}</span>
+              {currentIndex > 0 && (
+                <span className="mx-2">→ parent({currentIndex}) = ⌊({currentIndex}-1)/2⌋ = <span className="text-purple-600 font-bold">{Math.floor((currentIndex - 1) / 2)}</span></span>
+              )}
+              {2 * currentIndex + 1 < heap.length && (
+                <span className="mx-2">→ left({currentIndex}) = <span className="text-purple-600 font-bold">{2 * currentIndex + 1}</span></span>
               )}
             </div>
+          </div>
+        )}
+      </div>
 
-            {/* Heap Tree Visualization */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Binary Heap Structure
-              </div>
-              <div className="bg-gray-50 rounded-lg p-2 overflow-x-auto">
-                {heap.length > 0 ? (
-                  <svg
-                    width="280"
-                    height={Math.floor(Math.log2(heap.length)) * 55 + 80}
-                    className="mx-auto"
+      {/* Heap Tree Visualization */}
+      <div className="mb-4">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          Binary Heap Structure
+        </div>
+        <div className="bg-gray-50 rounded-lg p-2 overflow-x-auto">
+          {heap.length > 0 ? (
+            <svg
+              width="280"
+              height={Math.floor(Math.log2(heap.length)) * 55 + 80}
+              className="mx-auto"
+            >
+              {/* Draw edges */}
+              {heap.map((_, idx) => {
+                if (idx === 0) return null;
+                const parentIdx = Math.floor((idx - 1) / 2);
+                const parentPos = positions[parentIdx];
+                const childPos = positions[idx];
+                if (!parentPos || !childPos) return null;
+
+                const isHighlighted =
+                  (compareIndices?.includes(idx) &&
+                    compareIndices?.includes(parentIdx)) ||
+                  (swapIndices?.includes(idx) &&
+                    swapIndices?.includes(parentIdx));
+
+                const isOnPath = isEdgeOnPath(parentIdx, idx);
+
+                return (
+                  <line
+                    key={`edge-${idx}`}
+                    x1={parentPos.x}
+                    y1={parentPos.y}
+                    x2={childPos.x}
+                    y2={childPos.y}
+                    stroke={isHighlighted ? '#a855f7' : isOnPath ? '#c4b5fd' : '#d1d5db'}
+                    strokeWidth={isHighlighted ? 3 : isOnPath ? 2 : 1}
+                    strokeDasharray={isOnPath && !isHighlighted ? '4,2' : undefined}
+                  />
+                );
+              })}
+              {/* Draw nodes */}
+              {heap.map((val, idx) => {
+                const pos = positions[idx];
+                if (!pos) return null;
+
+                return (
+                  <g
+                    key={idx}
+                    transform={`translate(${pos.x}, ${pos.y})`}
                   >
-                    {/* Draw edges */}
-                    {heap.map((_, idx) => {
-                      if (idx === 0) return null;
-                      const parentIdx = Math.floor((idx - 1) / 2);
-                      const parentPos = positions[parentIdx];
-                      const childPos = positions[idx];
-                      if (!parentPos || !childPos) return null;
-
-                      const isHighlighted =
-                        (compareIndices?.includes(idx) &&
-                          compareIndices?.includes(parentIdx)) ||
-                        (swapIndices?.includes(idx) &&
-                          swapIndices?.includes(parentIdx));
-
-                      const isOnPath = isEdgeOnPath(parentIdx, idx);
-
-                      return (
-                        <line
-                          key={`edge-${idx}`}
-                          x1={parentPos.x}
-                          y1={parentPos.y}
-                          x2={childPos.x}
-                          y2={childPos.y}
-                          stroke={isHighlighted ? '#a855f7' : isOnPath ? '#c4b5fd' : '#d1d5db'}
-                          strokeWidth={isHighlighted ? 3 : isOnPath ? 2 : 1}
-                          strokeDasharray={isOnPath && !isHighlighted ? '4,2' : undefined}
-                        />
-                      );
-                    })}
-                    {/* Draw nodes */}
-                    {heap.map((val, idx) => {
-                      const pos = positions[idx];
-                      if (!pos) return null;
-
-                      return (
-                        <g
-                          key={idx}
-                          transform={`translate(${pos.x}, ${pos.y})`}
-                        >
-                          <circle
-                            r="18"
-                            className={`${getNodeStyle(idx)} stroke-2 transition-colors`}
-                          />
-                          <text
-                            textAnchor="middle"
-                            dy="5"
-                            className="text-xs font-medium"
-                            fill={getTextColor(idx)}
-                          >
-                            {val}
-                          </text>
-                          <text
-                            textAnchor="middle"
-                            dy="32"
-                            className="text-[9px]"
-                            fill="#9ca3af"
-                          >
-                            [{idx}]
-                          </text>
-                        </g>
-                      );
-                    })}
-                  </svg>
-                ) : (
-                  <div className="h-20 flex items-center justify-center text-gray-400 text-sm">
-                    Empty heap
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Array representation */}
-            {heap.length > 0 && (
-              <div className="mb-4 p-3 bg-gray-100 rounded-lg">
-                <div className="text-xs text-gray-600 mb-1 font-medium">
-                  Array representation:
-                </div>
-                <div className="flex gap-1 overflow-x-auto">
-                  {heap.map((val, idx) => (
-                    <div
-                      key={idx}
-                      className={`w-8 h-8 flex items-center justify-center rounded text-xs font-mono ${
-                        idx === highlightIndex
-                          ? 'bg-purple-500 text-white'
-                          : idx === 0
-                            ? 'bg-purple-100 text-purple-700'
-                            : 'bg-white border border-gray-300 text-gray-700'
-                      }`}
+                    <circle
+                      r="18"
+                      className={`${getNodeStyle(idx)} stroke-2 transition-colors`}
+                    />
+                    <text
+                      textAnchor="middle"
+                      dy="5"
+                      className="text-xs font-medium"
+                      fill={getTextColor(idx)}
                     >
                       {val}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={currentStepData.operation === 'done' ? 'success' : 'default'}
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={HEAP_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
+                    </text>
+                    <text
+                      textAnchor="middle"
+                      dy="32"
+                      className="text-[9px]"
+                      fill="#9ca3af"
+                    >
+                      [{idx}]
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
+          ) : (
+            <div className="h-20 flex items-center justify-center text-gray-400 text-sm">
+              Empty heap
             </div>
           )}
         </div>
       </div>
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="purple"
-          />
-          <Legend items={LEGEND_ITEMS} />
+      {/* Array representation */}
+      {heap.length > 0 && (
+        <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+          <div className="text-xs text-gray-600 mb-1 font-medium">
+            Array representation:
+          </div>
+          <div className="flex gap-1 overflow-x-auto">
+            {heap.map((val, idx) => (
+              <div
+                key={idx}
+                className={`w-8 h-8 flex items-center justify-center rounded text-xs font-mono ${
+                  idx === highlightIndex
+                    ? 'bg-purple-500 text-white'
+                    : idx === 0
+                      ? 'bg-purple-100 text-purple-700'
+                      : 'bg-white border border-gray-300 text-gray-700'
+                }`}
+              >
+                {val}
+              </div>
+            ))}
+          </div>
         </div>
       )}
-    </div>
+    </>
+  );
+
+  return (
+    <BaseVisualizerLayout
+      id="priorityqueue-visualizer"
+      title="PriorityQueue (Min-Heap)"
+      badges={BADGES}
+      gradient="purple"
+      className={className}
+      minHeight={400}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: currentStepData.operation === 'done' ? 'success' : 'default',
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'purple',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? HEAP_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

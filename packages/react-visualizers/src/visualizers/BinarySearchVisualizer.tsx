@@ -1,12 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search } from 'lucide-react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  VisualizationArea,
+  BaseVisualizerLayout,
 } from '../shared';
 
 interface SearchStep {
@@ -47,6 +42,11 @@ const LEGEND_ITEMS = [
   { color: 'bg-gray-200', label: 'Eliminated' },
   { color: 'bg-purple-500', label: 'Mid' },
   { color: 'bg-green-500', label: 'Found' },
+];
+
+const BADGES = [
+  { label: 'Time: O(log n)', variant: 'green' as const },
+  { label: 'Space: O(1)', variant: 'green' as const },
 ];
 
 function generateSortedArray(size: number): number[] {
@@ -315,183 +315,156 @@ const BinarySearchVisualizerComponent: React.FC<
     return 'default' as const;
   };
 
-  return (
-    <div
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">Binary Search</h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">
-                Time: O(log n)
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700 rounded">
-                Space: O(1)
-              </span>
-            </div>
-          </div>
-
-          {/* Target Input */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">Target:</label>
-            <input
-              type="number"
-              value={targetInput}
-              onChange={(e) => setTargetInput(e.target.value)}
-              className="w-20 px-2 py-1 text-sm font-semibold text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              disabled={isPlaying}
-            />
-            <button
-              onClick={handleNewSearch}
-              disabled={isPlaying}
-              className="p-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
-              title="Search"
-            >
-              <Search className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={350}>
-            {/* Binary Search Invariant - Prominent */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-200">
-              <div className="text-sm font-bold text-green-800 mb-3 flex items-center gap-2">
-                <span className="text-lg">🎯</span> Binary Search Invariant
-              </div>
-              <div className="font-mono text-sm bg-white rounded-lg p-3 border border-green-200">
-                <div className="text-center text-green-700 font-bold mb-2">
-                  target ∈ arr[left..right]
-                </div>
-                <div className="text-xs text-gray-500 text-center">
-                  If target exists, it must be within current search bounds
-                </div>
-              </div>
-              {/* Search space info */}
-              {left <= right && (
-                <div className="mt-3 p-2 bg-white rounded-lg border border-green-200">
-                  <div className="flex justify-between items-center text-xs">
-                    <div>
-                      <span className="font-semibold text-green-700">Search space:</span>{' '}
-                      <span className="font-mono">[{left}..{right}]</span> = <span className="font-bold text-green-600">{right - left + 1}</span> elements
-                    </div>
-                    <div className="text-gray-500">
-                      {currentStep > 0 && (
-                        <span>
-                          Eliminated: <span className="font-bold text-red-500">{Math.round((1 - (right - left + 1) / array.length) * 100)}%</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {mid >= 0 && (
-                    <div className="mt-2 text-xs text-center text-gray-600">
-                      mid = ⌊({left} + {right}) / 2⌋ = <span className="font-bold text-purple-600">{mid}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-              {found === true && (
-                <div className="mt-3 p-2 bg-green-100 rounded-lg border border-green-300 text-center">
-                  <span className="text-green-800 font-bold">✓ Found in {currentStep} steps (log₂{array.length} ≈ {Math.ceil(Math.log2(array.length))} max)</span>
-                </div>
-              )}
-              {found === false && (
-                <div className="mt-3 p-2 bg-red-100 rounded-lg border border-red-300 text-center">
-                  <span className="text-red-800 font-bold">✗ Not found - search space exhausted</span>
-                </div>
-              )}
-            </div>
-
-            {/* Array Display */}
-            <div className="flex items-center justify-center gap-1 flex-wrap mb-4">
-              {array.map((value, index) => (
-                <div key={index} className="flex flex-col items-center">
-                  <div
-                    className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium text-sm transition-colors duration-300 ${getElementStyle(index)}`}
-                  >
-                    {value}
-                  </div>
-                  <span className="text-[10px] text-gray-400 mt-1">
-                    {index}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Pointers Legend */}
-            <div className="flex items-center justify-center gap-6 mb-4 text-sm">
-              {left <= right && (
-                <>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-blue-400 rounded" />
-                    <span className="text-gray-600">L={left}</span>
-                  </div>
-                  {mid >= 0 && (
-                    <div className="flex items-center gap-1">
-                      <div className="w-3 h-3 bg-purple-500 rounded" />
-                      <span className="text-gray-600">M={mid}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-blue-400 rounded" />
-                    <span className="text-gray-600">R={right}</span>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={currentDescription}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={getStatusVariant()}
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={BINARY_SEARCH_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            onShuffle={handleShuffle}
-            showShuffle={true}
-            shuffleLabel="New Array"
-            accentColor="green"
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
+  const headerExtra = (
+    <div className="flex items-center gap-2">
+      <label className="text-sm font-medium text-gray-700">Target:</label>
+      <input
+        type="number"
+        value={targetInput}
+        onChange={(e) => setTargetInput(e.target.value)}
+        className="w-20 px-2 py-1 text-sm font-semibold text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+        disabled={isPlaying}
+      />
+      <button
+        onClick={handleNewSearch}
+        disabled={isPlaying}
+        className="p-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
+        title="Search"
+      >
+        <Search className="w-4 h-4" />
+      </button>
     </div>
+  );
+
+  const visualization = (
+    <>
+      {/* Binary Search Invariant - Prominent */}
+      <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-200">
+        <div className="text-sm font-bold text-green-800 mb-3 flex items-center gap-2">
+          <span className="text-lg">🎯</span> Binary Search Invariant
+        </div>
+        <div className="font-mono text-sm bg-white rounded-lg p-3 border border-green-200">
+          <div className="text-center text-green-700 font-bold mb-2">
+            target ∈ arr[left..right]
+          </div>
+          <div className="text-xs text-gray-500 text-center">
+            If target exists, it must be within current search bounds
+          </div>
+        </div>
+        {/* Search space info */}
+        {left <= right && (
+          <div className="mt-3 p-2 bg-white rounded-lg border border-green-200">
+            <div className="flex justify-between items-center text-xs">
+              <div>
+                <span className="font-semibold text-green-700">Search space:</span>{' '}
+                <span className="font-mono">[{left}..{right}]</span> = <span className="font-bold text-green-600">{right - left + 1}</span> elements
+              </div>
+              <div className="text-gray-500">
+                {currentStep > 0 && (
+                  <span>
+                    Eliminated: <span className="font-bold text-red-500">{Math.round((1 - (right - left + 1) / array.length) * 100)}%</span>
+                  </span>
+                )}
+              </div>
+            </div>
+            {mid >= 0 && (
+              <div className="mt-2 text-xs text-center text-gray-600">
+                mid = ⌊({left} + {right}) / 2⌋ = <span className="font-bold text-purple-600">{mid}</span>
+              </div>
+            )}
+          </div>
+        )}
+        {found === true && (
+          <div className="mt-3 p-2 bg-green-100 rounded-lg border border-green-300 text-center">
+            <span className="text-green-800 font-bold">✓ Found in {currentStep} steps (log₂{array.length} ≈ {Math.ceil(Math.log2(array.length))} max)</span>
+          </div>
+        )}
+        {found === false && (
+          <div className="mt-3 p-2 bg-red-100 rounded-lg border border-red-300 text-center">
+            <span className="text-red-800 font-bold">✗ Not found - search space exhausted</span>
+          </div>
+        )}
+      </div>
+
+      {/* Array Display */}
+      <div className="flex items-center justify-center gap-1 flex-wrap mb-4">
+        {array.map((value, index) => (
+          <div key={index} className="flex flex-col items-center">
+            <div
+              className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium text-sm transition-colors duration-300 ${getElementStyle(index)}`}
+            >
+              {value}
+            </div>
+            <span className="text-[10px] text-gray-400 mt-1">
+              {index}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Pointers Legend */}
+      <div className="flex items-center justify-center gap-6 mb-4 text-sm">
+        {left <= right && (
+          <>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-blue-400 rounded" />
+              <span className="text-gray-600">L={left}</span>
+            </div>
+            {mid >= 0 && (
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-purple-500 rounded" />
+                <span className="text-gray-600">M={mid}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-blue-400 rounded" />
+              <span className="text-gray-600">R={right}</span>
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+
+  return (
+    <BaseVisualizerLayout
+      id="binarysearch-visualizer"
+      title="Binary Search"
+      badges={BADGES}
+      gradient="green"
+      className={className}
+      minHeight={350}
+      headerExtra={headerExtra}
+      status={{
+        description: currentDescription,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        onShuffle: handleShuffle,
+        showShuffle: true,
+        shuffleLabel: 'New Array',
+        accentColor: 'green',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? BINARY_SEARCH_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

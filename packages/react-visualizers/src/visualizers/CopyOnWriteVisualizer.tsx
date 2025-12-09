@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  VisualizationArea,
+  BaseVisualizerLayout,
 } from '../shared';
 
 interface COWStep {
@@ -60,6 +55,11 @@ const LEGEND_ITEMS = [
   { color: 'bg-blue-500', label: 'Reader' },
   { color: 'bg-orange-500', label: 'Writer' },
   { color: 'bg-green-500', label: 'New element' },
+];
+
+const BADGES = [
+  { label: 'Read: O(1)', variant: 'green' as const },
+  { label: 'Write: O(n)', variant: 'green' as const },
 ];
 
 function generateCOWSteps(): COWStep[] {
@@ -315,158 +315,130 @@ const CopyOnWriteVisualizerComponent: React.FC<CopyOnWriteVisualizerProps> = ({
     </div>
   );
 
-  return (
-    <div
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-lime-50 to-green-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">
-              CopyOnWriteArrayList
-            </h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-lime-100 text-lime-700 rounded">
-                Read: O(1)
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">
-                Write: O(n)
-              </span>
-            </div>
-          </div>
-          {/* Active Threads */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">Readers:</span>
-            {['R1', 'R2', 'R3'].map((r) => (
-              <div
-                key={r}
-                className={`px-2 py-0.5 text-xs font-medium rounded transition-opacity ${
-                  activeReaders?.includes(r)
-                    ? 'bg-blue-500 text-white opacity-100'
-                    : 'bg-blue-100 text-blue-700 opacity-40'
-                }`}
-              >
-                {r}
-              </div>
-            ))}
-            <span className="text-xs text-gray-500 ml-2">Writer:</span>
-            <div
-              className={`px-2 py-0.5 text-xs font-medium rounded ${
-                currentStepData.thread === 'W1'
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-orange-100 text-orange-700 opacity-40'
-              }`}
-            >
-              W1
-            </div>
-          </div>
+  const getStatusVariant = () => {
+    if (currentStepData.operation === 'copy') return 'warning' as const;
+    if (currentStepData.operation === 'done') return 'success' as const;
+    return 'default' as const;
+  };
+
+  const headerExtra = (
+    <div className="flex items-center gap-2">
+      <span className="text-xs text-gray-500">Readers:</span>
+      {['R1', 'R2', 'R3'].map((r) => (
+        <div
+          key={r}
+          className={`px-2 py-0.5 text-xs font-medium rounded transition-opacity ${
+            activeReaders?.includes(r)
+              ? 'bg-blue-500 text-white opacity-100'
+              : 'bg-blue-100 text-blue-700 opacity-40'
+          }`}
+        >
+          {r}
         </div>
+      ))}
+      <span className="text-xs text-gray-500 ml-2">Writer:</span>
+      <div
+        className={`px-2 py-0.5 text-xs font-medium rounded ${
+          currentStepData.thread === 'W1'
+            ? 'bg-orange-500 text-white'
+            : 'bg-orange-100 text-orange-700 opacity-40'
+        }`}
+      >
+        W1
       </div>
-
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={350}>
-            {/* Copy-on-Write Pattern - Prominent */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-xl border-2 border-lime-200">
-              <div className="text-sm font-bold text-lime-800 mb-3 flex items-center gap-2">
-                <span className="text-lg">📋</span> Copy-on-Write Pattern
-              </div>
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="bg-blue-100 p-2 rounded-lg border border-blue-300 text-center">
-                  <div className="font-bold text-blue-700">Read (get)</div>
-                  <div className="text-2xl text-blue-600">O(1)</div>
-                  <div className="text-[10px] text-blue-500">No lock, no copy</div>
-                </div>
-                <div className="bg-orange-100 p-2 rounded-lg border border-orange-300 text-center">
-                  <div className="font-bold text-orange-700">Write (add/set)</div>
-                  <div className="text-2xl text-orange-600">O(n)</div>
-                  <div className="text-[10px] text-orange-500">Full array copy</div>
-                </div>
-              </div>
-              <div className="mt-2 text-[10px] text-gray-600 text-center">
-                Best for: Read-heavy, rarely-modified collections • Iterators never throw ConcurrentModificationException
-              </div>
-            </div>
-
-            {/* Arrays Visualization */}
-            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-              {showCopy ? (
-                <div className="flex items-center gap-4">
-                  {renderArray(oldArray, 'Old Array (readers use this)')}
-                  <div className="text-2xl text-gray-400">→</div>
-                  {renderArray(newArray, 'New Array (being created)', true)}
-                </div>
-              ) : (
-                <div className="flex justify-center">
-                  {renderArray(
-                    newArray,
-                    'Current Array',
-                    highlightIndex !== undefined
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Key Insight */}
-            <div className="mb-4 p-3 bg-lime-50 rounded-lg border border-lime-200">
-              <div className="text-xs text-lime-800">
-                <span className="font-medium">Key insight:</span> During writes,
-                old array continues serving readers. No reader ever sees partial
-                state!
-              </div>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={
-                currentStepData.operation === 'copy'
-                  ? 'warning'
-                  : currentStepData.operation === 'done'
-                    ? 'success'
-                    : 'default'
-              }
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={COW_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="lime"
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
     </div>
+  );
+
+  const visualization = (
+    <>
+      {/* Copy-on-Write Pattern - Prominent */}
+      <div className="mb-4 p-4 bg-gradient-to-r from-lime-50 to-green-50 rounded-xl border-2 border-lime-200">
+        <div className="text-sm font-bold text-lime-800 mb-3 flex items-center gap-2">
+          <span className="text-lg">📋</span> Copy-on-Write Pattern
+        </div>
+        <div className="grid grid-cols-2 gap-3 text-xs">
+          <div className="bg-blue-100 p-2 rounded-lg border border-blue-300 text-center">
+            <div className="font-bold text-blue-700">Read (get)</div>
+            <div className="text-2xl text-blue-600">O(1)</div>
+            <div className="text-[10px] text-blue-500">No lock, no copy</div>
+          </div>
+          <div className="bg-orange-100 p-2 rounded-lg border border-orange-300 text-center">
+            <div className="font-bold text-orange-700">Write (add/set)</div>
+            <div className="text-2xl text-orange-600">O(n)</div>
+            <div className="text-[10px] text-orange-500">Full array copy</div>
+          </div>
+        </div>
+        <div className="mt-2 text-[10px] text-gray-600 text-center">
+          Best for: Read-heavy, rarely-modified collections • Iterators never throw ConcurrentModificationException
+        </div>
+      </div>
+
+      {/* Arrays Visualization */}
+      <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+        {showCopy ? (
+          <div className="flex items-center gap-4">
+            {renderArray(oldArray, 'Old Array (readers use this)')}
+            <div className="text-2xl text-gray-400">→</div>
+            {renderArray(newArray, 'New Array (being created)', true)}
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            {renderArray(
+              newArray,
+              'Current Array',
+              highlightIndex !== undefined
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Key Insight */}
+      <div className="mb-4 p-3 bg-lime-50 rounded-lg border border-lime-200">
+        <div className="text-xs text-lime-800">
+          <span className="font-medium">Key insight:</span> During writes,
+          old array continues serving readers. No reader ever sees partial
+          state!
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <BaseVisualizerLayout
+      id="copyonwrite-visualizer"
+      title="CopyOnWriteArrayList"
+      badges={BADGES}
+      gradient="green"
+      className={className}
+      minHeight={350}
+      headerExtra={headerExtra}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'green',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? COW_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

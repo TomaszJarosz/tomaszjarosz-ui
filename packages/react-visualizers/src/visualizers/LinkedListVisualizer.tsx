@@ -1,14 +1,9 @@
 import React, { useMemo, useCallback } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
+  InfoBox,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 
 interface Node {
@@ -84,6 +79,11 @@ const LEGEND_ITEMS = [
   { color: 'bg-blue-500', label: 'Active' },
 ];
 
+const BADGES = [
+  { label: 'Ends: O(1)', variant: 'blue' as const },
+  { label: 'Index: O(n)', variant: 'indigo' as const },
+];
+
 let nodeIdCounter = 0;
 
 function generateLinkedListSteps(): LinkedListStep[] {
@@ -151,7 +151,6 @@ function generateLinkedListSteps(): LinkedListStep[] {
         variables: { removed: removed?.value ?? 'null', size: nodes.length },
       });
     } else if (op === 'get' && index !== undefined) {
-      // Show traversal
       for (let i = 0; i <= index && i < nodes.length; i++) {
         steps.push({
           operation: 'get',
@@ -223,179 +222,142 @@ const LinkedListVisualizerComponent: React.FC<LinkedListVisualizerProps> = ({
     return copyUrlToClipboard({ step: currentStep });
   }, [copyUrlToClipboard, currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">
-              LinkedList Operations
-            </h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">
-                Ends: O(1)
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-700 rounded">
-                Index: O(n)
-              </span>
-            </div>
-          </div>
-          <ShareButton onShare={handleShare} />
-        </div>
+  // Comparison table as info box
+  const infoBox = (
+    <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
+      <div className="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2">
+        <span className="text-lg">🔗</span> LinkedList vs ArrayList
       </div>
+      <div className="grid grid-cols-3 gap-2 text-xs">
+        <div className="bg-white p-2 rounded-lg border border-blue-200 text-center">
+          <div className="font-semibold text-gray-700 mb-1">Operation</div>
+        </div>
+        <div className="bg-blue-100 p-2 rounded-lg border border-blue-300 text-center">
+          <div className="font-semibold text-blue-700 mb-1">LinkedList</div>
+        </div>
+        <div className="bg-orange-100 p-2 rounded-lg border border-orange-300 text-center">
+          <div className="font-semibold text-orange-700 mb-1">ArrayList</div>
+        </div>
 
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={350} className={showCode ? 'flex-1' : 'w-full'}>
-            {/* LinkedList vs ArrayList - Prominent */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
-              <div className="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2">
-                <span className="text-lg">🔗</span> LinkedList vs ArrayList
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-xs">
-                <div className="bg-white p-2 rounded-lg border border-blue-200 text-center">
-                  <div className="font-semibold text-gray-700 mb-1">Operation</div>
-                </div>
-                <div className="bg-blue-100 p-2 rounded-lg border border-blue-300 text-center">
-                  <div className="font-semibold text-blue-700 mb-1">LinkedList</div>
-                </div>
-                <div className="bg-orange-100 p-2 rounded-lg border border-orange-300 text-center">
-                  <div className="font-semibold text-orange-700 mb-1">ArrayList</div>
-                </div>
+        <div className="bg-white p-2 rounded-lg border border-gray-200 text-center font-medium">add/remove (ends)</div>
+        <div className="bg-green-100 p-2 rounded-lg border border-green-300 text-center font-bold text-green-700">O(1)</div>
+        <div className="bg-green-100 p-2 rounded-lg border border-green-300 text-center font-bold text-green-700">O(1)*</div>
 
-                <div className="bg-white p-2 rounded-lg border border-gray-200 text-center font-medium">add/remove (ends)</div>
-                <div className="bg-green-100 p-2 rounded-lg border border-green-300 text-center font-bold text-green-700">O(1)</div>
-                <div className="bg-green-100 p-2 rounded-lg border border-green-300 text-center font-bold text-green-700">O(1)*</div>
+        <div className="bg-white p-2 rounded-lg border border-gray-200 text-center font-medium">add/remove (middle)</div>
+        <div className="bg-green-100 p-2 rounded-lg border border-green-300 text-center font-bold text-green-700">O(1)**</div>
+        <div className="bg-red-100 p-2 rounded-lg border border-red-300 text-center font-bold text-red-700">O(n)</div>
 
-                <div className="bg-white p-2 rounded-lg border border-gray-200 text-center font-medium">add/remove (middle)</div>
-                <div className="bg-green-100 p-2 rounded-lg border border-green-300 text-center font-bold text-green-700">O(1)**</div>
-                <div className="bg-red-100 p-2 rounded-lg border border-red-300 text-center font-bold text-red-700">O(n)</div>
+        <div className="bg-white p-2 rounded-lg border border-gray-200 text-center font-medium">get(index)</div>
+        <div className="bg-red-100 p-2 rounded-lg border border-red-300 text-center font-bold text-red-700">O(n)</div>
+        <div className="bg-green-100 p-2 rounded-lg border border-green-300 text-center font-bold text-green-700">O(1)</div>
+      </div>
+      <div className="mt-2 text-[10px] text-gray-500 text-center">
+        * amortized | ** if you have the node reference
+      </div>
+    </div>
+  );
 
-                <div className="bg-white p-2 rounded-lg border border-gray-200 text-center font-medium">get(index)</div>
-                <div className="bg-red-100 p-2 rounded-lg border border-red-300 text-center font-bold text-red-700">O(n)</div>
-                <div className="bg-green-100 p-2 rounded-lg border border-green-300 text-center font-bold text-green-700">O(1)</div>
-              </div>
-              <div className="mt-2 text-[10px] text-gray-500 text-center">
-                * amortized | ** if you have the node reference
-              </div>
-            </div>
+  const visualization = (
+    <>
+      {infoBox}
 
-            {/* LinkedList Visualization */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Doubly-Linked List
-              </div>
-              <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
-                {nodes.length > 0 ? (
-                  <div className="flex items-center gap-1 min-w-max">
-                    <div className="text-xs text-gray-500 font-mono mr-2">
-                      head →
+      {/* LinkedList Visualization */}
+      <div className="mb-4">
+        <div className="text-sm font-medium text-gray-700 mb-2">Doubly-Linked List</div>
+        <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
+          {nodes.length > 0 ? (
+            <div className="flex items-center gap-1 min-w-max">
+              <div className="text-xs text-gray-500 font-mono mr-2">head →</div>
+              {nodes.map((node, idx) => (
+                <React.Fragment key={node.id}>
+                  <div
+                    className={`flex flex-col items-center transition-transform ${
+                      node.id === highlightNode ? 'scale-110' : ''
+                    }`}
+                  >
+                    <div
+                      className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 font-medium transition-colors ${
+                        node.id === highlightNode
+                          ? 'bg-blue-500 border-blue-600 text-white'
+                          : 'bg-white border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      {node.value}
                     </div>
-                    {nodes.map((node, idx) => (
-                      <React.Fragment key={node.id}>
-                        <div
-                          className={`flex flex-col items-center transition-colors ${
-                            node.id === highlightNode ? 'scale-110' : ''
-                          }`}
-                        >
-                          <div
-                            className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 font-medium transition-colors ${
-                              node.id === highlightNode
-                                ? 'bg-blue-500 border-blue-600 text-white'
-                                : 'bg-white border-gray-300 text-gray-700'
-                            }`}
-                          >
-                            {node.value}
-                          </div>
-                          <div className="text-[10px] text-gray-400 mt-1">
-                            idx:{idx}
-                          </div>
-                        </div>
-                        {idx < nodes.length - 1 && (
-                          <div className="flex items-center text-gray-400">
-                            <span className="text-lg">⇄</span>
-                          </div>
-                        )}
-                      </React.Fragment>
-                    ))}
-                    <div className="text-xs text-gray-500 font-mono ml-2">
-                      ← tail
+                    <div className="text-[10px] text-gray-400 mt-1">idx:{idx}</div>
+                  </div>
+                  {idx < nodes.length - 1 && (
+                    <div className="flex items-center text-gray-400">
+                      <span className="text-lg">⇄</span>
                     </div>
-                  </div>
-                ) : (
-                  <div className="h-16 flex items-center justify-center text-gray-400 text-sm">
-                    Empty list (head = tail = null)
-                  </div>
-                )}
-              </div>
+                  )}
+                </React.Fragment>
+              ))}
+              <div className="text-xs text-gray-500 font-mono ml-2">← tail</div>
             </div>
-
-            {/* Pointers Info */}
-            {nodes.length > 0 && (
-              <div className="mb-4 p-3 bg-gray-100 rounded-lg">
-                <div className="text-xs text-gray-600 flex gap-4">
-                  <span>
-                    <span className="font-medium">head:</span> {nodes[0]?.value}
-                  </span>
-                  <span>
-                    <span className="font-medium">tail:</span>{' '}
-                    {nodes[nodes.length - 1]?.value}
-                  </span>
-                  <span>
-                    <span className="font-medium">size:</span> {nodes.length}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={getStatusVariant()}
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={LINKEDLIST_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
+          ) : (
+            <div className="h-16 flex items-center justify-center text-gray-400 text-sm">
+              Empty list (head = tail = null)
             </div>
           )}
         </div>
       </div>
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="blue"
-          />
-          <Legend items={LEGEND_ITEMS} />
+      {/* Pointers Info */}
+      {nodes.length > 0 && (
+        <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+          <div className="text-xs text-gray-600 flex gap-4">
+            <span>
+              <span className="font-medium">head:</span> {nodes[0]?.value}
+            </span>
+            <span>
+              <span className="font-medium">tail:</span> {nodes[nodes.length - 1]?.value}
+            </span>
+            <span>
+              <span className="font-medium">size:</span> {nodes.length}
+            </span>
+          </div>
         </div>
       )}
-    </div>
+    </>
+  );
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="LinkedList Operations"
+      badges={BADGES}
+      gradient="blue"
+      onShare={handleShare}
+      className={className}
+      minHeight={350}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'blue',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? LINKEDLIST_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

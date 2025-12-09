@@ -1,14 +1,8 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 
 // Simulated enum with 8 values (fits in single long)
@@ -85,6 +79,11 @@ const LEGEND_ITEMS = [
   { color: 'bg-gray-200', label: 'Bit clear (0)' },
   { color: 'bg-blue-500', label: 'Current operation' },
   { color: 'bg-yellow-400', label: 'Changed bit' },
+];
+
+const BADGES = [
+  { label: 'O(1) all ops', variant: 'green' as const },
+  { label: 'Memory efficient', variant: 'green' as const },
 ];
 
 function getBitPosition(day: DayOfWeek): number {
@@ -274,206 +273,178 @@ const EnumSetVisualizerComponent: React.FC<EnumSetVisualizerProps> = ({
     return copyUrlToClipboard({ step: currentStep });
   }, [copyUrlToClipboard, currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
+  const headerExtra = (
+    <button
+      onClick={toggleBinaryView}
+      className="px-2 py-1 text-xs font-medium bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
     >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-lime-50 to-green-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">EnumSet Bit Operations</h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-lime-100 text-lime-700 rounded">
-                O(1) all ops
+      {showBinary ? 'Hide Binary' : 'Show Binary'}
+    </button>
+  );
+
+  const visualization = (
+    <>
+      {/* Enum Values with Bits */}
+      <div className="mb-4">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          DayOfWeek Enum → Bitmask Mapping
+        </div>
+
+        {/* Bitmask visualization */}
+        <div className="flex flex-wrap gap-1 mb-4">
+          {DAYS_OF_WEEK.map((day, idx) => {
+            const isSet = (bitmask & (1 << idx)) !== 0;
+            return (
+              <div
+                key={day}
+                className="flex flex-col items-center"
+              >
+                <div
+                  className={`w-14 h-10 flex flex-col items-center justify-center text-xs font-medium rounded transition-colors duration-200 ${getBitStyle(idx)}`}
+                >
+                  <span className="text-[10px] opacity-80">bit {idx}</span>
+                  <span>{isSet ? '1' : '0'}</span>
+                </div>
+                <div className="text-[9px] text-gray-500 mt-1 text-center leading-tight">
+                  {day.slice(0, 3)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Binary representation */}
+        {showBinary && (
+          <div className="p-3 bg-gray-900 rounded-lg text-sm font-mono">
+            <div className="flex items-center gap-2 text-gray-400">
+              <span className="text-green-400">elements</span>
+              <span>=</span>
+              <span className="text-yellow-300">
+                0b{bitmask.toString(2).padStart(7, '0')}
               </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">
-                Memory efficient
+              <span className="text-gray-500">
+                ({bitmask} in decimal)
               </span>
             </div>
+            {stepData.operation === 'add' && highlightBit !== undefined && (
+              <div className="mt-2 text-blue-300">
+                <span className="text-gray-500">// Set bit: </span>
+                elements |= (1L &lt;&lt; {highlightBit})
+              </div>
+            )}
+            {stepData.operation === 'remove' && highlightBit !== undefined && (
+              <div className="mt-2 text-orange-300">
+                <span className="text-gray-500">// Clear bit: </span>
+                elements &amp;= ~(1L &lt;&lt; {highlightBit})
+              </div>
+            )}
+            {stepData.operation === 'contains' && highlightBit !== undefined && (
+              <div className="mt-2 text-purple-300">
+                <span className="text-gray-500">// Check bit: </span>
+                (elements &amp; (1L &lt;&lt; {highlightBit})) != 0
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <ShareButton onShare={handleShare} />
-            <button
-              onClick={toggleBinaryView}
-              className="px-2 py-1 text-xs font-medium bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-            >
-              {showBinary ? 'Hide Binary' : 'Show Binary'}
-            </button>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={400} className={showCode ? 'flex-1' : 'w-full'}>
-            {/* Enum Values with Bits */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                DayOfWeek Enum → Bitmask Mapping
-              </div>
-
-              {/* Bitmask visualization */}
-              <div className="flex flex-wrap gap-1 mb-4">
-                {DAYS_OF_WEEK.map((day, idx) => {
-                  const isSet = (bitmask & (1 << idx)) !== 0;
-                  return (
-                    <div
-                      key={day}
-                      className="flex flex-col items-center"
-                    >
-                      <div
-                        className={`w-14 h-10 flex flex-col items-center justify-center text-xs font-medium rounded transition-colors duration-200 ${getBitStyle(idx)}`}
-                      >
-                        <span className="text-[10px] opacity-80">bit {idx}</span>
-                        <span>{isSet ? '1' : '0'}</span>
-                      </div>
-                      <div className="text-[9px] text-gray-500 mt-1 text-center leading-tight">
-                        {day.slice(0, 3)}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Binary representation */}
-              {showBinary && (
-                <div className="p-3 bg-gray-900 rounded-lg text-sm font-mono">
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <span className="text-green-400">elements</span>
-                    <span>=</span>
-                    <span className="text-yellow-300">
-                      0b{bitmask.toString(2).padStart(7, '0')}
-                    </span>
-                    <span className="text-gray-500">
-                      ({bitmask} in decimal)
-                    </span>
-                  </div>
-                  {stepData.operation === 'add' && highlightBit !== undefined && (
-                    <div className="mt-2 text-blue-300">
-                      <span className="text-gray-500">// Set bit: </span>
-                      elements |= (1L &lt;&lt; {highlightBit})
-                    </div>
-                  )}
-                  {stepData.operation === 'remove' && highlightBit !== undefined && (
-                    <div className="mt-2 text-orange-300">
-                      <span className="text-gray-500">// Clear bit: </span>
-                      elements &amp;= ~(1L &lt;&lt; {highlightBit})
-                    </div>
-                  )}
-                  {stepData.operation === 'contains' && highlightBit !== undefined && (
-                    <div className="mt-2 text-purple-300">
-                      <span className="text-gray-500">// Check bit: </span>
-                      (elements &amp; (1L &lt;&lt; {highlightBit})) != 0
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Set contents */}
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-              <div className="text-xs text-gray-600 mb-2">
-                <span className="font-medium">Set Contents:</span>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {DAYS_OF_WEEK.filter((_, idx) => (bitmask & (1 << idx)) !== 0).map(
-                  (day) => (
-                    <span
-                      key={day}
-                      className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded"
-                    >
-                      {day}
-                    </span>
-                  )
-                )}
-                {bitmask === 0 && (
-                  <span className="text-xs text-gray-400 italic">Empty set</span>
-                )}
-              </div>
-            </div>
-
-            {/* Why EnumSet? Memory Comparison - PROMINENT */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-lime-50 rounded-xl border-2 border-green-200">
-              <div className="text-sm font-bold text-green-800 mb-3 flex items-center gap-2">
-                <span className="text-lg">💡</span> Why EnumSet? Memory Efficiency!
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                {/* EnumSet */}
-                <div className="bg-white p-3 rounded-lg border-2 border-green-300">
-                  <div className="text-sm font-bold text-green-700 mb-2">EnumSet</div>
-                  <div className="text-2xl font-bold text-green-600 mb-1">8 bytes</div>
-                  <div className="text-xs text-gray-600">
-                    1 long for up to 64 enum values
-                  </div>
-                  <div className="mt-2 text-xs text-green-600">
-                    ✓ Single CPU instruction per operation
-                  </div>
-                </div>
-                {/* HashSet */}
-                <div className="bg-white p-3 rounded-lg border-2 border-gray-300">
-                  <div className="text-sm font-bold text-gray-500 mb-2">HashSet</div>
-                  <div className="text-2xl font-bold text-gray-500 mb-1">~280 bytes</div>
-                  <div className="text-xs text-gray-500">
-                    For 7 enum values (~40 bytes each)
-                  </div>
-                  <div className="mt-2 text-xs text-gray-500">
-                    Hash computation + object overhead
-                  </div>
-                </div>
-              </div>
-              <div className="mt-3 text-center">
-                <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-bold">
-                  35x smaller memory footprint!
-                </span>
-              </div>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={getStatusVariant()}
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-64 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={ENUMSET_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
-            </div>
+      {/* Set contents */}
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="text-xs text-gray-600 mb-2">
+          <span className="font-medium">Set Contents:</span>
+        </div>
+        <div className="flex flex-wrap gap-1">
+          {DAYS_OF_WEEK.filter((_, idx) => (bitmask & (1 << idx)) !== 0).map(
+            (day) => (
+              <span
+                key={day}
+                className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded"
+              >
+                {day}
+              </span>
+            )
+          )}
+          {bitmask === 0 && (
+            <span className="text-xs text-gray-400 italic">Empty set</span>
           )}
         </div>
       </div>
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="lime"
-          />
-          <Legend items={LEGEND_ITEMS} />
+      {/* Why EnumSet? Memory Comparison - PROMINENT */}
+      <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-lime-50 rounded-xl border-2 border-green-200">
+        <div className="text-sm font-bold text-green-800 mb-3 flex items-center gap-2">
+          <span className="text-lg">💡</span> Why EnumSet? Memory Efficiency!
         </div>
-      )}
-    </div>
+        <div className="grid grid-cols-2 gap-4">
+          {/* EnumSet */}
+          <div className="bg-white p-3 rounded-lg border-2 border-green-300">
+            <div className="text-sm font-bold text-green-700 mb-2">EnumSet</div>
+            <div className="text-2xl font-bold text-green-600 mb-1">8 bytes</div>
+            <div className="text-xs text-gray-600">
+              1 long for up to 64 enum values
+            </div>
+            <div className="mt-2 text-xs text-green-600">
+              ✓ Single CPU instruction per operation
+            </div>
+          </div>
+          {/* HashSet */}
+          <div className="bg-white p-3 rounded-lg border-2 border-gray-300">
+            <div className="text-sm font-bold text-gray-500 mb-2">HashSet</div>
+            <div className="text-2xl font-bold text-gray-500 mb-1">~280 bytes</div>
+            <div className="text-xs text-gray-500">
+              For 7 enum values (~40 bytes each)
+            </div>
+            <div className="mt-2 text-xs text-gray-500">
+              Hash computation + object overhead
+            </div>
+          </div>
+        </div>
+        <div className="mt-3 text-center">
+          <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-bold">
+            35x smaller memory footprint!
+          </span>
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="EnumSet Bit Operations"
+      badges={BADGES}
+      gradient="green"
+      onShare={handleShare}
+      className={className}
+      minHeight={400}
+      headerExtra={headerExtra}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'green',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? ENUMSET_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

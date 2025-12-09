@@ -1,12 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 import { InterviewModePanel } from '../shared/InterviewModePanel';
 import { useInterviewMode, type InterviewQuestion } from '../shared/useInterviewMode';
@@ -25,10 +21,15 @@ interface SortingInterviewVisualizerProps {
   className?: string;
 }
 
+const VISUALIZER_ID = 'sorting-interview-visualizer';
 const INITIAL_ARRAY = [64, 34, 25, 12, 22, 11, 90];
 
+const BADGES = [
+  { label: 'O(n log n) avg', variant: 'amber' as const },
+];
+
 const LEGEND_ITEMS = [
-  { color: 'bg-yellow-400', label: 'Comparing' },
+  { color: 'bg-amber-400', label: 'Comparing' },
   { color: 'bg-red-400', label: 'Swapping' },
   { color: 'bg-green-400', label: 'Sorted' },
   { color: 'bg-purple-400', label: 'Pivot' },
@@ -240,7 +241,6 @@ const SortingInterviewVisualizerComponent: React.FC<SortingInterviewVisualizerPr
   showControls = true,
   className = '',
 }) => {
-  const VISUALIZER_ID = 'sorting-interview-visualizer';
   const { copyUrlToClipboard } = useUrlState({ prefix: 'sort-int', scrollToId: VISUALIZER_ID });
 
   const [mode, setMode] = useState<'visualize' | 'interview'>('visualize');
@@ -265,7 +265,7 @@ const SortingInterviewVisualizerComponent: React.FC<SortingInterviewVisualizerPr
 
   const getBarColor = (index: number): string => {
     if (swapping?.includes(index)) return 'bg-red-400';
-    if (comparing?.includes(index)) return 'bg-yellow-400';
+    if (comparing?.includes(index)) return 'bg-amber-400';
     if (index === pivot) return 'bg-purple-400';
     if (sorted?.includes(index)) return 'bg-green-400';
     return 'bg-blue-400';
@@ -275,134 +275,114 @@ const SortingInterviewVisualizerComponent: React.FC<SortingInterviewVisualizerPr
     return copyUrlToClipboard({ step: playback.currentStep });
   }, [copyUrlToClipboard, playback.currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header with mode toggle */}
-      <div className="px-4 py-3 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">QuickSort</h3>
-            <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
-              <button
-                onClick={() => setMode('visualize')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'visualize'
-                    ? 'bg-white text-orange-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Visualize
-              </button>
-              <button
-                onClick={() => setMode('interview')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'interview'
-                    ? 'bg-white text-orange-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Interview
-              </button>
-            </div>
-            <span className="px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded">
-              O(n log n) avg
-            </span>
-          </div>
-          <ShareButton onShare={handleShare} accentColor="orange" />
-        </div>
-      </div>
-
-      <div className="p-4">
-        <div className="flex gap-4 flex-col lg:flex-row">
-          {/* Visualization Panel */}
-          <VisualizationArea minHeight={300} className="flex-1">
-            {/* Bar Chart */}
-            <div className="mb-4">
-              <div className="flex items-end justify-center gap-2 h-48 px-4">
-                {array.map((value, index) => (
-                  <div key={index} className="flex flex-col items-center">
-                    <div
-                      className={`w-10 transition-all duration-200 rounded-t ${getBarColor(index)}`}
-                      style={{ height: `${(value / maxValue) * 160}px` }}
-                    />
-                    <div className="text-xs mt-1 font-mono">{value}</div>
-                    <div className="text-[10px] text-gray-400">[{index}]</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Current Operation Info */}
-            {pivot !== undefined && (
-              <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                <div className="text-sm text-purple-800">
-                  <span className="font-medium">Pivot:</span> {array[pivot]} at index {pivot}
-                </div>
-              </div>
-            )}
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={playback.currentStep}
-              totalSteps={playback.steps.length}
-              variant={
-                sorted?.length === array.length
-                  ? 'success'
-                  : swapping
-                    ? 'warning'
-                    : 'default'
-              }
-            />
-          </VisualizationArea>
-
-          {/* Interview Panel */}
-          {mode === 'interview' && (
-            <div className="w-full lg:w-96 flex-shrink-0">
-              <InterviewModePanel
-                currentQuestion={interview.currentQuestion}
-                currentQuestionIndex={interview.session.currentQuestionIndex}
-                totalQuestions={interview.session.questions.length}
-                selectedAnswer={interview.selectedAnswer}
-                showExplanation={interview.showExplanation}
-                showHint={interview.showHint}
-                isAnswered={interview.isAnswered}
-                isComplete={interview.isComplete}
-                score={interview.score}
-                onSelectAnswer={interview.selectAnswer}
-                onNextQuestion={interview.nextQuestion}
-                onPreviousQuestion={interview.previousQuestion}
-                onUseHint={interview.useHint}
-                onRestart={interview.restartSession}
-                accentColor="orange"
+  const visualization = (
+    <>
+      {/* Bar Chart */}
+      <div className="mb-4">
+        <div className="flex items-end justify-center gap-2 h-48 px-4">
+          {array.map((value, index) => (
+            <div key={index} className="flex flex-col items-center">
+              <div
+                className={`w-10 transition-all duration-200 rounded-t ${getBarColor(index)}`}
+                style={{ height: `${(value / maxValue) * 160}px` }}
               />
+              <div className="text-xs mt-1 font-mono">{value}</div>
+              <div className="text-[10px] text-gray-400">[{index}]</div>
             </div>
-          )}
+          ))}
         </div>
       </div>
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={playback.isPlaying}
-            currentStep={playback.currentStep}
-            totalSteps={playback.steps.length}
-            speed={playback.speed}
-            onPlayPause={playback.handlePlayPause}
-            onStep={playback.handleStep}
-            onStepBack={playback.handleStepBack}
-            onReset={playback.handleReset}
-            onSpeedChange={playback.setSpeed}
-            accentColor="orange"
-          />
-          <Legend items={LEGEND_ITEMS} />
+      {/* Current Operation Info */}
+      {pivot !== undefined && (
+        <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+          <div className="text-sm text-purple-800">
+            <span className="font-medium">Pivot:</span> {array[pivot]} at index {pivot}
+          </div>
         </div>
       )}
+    </>
+  );
+
+  const modeToggle = (
+    <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
+      <button
+        onClick={() => setMode('visualize')}
+        className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+          mode === 'visualize'
+            ? 'bg-white text-orange-600 shadow-sm'
+            : 'text-gray-600 hover:text-gray-800'
+        }`}
+      >
+        Visualize
+      </button>
+      <button
+        onClick={() => setMode('interview')}
+        className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+          mode === 'interview'
+            ? 'bg-white text-orange-600 shadow-sm'
+            : 'text-gray-600 hover:text-gray-800'
+        }`}
+      >
+        Interview
+      </button>
     </div>
+  );
+
+  const sidePanel = mode === 'interview' ? (
+    <InterviewModePanel
+      currentQuestion={interview.currentQuestion}
+      currentQuestionIndex={interview.session.currentQuestionIndex}
+      totalQuestions={interview.session.questions.length}
+      selectedAnswer={interview.selectedAnswer}
+      showExplanation={interview.showExplanation}
+      showHint={interview.showHint}
+      isAnswered={interview.isAnswered}
+      isComplete={interview.isComplete}
+      score={interview.score}
+      onSelectAnswer={interview.selectAnswer}
+      onNextQuestion={interview.nextQuestion}
+      onPreviousQuestion={interview.previousQuestion}
+      onUseHint={interview.useHint}
+      onRestart={interview.restartSession}
+      accentColor="orange"
+    />
+  ) : undefined;
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="QuickSort (Interview Mode)"
+      badges={BADGES}
+      gradient="orange"
+      className={className}
+      minHeight={500}
+      onShare={handleShare}
+      headerExtra={modeToggle}
+      status={{
+        description,
+        currentStep: playback.currentStep,
+        totalSteps: playback.steps.length,
+        variant: sorted?.length === array.length ? 'success' : swapping ? 'warning' : 'default',
+      }}
+      controls={{
+        isPlaying: playback.isPlaying,
+        currentStep: playback.currentStep,
+        totalSteps: playback.steps.length,
+        speed: playback.speed,
+        onPlayPause: playback.handlePlayPause,
+        onStep: playback.handleStep,
+        onStepBack: playback.handleStepBack,
+        onReset: playback.handleReset,
+        onSpeedChange: playback.setSpeed,
+        accentColor: 'orange',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      sidePanel={sidePanel}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

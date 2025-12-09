@@ -18,19 +18,27 @@ describe('StatusPanel', () => {
     it('renders step counter', () => {
       render(<StatusPanel {...defaultProps} />);
 
-      expect(screen.getByText('Step 6 / 10')).toBeInTheDocument();
+      // New format: "X / Y" without "Step" prefix
+      expect(screen.getByText('6 / 10')).toBeInTheDocument();
     });
 
     it('shows 1-indexed step number', () => {
       render(<StatusPanel {...defaultProps} currentStep={0} />);
 
-      expect(screen.getByText('Step 1 / 10')).toBeInTheDocument();
+      expect(screen.getByText('1 / 10')).toBeInTheDocument();
     });
 
     it('handles last step correctly', () => {
       render(<StatusPanel {...defaultProps} currentStep={9} />);
 
-      expect(screen.getByText('Step 10 / 10')).toBeInTheDocument();
+      expect(screen.getByText('10 / 10')).toBeInTheDocument();
+    });
+
+    it('renders progress bar', () => {
+      const { container } = render(<StatusPanel {...defaultProps} />);
+
+      const progressBar = container.querySelector('.bg-indigo-500');
+      expect(progressBar).toBeInTheDocument();
     });
   });
 
@@ -68,7 +76,7 @@ describe('StatusPanel', () => {
     it('handles empty description', () => {
       render(<StatusPanel {...defaultProps} description="" />);
 
-      expect(screen.getByText('Step 6 / 10')).toBeInTheDocument();
+      expect(screen.getByText('6 / 10')).toBeInTheDocument();
     });
 
     it('handles long description', () => {
@@ -88,13 +96,13 @@ describe('StatusPanel', () => {
     it('handles single step', () => {
       render(<StatusPanel {...defaultProps} currentStep={0} totalSteps={1} />);
 
-      expect(screen.getByText('Step 1 / 1')).toBeInTheDocument();
+      expect(screen.getByText('1 / 1')).toBeInTheDocument();
     });
 
     it('handles many steps', () => {
       render(<StatusPanel {...defaultProps} currentStep={99} totalSteps={100} />);
 
-      expect(screen.getByText('Step 100 / 100')).toBeInTheDocument();
+      expect(screen.getByText('100 / 100')).toBeInTheDocument();
     });
   });
 });

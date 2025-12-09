@@ -1,12 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 import { InterviewModePanel } from '../shared/InterviewModePanel';
 import { useInterviewMode, type InterviewQuestion } from '../shared/useInterviewMode';
@@ -42,9 +38,13 @@ interface RaftInterviewVisualizerProps {
   className?: string;
 }
 
+const BADGES = [
+  { label: 'Distributed Consensus', variant: 'orange' as const },
+];
+
 const LEGEND_ITEMS = [
   { color: 'bg-gray-400', label: 'Follower' },
-  { color: 'bg-yellow-500', label: 'Candidate' },
+  { color: 'bg-amber-500', label: 'Candidate' },
   { color: 'bg-green-500', label: 'Leader' },
   { color: 'bg-blue-400', label: 'Vote' },
   { color: 'bg-purple-400', label: 'Heartbeat' },
@@ -200,7 +200,7 @@ const NODE_IDS = ['N1', 'N2', 'N3', 'N4', 'N5'];
 
 const STATE_COLORS: Record<NodeState, string> = {
   follower: 'bg-gray-400',
-  candidate: 'bg-yellow-500',
+  candidate: 'bg-amber-500',
   leader: 'bg-green-500',
 };
 
@@ -367,50 +367,14 @@ const RaftInterviewVisualizerComponent: React.FC<RaftInterviewVisualizerProps> =
     N5: { x: 40, y: 80 },
   };
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-orange-50 to-red-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">Raft Consensus</h3>
-            <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
-              <button
-                onClick={() => setMode('visualize')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'visualize'
-                    ? 'bg-white text-orange-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Visualize
-              </button>
-              <button
-                onClick={() => setMode('interview')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'interview'
-                    ? 'bg-white text-orange-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Interview
-              </button>
-            </div>
-            <span className="px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded">
-              Distributed Consensus
-            </span>
-          </div>
-          <ShareButton onShare={handleShare} accentColor="orange" />
-        </div>
-      </div>
+  const getStatusVariant = () => {
+    if (stepData.operation === 'done' || stepData.operation === 'becomeLeader' || stepData.operation === 'commit') return 'success';
+    if (stepData.operation === 'timeout') return 'warning';
+    return 'default';
+  };
 
-      <div className="p-4">
-        <div className="flex gap-4 flex-col lg:flex-row">
-          {/* Visualization Panel */}
-          <VisualizationArea minHeight={400} className="flex-1">
+  const visualization = (
+    <>
             {/* Key Concept */}
             <div className="mb-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
               <div className="text-sm font-medium text-orange-800 mb-1">Raft Protocol</div>
@@ -442,7 +406,7 @@ const RaftInterviewVisualizerComponent: React.FC<RaftInterviewVisualizerProps> =
                   const isHighlighted = highlightNode === node.id;
                   const stateColor =
                     node.state === 'leader' ? '#22c55e' :
-                    node.state === 'candidate' ? '#eab308' : '#9ca3af';
+                    node.state === 'candidate' ? '#f59e0b' : '#9ca3af';
 
                   return (
                     <g key={node.id}>
@@ -531,66 +495,88 @@ const RaftInterviewVisualizerComponent: React.FC<RaftInterviewVisualizerProps> =
                 <div className="text-blue-700">Same index+term = same</div>
               </div>
             </div>
+    </>
+  );
 
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={playback.currentStep}
-              totalSteps={playback.steps.length}
-              variant={
-                stepData.operation === 'done' || stepData.operation === 'becomeLeader' || stepData.operation === 'commit'
-                  ? 'success'
-                  : stepData.operation === 'timeout'
-                    ? 'warning'
-                    : 'default'
-              }
-            />
-          </VisualizationArea>
-
-          {/* Interview Panel */}
-          {mode === 'interview' && (
-            <div className="w-full lg:w-96 flex-shrink-0">
-              <InterviewModePanel
-                currentQuestion={interview.currentQuestion}
-                currentQuestionIndex={interview.session.currentQuestionIndex}
-                totalQuestions={interview.session.questions.length}
-                selectedAnswer={interview.selectedAnswer}
-                showExplanation={interview.showExplanation}
-                showHint={interview.showHint}
-                isAnswered={interview.isAnswered}
-                isComplete={interview.isComplete}
-                score={interview.score}
-                onSelectAnswer={interview.selectAnswer}
-                onNextQuestion={interview.nextQuestion}
-                onPreviousQuestion={interview.previousQuestion}
-                onUseHint={interview.useHint}
-                onRestart={interview.restartSession}
-                accentColor="orange"
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={playback.isPlaying}
-            currentStep={playback.currentStep}
-            totalSteps={playback.steps.length}
-            speed={playback.speed}
-            onPlayPause={playback.handlePlayPause}
-            onStep={playback.handleStep}
-            onStepBack={playback.handleStepBack}
-            onReset={playback.handleReset}
-            onSpeedChange={playback.setSpeed}
-            accentColor="orange"
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
+  const modeToggle = (
+    <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
+      <button
+        onClick={() => setMode('visualize')}
+        className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+          mode === 'visualize'
+            ? 'bg-white text-orange-600 shadow-sm'
+            : 'text-gray-600 hover:text-gray-800'
+        }`}
+      >
+        Visualize
+      </button>
+      <button
+        onClick={() => setMode('interview')}
+        className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+          mode === 'interview'
+            ? 'bg-white text-orange-600 shadow-sm'
+            : 'text-gray-600 hover:text-gray-800'
+        }`}
+      >
+        Interview
+      </button>
     </div>
+  );
+
+  const sidePanel = mode === 'interview' ? (
+    <InterviewModePanel
+      currentQuestion={interview.currentQuestion}
+      currentQuestionIndex={interview.session.currentQuestionIndex}
+      totalQuestions={interview.session.questions.length}
+      selectedAnswer={interview.selectedAnswer}
+      showExplanation={interview.showExplanation}
+      showHint={interview.showHint}
+      isAnswered={interview.isAnswered}
+      isComplete={interview.isComplete}
+      score={interview.score}
+      onSelectAnswer={interview.selectAnswer}
+      onNextQuestion={interview.nextQuestion}
+      onPreviousQuestion={interview.previousQuestion}
+      onUseHint={interview.useHint}
+      onRestart={interview.restartSession}
+      accentColor="orange"
+    />
+  ) : undefined;
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="Raft Consensus"
+      badges={BADGES}
+      gradient="orange"
+      className={className}
+      minHeight={400}
+      onShare={handleShare}
+      headerExtra={modeToggle}
+      status={{
+        description,
+        currentStep: playback.currentStep,
+        totalSteps: playback.steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying: playback.isPlaying,
+        currentStep: playback.currentStep,
+        totalSteps: playback.steps.length,
+        speed: playback.speed,
+        onPlayPause: playback.handlePlayPause,
+        onStep: playback.handleStep,
+        onStepBack: playback.handleStepBack,
+        onReset: playback.handleReset,
+        onSpeedChange: playback.setSpeed,
+        accentColor: 'orange',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      sidePanel={sidePanel}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

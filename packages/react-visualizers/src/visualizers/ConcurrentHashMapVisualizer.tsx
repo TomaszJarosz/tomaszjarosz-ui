@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  VisualizationArea,
+  BaseVisualizerLayout,
 } from '../shared';
 
 interface Segment {
@@ -71,6 +66,11 @@ const LEGEND_ITEMS = [
   { color: 'bg-blue-50', label: 'Active segment', border: '#60a5fa' },
   { color: 'bg-red-50', label: 'Locked', border: '#f87171' },
   { color: 'bg-gray-50', label: 'Unlocked', border: '#d1d5db' },
+];
+
+const BADGES = [
+  { label: 'Segment Locks', variant: 'red' as const },
+  { label: 'Lock-free Reads', variant: 'orange' as const },
 ];
 
 function simpleHash(str: string): number {
@@ -354,162 +354,141 @@ const ConcurrentHashMapVisualizerComponent: React.FC<
     return colors[thread] || 'bg-gray-500';
   };
 
-  return (
-    <div
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-red-50 to-orange-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">ConcurrentHashMap</h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
-                Segment Locks
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded">
-                Lock-free Reads
-              </span>
-            </div>
-          </div>
-          {/* Active Threads */}
-          <div className="flex items-center gap-2">
-            {['T1', 'T2', 'T3'].map((t) => (
-              <div
-                key={t}
-                className={`px-2 py-0.5 text-xs font-medium rounded transition-opacity ${getThreadColor(t)} text-white ${
-                  activeThreads?.includes(t) ? 'opacity-100' : 'opacity-30'
-                }`}
-              >
-                {t}
-              </div>
-            ))}
-          </div>
+  const getStatusVariant = () => {
+    if (currentStepData.operation === 'done') return 'success' as const;
+    return 'default' as const;
+  };
+
+  const headerExtra = (
+    <div className="flex items-center gap-2">
+      {['T1', 'T2', 'T3'].map((t) => (
+        <div
+          key={t}
+          className={`px-2 py-0.5 text-xs font-medium rounded transition-opacity ${getThreadColor(t)} text-white ${
+            activeThreads?.includes(t) ? 'opacity-100' : 'opacity-30'
+          }`}
+        >
+          {t}
         </div>
-      </div>
-
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={350}>
-            {/* ConcurrentHashMap vs synchronized - Prominent */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-xl border-2 border-red-200">
-              <div className="text-sm font-bold text-red-800 mb-3 flex items-center gap-2">
-                <span className="text-lg">⚡</span> Why ConcurrentHashMap?
-              </div>
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="bg-red-100 p-2 rounded-lg border border-red-300">
-                  <div className="font-bold text-red-700">synchronized HashMap</div>
-                  <div className="text-red-600">❌ Single lock for entire map</div>
-                  <div className="text-[10px] text-red-500">All threads wait for one lock</div>
-                </div>
-                <div className="bg-green-100 p-2 rounded-lg border border-green-300">
-                  <div className="font-bold text-green-700">ConcurrentHashMap</div>
-                  <div className="text-green-600">✓ Segment-level locking</div>
-                  <div className="text-[10px] text-green-500">Threads work in parallel on different segments</div>
-                </div>
-              </div>
-              <div className="mt-2 text-[10px] text-gray-600 text-center">
-                get() never blocks • put() only locks one segment • Much better concurrency!
-              </div>
-            </div>
-
-            {/* Segments */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Segments (independent locks)
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {segments.map((seg, idx) => (
-                  <div
-                    key={idx}
-                    className={`rounded-lg border-2 p-3 transition-colors ${getSegmentStyle(seg, idx)}`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium text-gray-600">
-                        Segment {idx}
-                      </span>
-                      {seg.locked && (
-                        <span className="flex items-center gap-1 text-[10px] text-red-600 font-medium">
-                          <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                          Locked by {seg.lockOwner}
-                        </span>
-                      )}
-                    </div>
-                    <div className="space-y-1">
-                      {seg.entries.length > 0 ? (
-                        seg.entries.map((entry, eIdx) => (
-                          <div
-                            key={eIdx}
-                            className="flex justify-between px-2 py-1 bg-white rounded text-xs border border-gray-200"
-                          >
-                            <span className="text-gray-700">{entry.key}</span>
-                            <span className="text-gray-500">{entry.value}</span>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-[10px] text-gray-400 text-center py-2">
-                          Empty
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Concurrency Info */}
-            <div className="mb-4 p-3 bg-gray-100 rounded-lg">
-              <div className="text-xs text-gray-600">
-                <span className="font-medium">Key insight:</span> Multiple
-                threads can write to different segments simultaneously. Reads
-                never block!
-              </div>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={currentStepData.operation === 'done' ? 'success' : 'default'}
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={CHM_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="red"
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
+      ))}
     </div>
+  );
+
+  const visualization = (
+    <>
+      {/* ConcurrentHashMap vs synchronized - Prominent */}
+      <div className="mb-4 p-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-xl border-2 border-red-200">
+        <div className="text-sm font-bold text-red-800 mb-3 flex items-center gap-2">
+          <span className="text-lg">⚡</span> Why ConcurrentHashMap?
+        </div>
+        <div className="grid grid-cols-2 gap-3 text-xs">
+          <div className="bg-red-100 p-2 rounded-lg border border-red-300">
+            <div className="font-bold text-red-700">synchronized HashMap</div>
+            <div className="text-red-600">❌ Single lock for entire map</div>
+            <div className="text-[10px] text-red-500">All threads wait for one lock</div>
+          </div>
+          <div className="bg-green-100 p-2 rounded-lg border border-green-300">
+            <div className="font-bold text-green-700">ConcurrentHashMap</div>
+            <div className="text-green-600">✓ Segment-level locking</div>
+            <div className="text-[10px] text-green-500">Threads work in parallel on different segments</div>
+          </div>
+        </div>
+        <div className="mt-2 text-[10px] text-gray-600 text-center">
+          get() never blocks • put() only locks one segment • Much better concurrency!
+        </div>
+      </div>
+
+      {/* Segments */}
+      <div className="mb-4">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          Segments (independent locks)
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {segments.map((seg, idx) => (
+            <div
+              key={idx}
+              className={`rounded-lg border-2 p-3 transition-colors ${getSegmentStyle(seg, idx)}`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-gray-600">
+                  Segment {idx}
+                </span>
+                {seg.locked && (
+                  <span className="flex items-center gap-1 text-[10px] text-red-600 font-medium">
+                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                    Locked by {seg.lockOwner}
+                  </span>
+                )}
+              </div>
+              <div className="space-y-1">
+                {seg.entries.length > 0 ? (
+                  seg.entries.map((entry, eIdx) => (
+                    <div
+                      key={eIdx}
+                      className="flex justify-between px-2 py-1 bg-white rounded text-xs border border-gray-200"
+                    >
+                      <span className="text-gray-700">{entry.key}</span>
+                      <span className="text-gray-500">{entry.value}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-[10px] text-gray-400 text-center py-2">
+                    Empty
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Concurrency Info */}
+      <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+        <div className="text-xs text-gray-600">
+          <span className="font-medium">Key insight:</span> Multiple
+          threads can write to different segments simultaneously. Reads
+          never block!
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <BaseVisualizerLayout
+      id="concurrenthashmap-visualizer"
+      title="ConcurrentHashMap"
+      badges={BADGES}
+      gradient="red"
+      className={className}
+      minHeight={350}
+      headerExtra={headerExtra}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'red',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? CHM_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

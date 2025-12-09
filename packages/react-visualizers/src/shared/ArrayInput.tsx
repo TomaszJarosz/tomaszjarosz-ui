@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useId } from 'react';
 import { Edit2, Check, X } from 'lucide-react';
 
 export interface ArrayInputProps {
@@ -112,6 +112,9 @@ export const ArrayInput: React.FC<ArrayInputProps> = ({
     [handleConfirm, handleCancel]
   );
 
+  const errorId = useId();
+  const inputId = useId();
+
   if (disabled) {
     return null;
   }
@@ -122,31 +125,44 @@ export const ArrayInput: React.FC<ArrayInputProps> = ({
         <div className="flex flex-col">
           <div className="flex items-center gap-1">
             <input
+              id={inputId}
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="e.g., 5, 3, 8, 1, 9"
-              className={`px-2 py-1 text-xs border border-gray-300 rounded w-40 ${ACCENT_COLORS[accentColor]}`}
+              className={`px-2 py-1 text-xs border border-gray-300 rounded w-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ${ACCENT_COLORS[accentColor]}`}
               autoFocus
+              aria-label="Enter array values separated by commas"
+              aria-describedby={error ? errorId : undefined}
+              aria-invalid={!!error}
             />
             <button
               onClick={handleConfirm}
-              className={`p-1 text-white rounded transition-colors ${ACCENT_BUTTON_COLORS[accentColor]}`}
+              className={`p-1 text-white rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-indigo-500 ${ACCENT_BUTTON_COLORS[accentColor]}`}
               title="Apply (Enter)"
+              aria-label="Apply changes"
             >
-              <Check className="w-3 h-3" />
+              <Check className="w-3 h-3" aria-hidden="true" />
             </button>
             <button
               onClick={handleCancel}
-              className="p-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+              className="p-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-gray-500"
               title="Cancel (Esc)"
+              aria-label="Cancel editing"
             >
-              <X className="w-3 h-3" />
+              <X className="w-3 h-3" aria-hidden="true" />
             </button>
           </div>
           {error && (
-            <span className="text-[10px] text-red-500 mt-0.5">{error}</span>
+            <span
+              id={errorId}
+              className="text-[10px] text-red-500 mt-0.5"
+              role="alert"
+              aria-live="assertive"
+            >
+              {error}
+            </span>
           )}
         </div>
       </div>
@@ -156,10 +172,11 @@ export const ArrayInput: React.FC<ArrayInputProps> = ({
   return (
     <button
       onClick={handleStartEdit}
-      className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+      className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-gray-500"
       title="Edit array values"
+      aria-label="Edit array values"
     >
-      <Edit2 className="w-3 h-3" />
+      <Edit2 className="w-3 h-3" aria-hidden="true" />
       <span>Custom</span>
     </button>
   );

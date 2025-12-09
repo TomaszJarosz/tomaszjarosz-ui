@@ -136,12 +136,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         )}
         <button
           onClick={onPlayPause}
-          className={`p-2 text-white rounded-lg transition-colors ${
+          className={`p-2 text-white rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 ${
             isPlaying ? colors.buttonActive : colors.button
           }`}
           title="Play/Pause (P)"
           aria-label={isPlaying ? 'Pause' : 'Play'}
           aria-pressed={isPlaying}
+          aria-keyshortcuts="p"
         >
           {isPlaying ? (
             <Pause className="w-4 h-4" aria-hidden="true" />
@@ -152,26 +153,31 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         <button
           onClick={onStepBack}
           disabled={isPlaying || currentStep <= 0}
-          className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
+          aria-disabled={isPlaying || currentStep <= 0}
+          className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-500"
           title="Step Back ([)"
           aria-label="Step back"
+          aria-keyshortcuts="["
         >
           <SkipBack className="w-4 h-4" aria-hidden="true" />
         </button>
         <button
           onClick={onStep}
           disabled={isPlaying || currentStep >= totalSteps - 1}
-          className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
+          aria-disabled={isPlaying || currentStep >= totalSteps - 1}
+          className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-500"
           title="Step Forward (])"
           aria-label="Step forward"
+          aria-keyshortcuts="]"
         >
           <SkipForward className="w-4 h-4" aria-hidden="true" />
         </button>
         <button
           onClick={onReset}
-          className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+          className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-500"
           title="Reset (R)"
           aria-label="Reset"
+          aria-keyshortcuts="r"
         >
           <RotateCcw className="w-4 h-4" aria-hidden="true" />
         </button>
@@ -179,7 +185,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           <button
             onClick={onShuffle}
             disabled={isPlaying}
-            className={`bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 ${shuffleLabel ? 'px-3 py-2 text-sm' : 'p-2'}`}
+            aria-disabled={isPlaying}
+            className={`bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-500 ${shuffleLabel ? 'px-3 py-2 text-sm' : 'p-2'}`}
             title={shuffleLabel || 'Shuffle'}
             aria-label={shuffleLabel || 'Shuffle'}
           >

@@ -1,14 +1,8 @@
 import React, { useMemo, useCallback } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 
 interface UFElement {
@@ -79,10 +73,15 @@ const UF_CODE = [
 const LEGEND_ITEMS = [
   { color: 'bg-gray-100', label: 'Element', border: '#d1d5db' },
   { color: 'bg-blue-200', label: 'Current', border: '#60a5fa' },
-  { color: 'bg-yellow-200', label: 'Path to root', border: '#fbbf24' },
+  { color: 'bg-amber-200', label: 'Path to root', border: '#fbbf24' },
   { color: 'bg-green-400', label: 'Root / Same set' },
   { color: 'bg-red-400', label: 'Different sets' },
   { color: 'bg-purple-400', label: 'Union edge' },
+];
+
+const BADGES = [
+  { label: 'Find: O(α(n))', variant: 'purple' as const },
+  { label: 'Union: O(α(n))', variant: 'purple' as const },
 ];
 
 function cloneElements(elements: UFElement[]): UFElement[] {
@@ -335,7 +334,7 @@ const UnionFindVisualizerComponent: React.FC<UnionFindVisualizerProps> = ({
 
     if (isHighlighted && isRoot) return 'border-green-500 bg-green-100 ring-2 ring-green-300';
     if (isHighlighted) return 'border-blue-400 bg-blue-100 ring-2 ring-blue-300';
-    if (isInPath) return 'border-yellow-400 bg-yellow-100';
+    if (isInPath) return 'border-amber-400 bg-amber-100';
     if (isRoot) return 'border-green-300 bg-green-50';
     return 'border-gray-300 bg-gray-50';
   };
@@ -353,149 +352,119 @@ const UnionFindVisualizerComponent: React.FC<UnionFindVisualizerProps> = ({
   }, [copyUrlToClipboard, currentStep]);
 
   // Generate colors for groups
-  const groupColors = ['bg-blue-50', 'bg-green-50', 'bg-yellow-50', 'bg-purple-50', 'bg-pink-50', 'bg-cyan-50', 'bg-orange-50', 'bg-rose-50'];
+  const groupColors = ['bg-blue-50', 'bg-green-50', 'bg-amber-50', 'bg-purple-50', 'bg-pink-50', 'bg-cyan-50', 'bg-orange-50', 'bg-rose-50'];
+
+  const visualization = (
+    <>
+      {/* Info Box */}
+      <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-purple-50 rounded-lg border border-purple-200">
+        <div className="text-sm font-semibold text-purple-800 mb-2">
+          🔗 Union-Find / Disjoint Set Union (DSU)
+        </div>
+        <div className="text-xs text-purple-700 space-y-1">
+          <div>• <strong>Path Compression</strong>: Flattens tree on find()</div>
+          <div>• <strong>Union by Rank</strong>: Attach smaller tree to larger</div>
+          <div>• α(n) = inverse Ackermann, practically ≤ 4</div>
+          <div>• Used in Kruskal's MST, cycle detection, networks</div>
+        </div>
+      </div>
+
+      {/* Elements Grid */}
+      <div className="mb-4">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          Elements (parent pointers shown as arrows)
+        </div>
+        <div className="flex flex-wrap gap-3 justify-center">
+          {stepData.elements.map((el) => (
+            <div key={el.id} className="flex flex-col items-center">
+              <div
+                className={`
+                  w-12 h-12 rounded-lg border-2 flex flex-col items-center justify-center
+                  text-sm font-bold transition-all duration-300
+                  ${getElementStyle(el.id)}
+                `}
+              >
+                <span>{el.id}</span>
+                <span className="text-[9px] text-gray-500">r:{el.rank}</span>
+              </div>
+              {el.parent !== el.id && (
+                <div className="text-xs text-gray-500 mt-1">↑ {el.parent}</div>
+              )}
+              {el.parent === el.id && (
+                <div className="text-xs text-green-600 mt-1 font-medium">root</div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Groups Visualization */}
+      <div className="mb-4">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          Connected Components ({groups.size} set{groups.size !== 1 ? 's' : ''})
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {Array.from(groups.entries()).map(([root, members], idx) => (
+            <div
+              key={root}
+              className={`px-3 py-2 rounded-lg border ${groupColors[idx % groupColors.length]} border-gray-300`}
+            >
+              <div className="text-xs text-gray-600 mb-1">Root: {root}</div>
+              <div className="flex gap-1">
+                {members.sort((a, b) => a - b).map((m) => (
+                  <span
+                    key={m}
+                    className={`w-6 h-6 rounded flex items-center justify-center text-xs font-medium
+                      ${m === root ? 'bg-green-200 text-green-800' : 'bg-white text-gray-700 border border-gray-300'}
+                    `}
+                  >
+                    {m}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
 
   return (
-    <div
+    <BaseVisualizerLayout
       id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
+      title="Union-Find (Disjoint Set)"
+      badges={BADGES}
+      gradient="purple"
+      className={className}
+      minHeight={400}
+      onShare={handleShare}
+      status={{
+        description: stepData.description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'purple',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? UF_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
     >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-violet-50 to-purple-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">Union-Find (Disjoint Set)</h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-violet-100 text-violet-700 rounded">
-                Find: O(α(n))
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
-                Union: O(α(n))
-              </span>
-            </div>
-          </div>
-          <ShareButton onShare={handleShare} />
-        </div>
-      </div>
-
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={400} className={showCode ? 'flex-1' : 'w-full'}>
-            {/* Info Box */}
-            <div className="mb-4 p-3 bg-gradient-to-r from-violet-50 to-purple-50 rounded-lg border border-violet-200">
-              <div className="text-sm font-semibold text-violet-800 mb-2">
-                🔗 Union-Find / Disjoint Set Union (DSU)
-              </div>
-              <div className="text-xs text-violet-700 space-y-1">
-                <div>• <strong>Path Compression</strong>: Flattens tree on find()</div>
-                <div>• <strong>Union by Rank</strong>: Attach smaller tree to larger</div>
-                <div>• α(n) = inverse Ackermann, practically ≤ 4</div>
-                <div>• Used in Kruskal's MST, cycle detection, networks</div>
-              </div>
-            </div>
-
-            {/* Elements Grid */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Elements (parent pointers shown as arrows)
-              </div>
-              <div className="flex flex-wrap gap-3 justify-center">
-                {stepData.elements.map((el) => (
-                  <div key={el.id} className="flex flex-col items-center">
-                    <div
-                      className={`
-                        w-12 h-12 rounded-lg border-2 flex flex-col items-center justify-center
-                        text-sm font-bold transition-all duration-300
-                        ${getElementStyle(el.id)}
-                      `}
-                    >
-                      <span>{el.id}</span>
-                      <span className="text-[9px] text-gray-500">r:{el.rank}</span>
-                    </div>
-                    {el.parent !== el.id && (
-                      <div className="text-xs text-gray-500 mt-1">↑ {el.parent}</div>
-                    )}
-                    {el.parent === el.id && (
-                      <div className="text-xs text-green-600 mt-1 font-medium">root</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Groups Visualization */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Connected Components ({groups.size} set{groups.size !== 1 ? 's' : ''})
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {Array.from(groups.entries()).map(([root, members], idx) => (
-                  <div
-                    key={root}
-                    className={`px-3 py-2 rounded-lg border ${groupColors[idx % groupColors.length]} border-gray-300`}
-                  >
-                    <div className="text-xs text-gray-600 mb-1">Root: {root}</div>
-                    <div className="flex gap-1">
-                      {members.sort((a, b) => a - b).map((m) => (
-                        <span
-                          key={m}
-                          className={`w-6 h-6 rounded flex items-center justify-center text-xs font-medium
-                            ${m === root ? 'bg-green-200 text-green-800' : 'bg-white text-gray-700 border border-gray-300'}
-                          `}
-                        >
-                          {m}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={stepData.description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={getStatusVariant()}
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={UF_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="violet"
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
-    </div>
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

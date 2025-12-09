@@ -8,7 +8,7 @@ Interactive algorithm and data structure visualizers for React. Perfect for lear
 
 ## Features
 
-- **38 interactive visualizers** covering algorithms, data structures, and distributed systems
+- **51 interactive visualizers** covering algorithms, data structures, and distributed systems
 - **Interview Mode** with built-in questions, scoring, hints, and explanations
 - **Step-by-step animations** with playback controls (play, pause, step forward/back)
 - **Code highlighting** showing the current line being executed
@@ -55,7 +55,7 @@ function App() {
 
 ## Available Visualizers
 
-### Algorithms (6)
+### Algorithms (8)
 
 | Visualizer | Description |
 |------------|-------------|
@@ -65,8 +65,10 @@ function App() {
 | `GraphVisualizer` | DFS and BFS traversal |
 | `DijkstraVisualizer` | Shortest path with distance relaxation |
 | `DPVisualizer` | Dynamic programming table (Fibonacci) |
+| `AStarVisualizer` | A* pathfinding with f(n) = g(n) + h(n) |
+| `TopologicalSortVisualizer` | Kahn's algorithm for DAG ordering |
 
-### Data Structures (10)
+### Data Structures (12)
 
 | Visualizer | Description |
 |------------|-------------|
@@ -80,6 +82,8 @@ function App() {
 | `LinkedHashMapVisualizer` | HashMap + insertion order linked list |
 | `EnumSetVisualizer` | Bit vector implementation |
 | `ListComparisonVisualizer` | ArrayList vs LinkedList performance |
+| `LRUCacheVisualizer` | Least Recently Used cache with HashMap + DLL |
+| `SegmentTreeVisualizer` | Range sum queries with O(log n) updates |
 
 ### Concurrency (4)
 
@@ -90,7 +94,7 @@ function App() {
 | `CopyOnWriteVisualizer` | Copy-on-write pattern for reads |
 | `ImmutableCollectionsVisualizer` | Java 9+ immutable collections |
 
-### Advanced Data Structures (4)
+### Advanced Data Structures (5)
 
 | Visualizer | Description |
 |------------|-------------|
@@ -98,6 +102,7 @@ function App() {
 | `BTreeVisualizer` | B-Tree with node splitting |
 | `TrieVisualizer` | Prefix tree for autocomplete, spell checking |
 | `UnionFindVisualizer` | Disjoint set union with path compression |
+| `SkipListVisualizer` | Probabilistic sorted list with O(log n) operations |
 
 ### Distributed Systems (2)
 
@@ -113,7 +118,7 @@ function App() {
 | `GCVisualizer` | JVM generational garbage collection |
 | `SQLJoinVisualizer` | SQL JOIN operations (INNER, LEFT, RIGHT, FULL) |
 
-### Interview Mode (10)
+### Interview Mode (15)
 
 Interview visualizers include built-in questions with multiple choice answers, hints, and detailed explanations. Perfect for interview preparation.
 
@@ -129,6 +134,11 @@ Interview visualizers include built-in questions with multiple choice answers, h
 | `BTreeInterviewVisualizer` | Node splitting, disk-based storage, order |
 | `ConsistentHashingInterviewVisualizer` | Virtual nodes, rebalancing, hot spots |
 | `RaftInterviewVisualizer` | Leader election, log replication, safety |
+| `TrieInterviewVisualizer` | Prefix operations, autocomplete, space complexity |
+| `UnionFindInterviewVisualizer` | Path compression, union by rank, cycle detection |
+| `AStarInterviewVisualizer` | f=g+h, admissible heuristics, Manhattan distance |
+| `SkipListInterviewVisualizer` | Probabilistic levels, expected complexity, Redis |
+| `LinkedListInterviewVisualizer` | Two-pointer techniques, cycle detection, reversal |
 
 ## Interview Mode Usage
 

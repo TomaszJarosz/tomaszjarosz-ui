@@ -1,12 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 import { InterviewModePanel } from '../shared/InterviewModePanel';
 import { useInterviewMode, type InterviewQuestion } from '../shared/useInterviewMode';
@@ -32,7 +28,14 @@ interface BTreeInterviewVisualizerProps {
   className?: string;
 }
 
+const VISUALIZER_ID = 'btree-interview-visualizer';
 const ORDER = 3; // Max 2 keys per node (ORDER - 1)
+
+const BADGES = [
+  { label: 'Interview Mode', variant: 'purple' as const },
+  { label: `Order ${ORDER}`, variant: 'green' as const },
+  { label: 'O(log n)', variant: 'teal' as const },
+];
 
 const OPERATIONS: Array<{ op: 'insert' | 'search'; value: number }> = [
   { op: 'insert', value: 10 },
@@ -46,7 +49,7 @@ const OPERATIONS: Array<{ op: 'insert' | 'search'; value: number }> = [
 
 const LEGEND_ITEMS = [
   { color: 'bg-green-400', label: 'Current node' },
-  { color: 'bg-yellow-100', label: 'Search path', border: '#facc15' },
+  { color: 'bg-amber-100', label: 'Search path', border: '#fbbf24' },
   { color: 'bg-blue-400', label: 'Found/Inserted' },
 ];
 
@@ -343,21 +346,31 @@ const BTreeInterviewVisualizerComponent: React.FC<BTreeInterviewVisualizerProps>
   showControls = true,
   className = '',
 }) => {
-  const VISUALIZER_ID = 'btree-interview-visualizer';
   const { copyUrlToClipboard } = useUrlState({ prefix: 'bt-int', scrollToId: VISUALIZER_ID });
 
   const [mode, setMode] = useState<'visualize' | 'interview'>('visualize');
 
   const generateSteps = useMemo(() => generateBTreeSteps, []);
 
-  const playback = useVisualizerPlayback<BTreeStep>({ generateSteps });
+  const {
+    currentStep,
+    currentStepData,
+    steps,
+    isPlaying,
+    speed,
+    handlePlayPause,
+    handleStep,
+    handleStepBack,
+    handleReset,
+    setSpeed,
+  } = useVisualizerPlayback<BTreeStep>({ generateSteps });
 
   const interview = useInterviewMode({
     questions: BTREE_QUESTIONS,
     shuffleQuestions: true,
   });
 
-  const stepData: BTreeStep = playback.currentStepData || {
+  const stepData: BTreeStep = currentStepData || {
     operation: 'init',
     tree: null,
     description: '',
@@ -427,137 +440,122 @@ const BTreeInterviewVisualizerComponent: React.FC<BTreeInterviewVisualizerProps>
   };
 
   const handleShare = useCallback(async () => {
-    return copyUrlToClipboard({ step: playback.currentStep });
-  }, [copyUrlToClipboard, playback.currentStep]);
+    return copyUrlToClipboard({ step: currentStep });
+  }, [copyUrlToClipboard, currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header with mode toggle */}
-      <div className="px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">B-Tree</h3>
-            <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
-              <button
-                onClick={() => setMode('visualize')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'visualize'
-                    ? 'bg-white text-green-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Visualize
-              </button>
-              <button
-                onClick={() => setMode('interview')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'interview'
-                    ? 'bg-white text-green-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Interview
-              </button>
-            </div>
-            <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">
-              Order {ORDER}
-            </span>
-          </div>
-          <ShareButton onShare={handleShare} accentColor="green" />
+  const getStatusVariant = () => {
+    if (stepData.operation === 'search' && found === false) return 'error';
+    if (stepData.operation === 'done' || found === true) return 'success';
+    if (stepData.operation === 'split') return 'warning';
+    return 'default';
+  };
+
+  const visualization = (
+    <>
+      {/* B-Tree Property */}
+      <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+        <div className="text-sm text-green-800 text-center">
+          <span className="font-medium">B-Tree Order {ORDER}:</span> Max {ORDER - 1} keys, min{' '}
+          {Math.ceil(ORDER / 2) - 1} keys per node
         </div>
       </div>
 
-      <div className="p-4">
-        <div className="flex gap-4 flex-col lg:flex-row">
-          {/* Visualization Panel */}
-          <VisualizationArea minHeight={300} className="flex-1">
-            {/* B-Tree Property */}
-            <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
-              <div className="text-sm text-green-800 text-center">
-                <span className="font-medium">B-Tree Order {ORDER}:</span> Max {ORDER - 1} keys, min{' '}
-                {Math.ceil(ORDER / 2) - 1} keys per node
-              </div>
-            </div>
-
-            {/* Tree Visualization */}
-            <div className="mb-4">
-              <div className="bg-gray-50 rounded-lg p-2 overflow-x-auto">
-                {tree ? (
-                  <svg width="400" height="200" className="mx-auto">
-                    {renderNode(tree, 200, 20, 350)}
-                  </svg>
-                ) : (
-                  <div className="h-32 flex items-center justify-center text-gray-400 text-sm">
-                    Empty tree
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={playback.currentStep}
-              totalSteps={playback.steps.length}
-              variant={
-                stepData.operation === 'search' && found === false
-                  ? 'error'
-                  : stepData.operation === 'done' || found === true
-                    ? 'success'
-                    : stepData.operation === 'split'
-                      ? 'warning'
-                      : 'default'
-              }
-            />
-          </VisualizationArea>
-
-          {/* Interview Panel */}
-          {mode === 'interview' && (
-            <div className="w-full lg:w-96 flex-shrink-0">
-              <InterviewModePanel
-                currentQuestion={interview.currentQuestion}
-                currentQuestionIndex={interview.session.currentQuestionIndex}
-                totalQuestions={interview.session.questions.length}
-                selectedAnswer={interview.selectedAnswer}
-                showExplanation={interview.showExplanation}
-                showHint={interview.showHint}
-                isAnswered={interview.isAnswered}
-                isComplete={interview.isComplete}
-                score={interview.score}
-                onSelectAnswer={interview.selectAnswer}
-                onNextQuestion={interview.nextQuestion}
-                onPreviousQuestion={interview.previousQuestion}
-                onUseHint={interview.useHint}
-                onRestart={interview.restartSession}
-                accentColor="green"
-              />
+      {/* Tree Visualization */}
+      <div className="mb-4">
+        <div className="bg-gray-50 rounded-lg p-2 overflow-x-auto">
+          {tree ? (
+            <svg width="400" height="200" className="mx-auto">
+              {renderNode(tree, 200, 20, 350)}
+            </svg>
+          ) : (
+            <div className="h-32 flex items-center justify-center text-gray-400 text-sm">
+              Empty tree
             </div>
           )}
         </div>
       </div>
+    </>
+  );
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={playback.isPlaying}
-            currentStep={playback.currentStep}
-            totalSteps={playback.steps.length}
-            speed={playback.speed}
-            onPlayPause={playback.handlePlayPause}
-            onStep={playback.handleStep}
-            onStepBack={playback.handleStepBack}
-            onReset={playback.handleReset}
-            onSpeedChange={playback.setSpeed}
-            accentColor="green"
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
+  const modeToggle = (
+    <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
+      <button
+        onClick={() => setMode('visualize')}
+        className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+          mode === 'visualize'
+            ? 'bg-white text-green-600 shadow-sm'
+            : 'text-gray-600 hover:text-gray-800'
+        }`}
+      >
+        Visualize
+      </button>
+      <button
+        onClick={() => setMode('interview')}
+        className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+          mode === 'interview'
+            ? 'bg-white text-green-600 shadow-sm'
+            : 'text-gray-600 hover:text-gray-800'
+        }`}
+      >
+        Interview
+      </button>
     </div>
+  );
+
+  const sidePanel = mode === 'interview' ? (
+    <InterviewModePanel
+      currentQuestion={interview.currentQuestion}
+      currentQuestionIndex={interview.session.currentQuestionIndex}
+      totalQuestions={interview.session.questions.length}
+      selectedAnswer={interview.selectedAnswer}
+      showExplanation={interview.showExplanation}
+      showHint={interview.showHint}
+      isAnswered={interview.isAnswered}
+      isComplete={interview.isComplete}
+      score={interview.score}
+      onSelectAnswer={interview.selectAnswer}
+      onNextQuestion={interview.nextQuestion}
+      onPreviousQuestion={interview.previousQuestion}
+      onUseHint={interview.useHint}
+      onRestart={interview.restartSession}
+      accentColor="green"
+    />
+  ) : undefined;
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="B-Tree (Interview Mode)"
+      badges={BADGES}
+      gradient="green"
+      className={className}
+      minHeight={500}
+      onShare={handleShare}
+      headerExtra={modeToggle}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'green',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      sidePanel={sidePanel}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

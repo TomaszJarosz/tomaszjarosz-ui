@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  VisualizationArea,
+  BaseVisualizerLayout,
 } from '../shared';
 
 interface QueueItem {
@@ -76,6 +71,11 @@ const LEGEND_ITEMS = [
   { color: 'bg-green-100', label: 'Producer' },
   { color: 'bg-blue-100', label: 'Consumer' },
   { color: 'bg-red-100', label: 'Blocked', border: '#fca5a5' },
+];
+
+const BADGES = [
+  { label: 'Producer-Consumer', variant: 'cyan' as const },
+  { label: 'Thread-safe', variant: 'blue' as const },
 ];
 
 let itemIdCounter = 0;
@@ -330,203 +330,174 @@ const BlockingQueueVisualizerComponent: React.FC<
     activeThread,
   } = currentStepData;
 
-  return (
-    <div
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-cyan-50 to-blue-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">BlockingQueue</h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-cyan-100 text-cyan-700 rounded">
-                Producer-Consumer
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">
-                Thread-safe
-              </span>
-            </div>
+  const getStatusVariant = () => {
+    if (currentStepData.operation === 'blocked') return 'error' as const;
+    if (currentStepData.operation === 'done') return 'success' as const;
+    return 'default' as const;
+  };
+
+  const visualization = (
+    <>
+      {/* Producer-Consumer Pattern - Prominent */}
+      <div className="mb-4 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl border-2 border-cyan-200">
+        <div className="text-sm font-bold text-cyan-800 mb-3 flex items-center gap-2">
+          <span className="text-lg">🔄</span> Producer-Consumer Pattern
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-xs">
+          <div className="bg-green-100 p-2 rounded-lg border border-green-300 text-center">
+            <div className="font-bold text-green-700">Producers</div>
+            <div className="text-green-600">put() → queue</div>
+            <div className="text-[10px] text-green-500">Block if FULL</div>
+          </div>
+          <div className="bg-gray-100 p-2 rounded-lg border border-gray-300 text-center">
+            <div className="font-bold text-gray-700">BlockingQueue</div>
+            <div className="text-gray-600">Thread-safe buffer</div>
+            <div className="text-[10px] text-gray-500">Capacity: {capacity}</div>
+          </div>
+          <div className="bg-blue-100 p-2 rounded-lg border border-blue-300 text-center">
+            <div className="font-bold text-blue-700">Consumers</div>
+            <div className="text-blue-600">take() ← queue</div>
+            <div className="text-[10px] text-blue-500">Block if EMPTY</div>
           </div>
         </div>
       </div>
 
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={350}>
-            {/* Producer-Consumer Pattern - Prominent */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl border-2 border-cyan-200">
-              <div className="text-sm font-bold text-cyan-800 mb-3 flex items-center gap-2">
-                <span className="text-lg">🔄</span> Producer-Consumer Pattern
+      {/* Producer-Consumer Layout */}
+      <div className="flex items-center justify-between gap-4 mb-4">
+        {/* Producers */}
+        <div className="flex-1">
+          <div className="text-xs font-medium text-gray-500 mb-2 text-center">
+            Producers
+          </div>
+          <div className="flex flex-col gap-2">
+            {['P1', 'P2'].map((p) => (
+              <div
+                key={p}
+                className={`px-3 py-2 rounded-lg text-center text-sm font-medium transition-colors ${
+                  activeThread === p
+                    ? 'bg-green-500 text-white'
+                    : blockedProducers.includes(p)
+                      ? 'bg-red-100 text-red-700 border-2 border-red-300'
+                      : 'bg-green-100 text-green-700'
+                }`}
+              >
+                {p}
+                {blockedProducers.includes(p) && (
+                  <span className="block text-[10px]">BLOCKED</span>
+                )}
               </div>
-              <div className="grid grid-cols-3 gap-2 text-xs">
-                <div className="bg-green-100 p-2 rounded-lg border border-green-300 text-center">
-                  <div className="font-bold text-green-700">Producers</div>
-                  <div className="text-green-600">put() → queue</div>
-                  <div className="text-[10px] text-green-500">Block if FULL</div>
-                </div>
-                <div className="bg-gray-100 p-2 rounded-lg border border-gray-300 text-center">
-                  <div className="font-bold text-gray-700">BlockingQueue</div>
-                  <div className="text-gray-600">Thread-safe buffer</div>
-                  <div className="text-[10px] text-gray-500">Capacity: {capacity}</div>
-                </div>
-                <div className="bg-blue-100 p-2 rounded-lg border border-blue-300 text-center">
-                  <div className="font-bold text-blue-700">Consumers</div>
-                  <div className="text-blue-600">take() ← queue</div>
-                  <div className="text-[10px] text-blue-500">Block if EMPTY</div>
-                </div>
-              </div>
-            </div>
+            ))}
+          </div>
+        </div>
 
-            {/* Producer-Consumer Layout */}
-            <div className="flex items-center justify-between gap-4 mb-4">
-              {/* Producers */}
-              <div className="flex-1">
-                <div className="text-xs font-medium text-gray-500 mb-2 text-center">
-                  Producers
-                </div>
-                <div className="flex flex-col gap-2">
-                  {['P1', 'P2'].map((p) => (
-                    <div
-                      key={p}
-                      className={`px-3 py-2 rounded-lg text-center text-sm font-medium transition-colors ${
-                        activeThread === p
-                          ? 'bg-green-500 text-white'
-                          : blockedProducers.includes(p)
-                            ? 'bg-red-100 text-red-700 border-2 border-red-300'
-                            : 'bg-green-100 text-green-700'
-                      }`}
-                    >
-                      {p}
-                      {blockedProducers.includes(p) && (
-                        <span className="block text-[10px]">BLOCKED</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Queue */}
-              <div className="flex-1">
-                <div className="text-xs font-medium text-gray-500 mb-2 text-center">
-                  Queue ({queue.length}/{capacity})
-                </div>
-                <div className="bg-gray-100 rounded-lg p-2 min-h-[100px]">
-                  <div className="flex flex-col gap-1">
-                    {queue.length > 0 ? (
-                      queue.map((item, idx) => (
-                        <div
-                          key={item.id}
-                          className={`px-2 py-1.5 bg-white rounded border text-xs font-medium text-center transition-colors ${
-                            idx === 0
-                              ? 'border-blue-300 bg-blue-50'
-                              : 'border-gray-200'
-                          }`}
-                        >
-                          {item.value}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center text-gray-400 text-xs py-4">
-                        Empty
-                      </div>
-                    )}
+        {/* Queue */}
+        <div className="flex-1">
+          <div className="text-xs font-medium text-gray-500 mb-2 text-center">
+            Queue ({queue.length}/{capacity})
+          </div>
+          <div className="bg-gray-100 rounded-lg p-2 min-h-[100px]">
+            <div className="flex flex-col gap-1">
+              {queue.length > 0 ? (
+                queue.map((item, idx) => (
+                  <div
+                    key={item.id}
+                    className={`px-2 py-1.5 bg-white rounded border text-xs font-medium text-center transition-colors ${
+                      idx === 0
+                        ? 'border-blue-300 bg-blue-50'
+                        : 'border-gray-200'
+                    }`}
+                  >
+                    {item.value}
                   </div>
-                  {/* Capacity indicator */}
-                  <div className="mt-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-colors ${
-                        queue.length === capacity ? 'bg-red-500' : 'bg-cyan-500'
-                      }`}
-                      style={{ width: `${(queue.length / capacity) * 100}%` }}
-                    />
-                  </div>
+                ))
+              ) : (
+                <div className="text-center text-gray-400 text-xs py-4">
+                  Empty
                 </div>
-              </div>
-
-              {/* Consumers */}
-              <div className="flex-1">
-                <div className="text-xs font-medium text-gray-500 mb-2 text-center">
-                  Consumers
-                </div>
-                <div className="flex flex-col gap-2">
-                  {['C1', 'C2'].map((c) => (
-                    <div
-                      key={c}
-                      className={`px-3 py-2 rounded-lg text-center text-sm font-medium transition-colors ${
-                        activeThread === c
-                          ? 'bg-blue-500 text-white'
-                          : blockedConsumers.includes(c)
-                            ? 'bg-red-100 text-red-700 border-2 border-red-300'
-                            : 'bg-blue-100 text-blue-700'
-                      }`}
-                    >
-                      {c}
-                      {blockedConsumers.includes(c) && (
-                        <span className="block text-[10px]">BLOCKED</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+              )}
             </div>
-
-            {/* Flow arrows */}
-            <div className="flex justify-center gap-8 text-gray-400 text-lg mb-4">
-              <span>→ put()</span>
-              <span>take() →</span>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={
-                currentStepData.operation === 'blocked'
-                  ? 'error'
-                  : currentStepData.operation === 'done'
-                    ? 'success'
-                    : 'default'
-              }
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={BQ_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
+            {/* Capacity indicator */}
+            <div className="mt-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-colors ${
+                  queue.length === capacity ? 'bg-red-500' : 'bg-cyan-500'
+                }`}
+                style={{ width: `${(queue.length / capacity) * 100}%` }}
               />
-              <HelpPanel />
             </div>
-          )}
+          </div>
+        </div>
+
+        {/* Consumers */}
+        <div className="flex-1">
+          <div className="text-xs font-medium text-gray-500 mb-2 text-center">
+            Consumers
+          </div>
+          <div className="flex flex-col gap-2">
+            {['C1', 'C2'].map((c) => (
+              <div
+                key={c}
+                className={`px-3 py-2 rounded-lg text-center text-sm font-medium transition-colors ${
+                  activeThread === c
+                    ? 'bg-blue-500 text-white'
+                    : blockedConsumers.includes(c)
+                      ? 'bg-red-100 text-red-700 border-2 border-red-300'
+                      : 'bg-blue-100 text-blue-700'
+                }`}
+              >
+                {c}
+                {blockedConsumers.includes(c) && (
+                  <span className="block text-[10px]">BLOCKED</span>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="cyan"
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
-    </div>
+      {/* Flow arrows */}
+      <div className="flex justify-center gap-8 text-gray-400 text-lg mb-4">
+        <span>→ put()</span>
+        <span>take() →</span>
+      </div>
+    </>
+  );
+
+  return (
+    <BaseVisualizerLayout
+      id="blockingqueue-visualizer"
+      title="BlockingQueue"
+      badges={BADGES}
+      gradient="cyan"
+      className={className}
+      minHeight={350}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'cyan',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? BQ_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

@@ -26,7 +26,8 @@ export function useVisualizerPlayback<T>({
   const [speed, setSpeed] = useState(25);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [steps, setSteps] = useState<T[]>([]);
+  // Initialize steps immediately to avoid undefined on first render
+  const [steps, setSteps] = useState<T[]>(() => generateSteps());
 
   const playingRef = useRef(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -39,9 +40,14 @@ export function useVisualizerPlayback<T>({
     playingRef.current = false;
   }, [generateSteps]);
 
+  // Re-initialize when generateSteps changes (e.g., props change)
+  const generateStepsRef = useRef(generateSteps);
   useEffect(() => {
-    initialize();
-  }, [initialize]);
+    if (generateStepsRef.current !== generateSteps) {
+      generateStepsRef.current = generateSteps;
+      initialize();
+    }
+  }, [generateSteps, initialize]);
 
   // Animation loop
   useEffect(() => {

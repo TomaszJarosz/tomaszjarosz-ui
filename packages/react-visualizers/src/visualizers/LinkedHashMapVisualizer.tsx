@@ -1,14 +1,8 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 
 interface Entry {
@@ -94,6 +88,11 @@ const LEGEND_ITEMS = [
   { color: 'bg-blue-500', label: 'Insert/Update' },
   { color: 'bg-green-400', label: 'Found' },
   { color: 'bg-orange-400', label: 'Linked list order' },
+];
+
+const BADGES = [
+  { label: 'O(1) ops', variant: 'orange' as const },
+  { label: 'Ordered', variant: 'amber' as const },
 ];
 
 function simpleHash(str: string): number {
@@ -445,213 +444,185 @@ const LinkedHashMapVisualizerComponent: React.FC<LinkedHashMapVisualizerProps> =
     return copyUrlToClipboard({ step: currentStep });
   }, [copyUrlToClipboard, currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
+  const headerExtra = (
+    <button
+      onClick={toggleAccessOrder}
+      className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+        accessOrder
+          ? 'bg-orange-500 text-white'
+          : 'bg-gray-200 text-gray-700'
+      }`}
     >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">LinkedHashMap</h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded">
-                O(1) ops
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
-                Ordered
-              </span>
+      {accessOrder ? 'Access-Order (LRU)' : 'Insertion-Order'}
+    </button>
+  );
+
+  const visualization = (
+    <>
+      {/* Dual Structure - Prominent */}
+      <div className="mb-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border-2 border-orange-200">
+        <div className="text-sm font-bold text-orange-800 mb-3 flex items-center gap-2">
+          <span className="text-lg">🔗</span> LinkedHashMap = HashMap + LinkedList
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="bg-white p-3 rounded-lg border border-orange-200">
+            <div className="text-xs font-semibold text-gray-700 mb-1">
+              🗂️ Hash Table
+            </div>
+            <div className="text-[10px] text-gray-500">
+              O(1) get/put • Same as HashMap
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <ShareButton onShare={handleShare} />
-            <button
-              onClick={toggleAccessOrder}
-              className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                accessOrder
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-gray-200 text-gray-700'
-              }`}
-            >
-              {accessOrder ? 'Access-Order (LRU)' : 'Insertion-Order'}
-            </button>
+          <div className="bg-white p-3 rounded-lg border border-orange-200">
+            <div className="text-xs font-semibold text-gray-700 mb-1">
+              🔗 Doubly Linked List
+            </div>
+            <div className="text-[10px] text-gray-500">
+              {accessOrder ? 'Access order (LRU cache)' : 'Insertion order'} • O(1) reorder
+            </div>
           </div>
         </div>
+        {stepData.operation === 'access' && (
+          <div className="mt-3 p-2 bg-orange-100 rounded-lg border border-orange-300">
+            <div className="text-xs text-center text-orange-800">
+              <span className="font-bold">LRU Update:</span> Entry &quot;{stepData.key}&quot; moved to end of list (most recently used)
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={400} className={showCode ? 'flex-1' : 'w-full'}>
-            {/* Dual Structure - Prominent */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border-2 border-orange-200">
-              <div className="text-sm font-bold text-orange-800 mb-3 flex items-center gap-2">
-                <span className="text-lg">🔗</span> LinkedHashMap = HashMap + LinkedList
+      {/* Bucket Array */}
+      <div className="mb-4">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          Hash Table ({BUCKET_COUNT} buckets)
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {buckets.map((bucket, idx) => (
+            <div key={idx} className="flex flex-col items-center">
+              <div
+                className={`w-8 h-8 flex items-center justify-center text-xs font-medium rounded border-2 transition-colors ${getBucketStyle(idx)}`}
+              >
+                {idx}
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="bg-white p-3 rounded-lg border border-orange-200">
-                  <div className="text-xs font-semibold text-gray-700 mb-1">
-                    🗂️ Hash Table
-                  </div>
-                  <div className="text-[10px] text-gray-500">
-                    O(1) get/put • Same as HashMap
-                  </div>
-                </div>
-                <div className="bg-white p-3 rounded-lg border border-orange-200">
-                  <div className="text-xs font-semibold text-gray-700 mb-1">
-                    🔗 Doubly Linked List
-                  </div>
-                  <div className="text-[10px] text-gray-500">
-                    {accessOrder ? 'Access order (LRU cache)' : 'Insertion order'} • O(1) reorder
-                  </div>
-                </div>
-              </div>
-              {stepData.operation === 'access' && (
-                <div className="mt-3 p-2 bg-orange-100 rounded-lg border border-orange-300">
-                  <div className="text-xs text-center text-orange-800">
-                    <span className="font-bold">LRU Update:</span> Entry &quot;{stepData.key}&quot; moved to end of list (most recently used)
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Bucket Array */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Hash Table ({BUCKET_COUNT} buckets)
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {buckets.map((bucket, idx) => (
-                  <div key={idx} className="flex flex-col items-center">
-                    <div
-                      className={`w-8 h-8 flex items-center justify-center text-xs font-medium rounded border-2 transition-colors ${getBucketStyle(idx)}`}
-                    >
-                      {idx}
-                    </div>
-                    <div className="flex flex-col items-center mt-1">
-                      {bucket.entries.length > 0 ? (
-                        bucket.entries.map((entry, eIdx) => (
-                          <React.Fragment key={eIdx}>
-                            {eIdx > 0 && (
-                              <div className="w-0.5 h-1 bg-gray-300" />
-                            )}
-                            <div
-                              className={`px-2 py-0.5 text-[10px] rounded transition-colors whitespace-nowrap ${getEntryStyle(idx, eIdx)}`}
-                            >
-                              {entry.key}:{entry.value}
-                            </div>
-                          </React.Fragment>
-                        ))
-                      ) : (
-                        <div className="text-[10px] text-gray-400 mt-1">∅</div>
+              <div className="flex flex-col items-center mt-1">
+                {bucket.entries.length > 0 ? (
+                  bucket.entries.map((entry, eIdx) => (
+                    <React.Fragment key={eIdx}>
+                      {eIdx > 0 && (
+                        <div className="w-0.5 h-1 bg-gray-300" />
                       )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Linked List Order - Prominent */}
-            <div className="mb-4 p-3 bg-gradient-to-r from-orange-100 to-amber-100 rounded-xl border-2 border-orange-300">
-              <div className="text-sm font-semibold text-orange-800 mb-2 flex items-center gap-2">
-                <span>🔗</span> {accessOrder ? 'Access Order (LRU: oldest → newest)' : 'Insertion Order'}
-              </div>
-              <div className="bg-white rounded-lg p-3 border border-orange-200">
-                <div className="flex flex-wrap items-center gap-1">
-                  {linkedOrder.length > 0 ? (
-                    <>
-                      <div className="px-2 py-1 bg-gray-100 text-[10px] text-gray-600 rounded font-semibold">HEAD</div>
-                      <span className="text-orange-400 font-bold">→</span>
-                      {linkedOrder.map((key, idx) => (
-                        <React.Fragment key={key}>
-                          {idx > 0 && (
-                            <span className="text-orange-400 font-bold">⇄</span>
-                          )}
-                          <div
-                            className={`px-3 py-1 text-xs font-bold rounded-full transition-colors ${getLinkedNodeStyle(key)}`}
-                          >
-                            {key}
-                          </div>
-                        </React.Fragment>
-                      ))}
-                      <span className="text-orange-400 font-bold">→</span>
-                      <div className="px-2 py-1 bg-gray-100 text-[10px] text-gray-600 rounded font-semibold">TAIL</div>
-                    </>
-                  ) : (
-                    <span className="text-xs text-gray-400 italic">HEAD → TAIL (empty)</span>
-                  )}
-                </div>
-                {linkedOrder.length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-orange-200 text-[10px] text-gray-500 text-center">
-                    Doubly linked: each entry has prev/next pointers
-                  </div>
+                      <div
+                        className={`px-2 py-0.5 text-[10px] rounded transition-colors whitespace-nowrap ${getEntryStyle(idx, eIdx)}`}
+                      >
+                        {entry.key}:{entry.value}
+                      </div>
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <div className="text-[10px] text-gray-400 mt-1">∅</div>
                 )}
               </div>
             </div>
+          ))}
+        </div>
+      </div>
 
-            {/* LRU Cache Example */}
-            {accessOrder && (
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                <div className="text-xs text-blue-700">
-                  <strong>LRU Cache Usage:</strong>
-                  <div className="mt-1 text-[11px]">
-                    {linkedOrder.length > 0 ? (
-                      <>
-                        Least Recently Used: <strong>{linkedOrder[0]}</strong> |
-                        Most Recently Used: <strong>{linkedOrder[linkedOrder.length - 1]}</strong>
-                      </>
-                    ) : (
-                      'Cache empty'
+      {/* Linked List Order - Prominent */}
+      <div className="mb-4 p-3 bg-gradient-to-r from-orange-100 to-amber-100 rounded-xl border-2 border-orange-300">
+        <div className="text-sm font-semibold text-orange-800 mb-2 flex items-center gap-2">
+          <span>🔗</span> {accessOrder ? 'Access Order (LRU: oldest → newest)' : 'Insertion Order'}
+        </div>
+        <div className="bg-white rounded-lg p-3 border border-orange-200">
+          <div className="flex flex-wrap items-center gap-1">
+            {linkedOrder.length > 0 ? (
+              <>
+                <div className="px-2 py-1 bg-gray-100 text-[10px] text-gray-600 rounded font-semibold">HEAD</div>
+                <span className="text-orange-400 font-bold">→</span>
+                {linkedOrder.map((key, idx) => (
+                  <React.Fragment key={key}>
+                    {idx > 0 && (
+                      <span className="text-orange-400 font-bold">⇄</span>
                     )}
-                  </div>
-                </div>
-              </div>
+                    <div
+                      className={`px-3 py-1 text-xs font-bold rounded-full transition-colors ${getLinkedNodeStyle(key)}`}
+                    >
+                      {key}
+                    </div>
+                  </React.Fragment>
+                ))}
+                <span className="text-orange-400 font-bold">→</span>
+                <div className="px-2 py-1 bg-gray-100 text-[10px] text-gray-600 rounded font-semibold">TAIL</div>
+              </>
+            ) : (
+              <span className="text-xs text-gray-400 italic">HEAD → TAIL (empty)</span>
             )}
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={getStatusVariant()}
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-64 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={LINKEDHASHMAP_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
+          </div>
+          {linkedOrder.length > 0 && (
+            <div className="mt-2 pt-2 border-t border-orange-200 text-[10px] text-gray-500 text-center">
+              Doubly linked: each entry has prev/next pointers
             </div>
           )}
         </div>
       </div>
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="orange"
-          />
-          <Legend items={LEGEND_ITEMS} />
+      {/* LRU Cache Example */}
+      {accessOrder && (
+        <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+          <div className="text-xs text-blue-700">
+            <strong>LRU Cache Usage:</strong>
+            <div className="mt-1 text-[11px]">
+              {linkedOrder.length > 0 ? (
+                <>
+                  Least Recently Used: <strong>{linkedOrder[0]}</strong> |
+                  Most Recently Used: <strong>{linkedOrder[linkedOrder.length - 1]}</strong>
+                </>
+              ) : (
+                'Cache empty'
+              )}
+            </div>
+          </div>
         </div>
       )}
-    </div>
+    </>
+  );
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="LinkedHashMap"
+      badges={BADGES}
+      gradient="orange"
+      onShare={handleShare}
+      className={className}
+      minHeight={400}
+      headerExtra={headerExtra}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'orange',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? LINKEDHASHMAP_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

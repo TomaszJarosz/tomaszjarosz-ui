@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Play, Pause, RotateCcw, Shuffle } from 'lucide-react';
 import {
-  VisualizationArea,
+  BaseVisualizerLayout,
   CodePanel,
   ALGORITHM_NAMES,
   ALGORITHM_COMPLEXITIES,
@@ -538,48 +538,41 @@ const SortingComparisonVisualizerComponent: React.FC<SortingComparisonVisualizer
     );
   };
 
-  return (
-    <div className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}>
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900">Algorithm Comparison</h3>
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <span>Array: [{baseArray.slice(0, 5).join(', ')}{baseArray.length > 5 ? '...' : ''}]</span>
-          </div>
-        </div>
+  const BADGES = [
+    { label: 'Race Mode', variant: 'indigo' as const },
+  ];
+
+  const headerExtra = (
+    <div className="flex items-center gap-2 text-xs text-gray-500">
+      <span>Array: [{baseArray.slice(0, 5).join(', ')}{baseArray.length > 5 ? '...' : ''}]</span>
+    </div>
+  );
+
+  const visualization = (
+    <>
+      <div className="flex gap-4">
+        {renderAlgorithmPanel(algorithm1, state1, setAlgorithm1, algorithm2, 'border-indigo-200')}
+        <div className="flex items-center text-2xl font-bold text-gray-300">VS</div>
+        {renderAlgorithmPanel(algorithm2, state2, setAlgorithm2, algorithm1, 'border-purple-200')}
       </div>
+    </>
+  );
 
-      {/* Comparison Area */}
-      <div className="p-4">
-        <VisualizationArea minHeight={350}>
-          <div className="flex gap-4">
-          {renderAlgorithmPanel(algorithm1, state1, setAlgorithm1, algorithm2, 'border-indigo-200')}
-          <div className="flex items-center text-2xl font-bold text-gray-300">VS</div>
-          {renderAlgorithmPanel(algorithm2, state2, setAlgorithm2, algorithm1, 'border-purple-200')}
-          </div>
-        </VisualizationArea>
+  const sidePanel = showCode ? (
+    <div className="grid grid-cols-2 gap-4">
+      <div>
+        <div className="text-xs font-medium text-indigo-600 mb-2">{ALGORITHM_NAMES[algorithm1]}</div>
+        <CodePanel code={ALGORITHM_CODE[algorithm1]} activeLine={-1} />
       </div>
+      <div>
+        <div className="text-xs font-medium text-purple-600 mb-2">{ALGORITHM_NAMES[algorithm2]}</div>
+        <CodePanel code={ALGORITHM_CODE[algorithm2]} activeLine={-1} />
+      </div>
+    </div>
+  ) : undefined;
 
-      {/* Code Panels */}
-      {showCode && (
-        <div className="px-4 py-3 border-t border-gray-200">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="text-xs font-medium text-indigo-600 mb-2">{ALGORITHM_NAMES[algorithm1]}</div>
-              <CodePanel code={ALGORITHM_CODE[algorithm1]} activeLine={-1} />
-            </div>
-            <div>
-              <div className="text-xs font-medium text-purple-600 mb-2">{ALGORITHM_NAMES[algorithm2]}</div>
-              <CodePanel code={ALGORITHM_CODE[algorithm2]} activeLine={-1} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+  const customControls = showControls ? (
+    <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-2">
               {isPlaying && (
@@ -641,9 +634,32 @@ const SortingComparisonVisualizerComponent: React.FC<SortingComparisonVisualizer
               </div>
             </div>
           </div>
-        </div>
-      )}
     </div>
+  ) : undefined;
+
+  return (
+    <BaseVisualizerLayout
+      id="sorting-comparison-visualizer"
+      title="Algorithm Comparison"
+      badges={BADGES}
+      gradient="indigo"
+      className={className}
+      minHeight={350}
+      headerExtra={headerExtra}
+      showControls={false}
+      footer={
+        <>
+          {sidePanel && (
+            <div className="px-4 py-3 border-t border-gray-200">
+              {sidePanel}
+            </div>
+          )}
+          {customControls}
+        </>
+      }
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

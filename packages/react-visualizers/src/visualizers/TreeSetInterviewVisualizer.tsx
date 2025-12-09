@@ -1,11 +1,8 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
-  VisualizationArea,
+  useVisualizerPlayback,
 } from '../shared';
 import { InterviewModePanel } from '../shared/InterviewModePanel';
 import { useInterviewMode, type InterviewQuestion } from '../shared/useInterviewMode';
@@ -30,6 +27,14 @@ interface TreeSetInterviewVisualizerProps {
   showControls?: boolean;
   className?: string;
 }
+
+const VISUALIZER_ID = 'treeset-interview-visualizer';
+
+const BADGES = [
+  { label: 'Interview Mode', variant: 'purple' as const },
+  { label: 'BST', variant: 'green' as const },
+  { label: 'O(log n)', variant: 'teal' as const },
+];
 
 const OPERATIONS: Array<{ op: 'add' | 'contains'; value: number }> = [
   { op: 'add', value: 50 },
@@ -293,91 +298,38 @@ const TreeSetInterviewVisualizerComponent: React.FC<TreeSetInterviewVisualizerPr
   showControls = true,
   className = '',
 }) => {
-  const VISUALIZER_ID = 'treeset-interview-visualizer';
   const { copyUrlToClipboard } = useUrlState({ prefix: 'ts-int', scrollToId: VISUALIZER_ID });
 
   const [mode, setMode] = useState<'visualize' | 'interview'>('visualize');
-  const [speed, setSpeed] = useState(25);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [steps, setSteps] = useState<TreeSetStep[]>([]);
 
-  const playingRef = useRef(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const generateSteps = useMemo(() => generateTreeSetSteps, []);
 
-  const initialize = useCallback(() => {
-    const newSteps = generateTreeSetSteps();
-    setSteps(newSteps);
-    setCurrentStep(0);
-    setIsPlaying(false);
-    playingRef.current = false;
-  }, []);
-
-  useEffect(() => {
-    initialize();
-  }, [initialize]);
-
-  useEffect(() => {
-    if (isPlaying && currentStep < steps.length - 1) {
-      playingRef.current = true;
-      const delay = Math.max(100, 2000 - speed * 19);
-
-      timeoutRef.current = setTimeout(() => {
-        if (playingRef.current) {
-          setCurrentStep((prev) => prev + 1);
-        }
-      }, delay);
-    } else if (currentStep >= steps.length - 1) {
-      setIsPlaying(false);
-      playingRef.current = false;
-    }
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [isPlaying, currentStep, steps.length, speed]);
+  const {
+    currentStep,
+    currentStepData,
+    steps,
+    isPlaying,
+    speed,
+    handlePlayPause,
+    handleStep,
+    handleStepBack,
+    handleReset,
+    setSpeed,
+  } = useVisualizerPlayback<TreeSetStep>({ generateSteps });
 
   const interview = useInterviewMode({
     questions: TREESET_QUESTIONS,
     shuffleQuestions: true,
   });
 
-  const handlePlayPause = useCallback(() => {
-    if (currentStep >= steps.length - 1) {
-      setCurrentStep(0);
-    }
-    setIsPlaying(!isPlaying);
-    playingRef.current = !isPlaying;
-  }, [currentStep, steps.length, isPlaying]);
-
-  const handleStep = useCallback(() => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep((prev) => prev + 1);
-    }
-  }, [currentStep, steps.length]);
-
-  const handleStepBack = useCallback(() => {
-    if (currentStep > 0) {
-      setCurrentStep((prev) => prev - 1);
-    }
-  }, [currentStep]);
-
-  const handleReset = () => {
-    setIsPlaying(false);
-    playingRef.current = false;
-    setCurrentStep(0);
-  };
-
-  const currentStepData = steps[currentStep] || {
-    operation: 'init',
+  const stepData = currentStepData || {
+    operation: 'init' as const,
     tree: null,
     path: [],
     description: '',
   };
 
-  const { tree, path, description, currentNode, found } = currentStepData;
+  const { tree, path, description, currentNode, found } = stepData;
 
   const positions = new Map<number, { x: number; y: number }>();
   if (tree) {
@@ -397,7 +349,7 @@ const TreeSetInterviewVisualizerComponent: React.FC<TreeSetInterviewVisualizerPr
     let strokeColor = '#d1d5db';
 
     if (isCurrent) {
-      if (currentStepData.operation === 'contains' && found === false) {
+      if (stepData.operation === 'contains' && found === false) {
         fillColor = '#ef4444';
         strokeColor = '#dc2626';
       } else {
@@ -455,153 +407,116 @@ const TreeSetInterviewVisualizerComponent: React.FC<TreeSetInterviewVisualizerPr
     return copyUrlToClipboard({ step: currentStep });
   }, [copyUrlToClipboard, currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header with mode toggle */}
-      <div className="px-4 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">TreeSet / BST</h3>
-            <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
-              <button
-                onClick={() => setMode('visualize')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'visualize'
-                    ? 'bg-white text-emerald-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Visualize
-              </button>
-              <button
-                onClick={() => setMode('interview')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'interview'
-                    ? 'bg-white text-emerald-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Interview
-              </button>
-            </div>
-          </div>
-          <ShareButton onShare={handleShare} accentColor="green" />
+  const getStatusVariant = () => {
+    if (stepData.operation === 'contains' && found === false) return 'error';
+    if (stepData.operation === 'done' || found === true) return 'success';
+    return 'default';
+  };
+
+  const visualization = (
+    <>
+      {/* BST Property */}
+      <div className="mb-4 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+        <div className="text-sm font-medium text-emerald-800 text-center">
+          BST Property: <code className="bg-white px-2 py-0.5 rounded">left &lt; node &lt; right</code>
         </div>
       </div>
 
-      <div className="p-4">
-        <div className="flex gap-4 flex-col lg:flex-row">
-          {/* Visualization Panel */}
-          <VisualizationArea minHeight={350} className="flex-1">
-            {/* BST Property */}
-            <div className="mb-4 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-              <div className="text-sm font-medium text-emerald-800 text-center">
-                BST Property: <code className="bg-white px-2 py-0.5 rounded">left &lt; node &lt; right</code>
-              </div>
-            </div>
-
-            {/* Tree Visualization */}
-            <div className="mb-4">
-              <div className="bg-gray-50 rounded-lg p-2 overflow-x-auto">
-                {tree ? (
-                  <svg width="300" height="250" className="mx-auto">
-                    {renderTree(tree)}
-                  </svg>
-                ) : (
-                  <div className="h-32 flex items-center justify-center text-gray-400 text-sm">
-                    Empty tree
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Path Display */}
-            {path.length > 0 && (
-              <div className="mb-4 p-3 bg-gray-100 rounded-lg">
-                <div className="text-xs text-gray-600">
-                  <span className="font-medium">Path:</span>{' '}
-                  {path.map((v, idx) => (
-                    <React.Fragment key={idx}>
-                      {idx > 0 && ' → '}
-                      <span
-                        className={`px-1.5 py-0.5 rounded font-mono ${
-                          v === currentNode
-                            ? found === false
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-green-100 text-green-700'
-                            : 'bg-yellow-100 text-yellow-700'
-                        }`}
-                      >
-                        {v}
-                      </span>
-                    </React.Fragment>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={
-                currentStepData.operation === 'contains' && found === false
-                  ? 'error'
-                  : currentStepData.operation === 'done' || found === true
-                    ? 'success'
-                    : 'default'
-              }
-            />
-          </VisualizationArea>
-
-          {/* Interview Panel */}
-          {mode === 'interview' && (
-            <div className="w-full lg:w-96 flex-shrink-0">
-              <InterviewModePanel
-                currentQuestion={interview.currentQuestion}
-                currentQuestionIndex={interview.session.currentQuestionIndex}
-                totalQuestions={interview.session.questions.length}
-                selectedAnswer={interview.selectedAnswer}
-                showExplanation={interview.showExplanation}
-                showHint={interview.showHint}
-                isAnswered={interview.isAnswered}
-                isComplete={interview.isComplete}
-                score={interview.score}
-                onSelectAnswer={interview.selectAnswer}
-                onNextQuestion={interview.nextQuestion}
-                onPreviousQuestion={interview.previousQuestion}
-                onUseHint={interview.useHint}
-                onRestart={interview.restartSession}
-                accentColor="green"
-              />
+      {/* Tree Visualization */}
+      <div className="mb-4">
+        <div className="bg-gray-50 rounded-lg p-2 overflow-x-auto">
+          {tree ? (
+            <svg width="300" height="250" className="mx-auto">
+              {renderTree(tree)}
+            </svg>
+          ) : (
+            <div className="h-32 flex items-center justify-center text-gray-400 text-sm">
+              Empty tree
             </div>
           )}
         </div>
       </div>
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="green"
-          />
-          <Legend items={LEGEND_ITEMS} />
+      {/* Path Display */}
+      {path.length > 0 && (
+        <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+          <div className="text-xs text-gray-600">
+            <span className="font-medium">Path:</span>{' '}
+            {path.map((v, idx) => (
+              <React.Fragment key={idx}>
+                {idx > 0 && ' → '}
+                <span
+                  className={`px-1.5 py-0.5 rounded font-mono ${
+                    v === currentNode
+                      ? found === false
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-green-100 text-green-700'
+                      : 'bg-yellow-100 text-yellow-700'
+                  }`}
+                >
+                  {v}
+                </span>
+              </React.Fragment>
+            ))}
+          </div>
         </div>
       )}
-    </div>
+    </>
+  );
+
+  const sidePanel = mode === 'interview' ? (
+    <InterviewModePanel
+      currentQuestion={interview.currentQuestion}
+      currentQuestionIndex={interview.session.currentQuestionIndex}
+      totalQuestions={interview.session.questions.length}
+      selectedAnswer={interview.selectedAnswer}
+      showExplanation={interview.showExplanation}
+      showHint={interview.showHint}
+      isAnswered={interview.isAnswered}
+      isComplete={interview.isComplete}
+      score={interview.score}
+      onSelectAnswer={interview.selectAnswer}
+      onNextQuestion={interview.nextQuestion}
+      onPreviousQuestion={interview.previousQuestion}
+      onUseHint={interview.useHint}
+      onRestart={interview.restartSession}
+      accentColor="green"
+    />
+  ) : undefined;
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="TreeSet / BST (Interview Mode)"
+      badges={BADGES}
+      gradient="green"
+      className={className}
+      minHeight={500}
+      onShare={handleShare}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'green',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      sidePanel={sidePanel}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

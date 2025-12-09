@@ -1,14 +1,8 @@
 import React, { useMemo, useCallback } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 
 interface ArrayListStep {
@@ -16,10 +10,10 @@ interface ArrayListStep {
   value?: number;
   index?: number;
   array: (number | null)[];
-  oldArray?: (number | null)[]; // For resize: show before state
+  oldArray?: (number | null)[];
   size: number;
   capacity: number;
-  oldCapacity?: number; // For resize
+  oldCapacity?: number;
   description: string;
   codeLine?: number;
   variables?: Record<string, string | number>;
@@ -44,7 +38,7 @@ const OPERATIONS: Array<{
   { op: 'add', value: 20 },
   { op: 'add', value: 30 },
   { op: 'add', value: 40 },
-  { op: 'add', value: 50 }, // Triggers resize
+  { op: 'add', value: 50 },
   { op: 'get', index: 2 },
   { op: 'addAt', value: 25, index: 2 },
   { op: 'remove', index: 1 },
@@ -76,6 +70,11 @@ const LEGEND_ITEMS = [
   { color: 'bg-gray-100', label: 'Empty' },
   { color: 'bg-orange-500', label: 'Active' },
   { color: 'bg-yellow-200', label: 'Shifted', border: '#fbbf24' },
+];
+
+const BADGES = [
+  { label: 'Get: O(1)', variant: 'orange' as const },
+  { label: 'Add: O(1)*', variant: 'amber' as const },
 ];
 
 function generateArrayListSteps(): ArrayListStep[] {
@@ -281,185 +280,144 @@ const ArrayListVisualizerComponent: React.FC<ArrayListVisualizerProps> = ({
     return copyUrlToClipboard({ step: currentStep });
   }, [copyUrlToClipboard, currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">
-              ArrayList Operations
-            </h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded">
-                Get: O(1)
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
-                Add: O(1)*
-              </span>
-            </div>
+  // Custom visualization content
+  const visualization = (
+    <>
+      {/* Resize Comparison */}
+      {operation === 'resize' && oldArray && (
+        <div className="mb-4 p-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-xl border-2 border-red-200">
+          <div className="text-sm font-bold text-red-700 mb-3 flex items-center gap-2">
+            <span className="text-xl">⚠️</span> RESIZE OPERATION (O(n) cost!)
           </div>
-          <ShareButton onShare={handleShare} />
-        </div>
-      </div>
-
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={400} className={showCode ? 'flex-1' : 'w-full'}>
-            {/* Resize Comparison - Show when resize happens */}
-            {operation === 'resize' && oldArray && (
-              <div className="mb-4 p-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-xl border-2 border-red-200">
-                <div className="text-sm font-bold text-red-700 mb-3 flex items-center gap-2">
-                  <span className="text-xl">⚠️</span> RESIZE OPERATION (O(n) cost!)
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Old Array */}
-                  <div>
-                    <div className="text-xs font-medium text-gray-600 mb-2">
-                      OLD Array (capacity: {oldCapacity}) - FULL!
-                    </div>
-                    <div className="bg-white rounded-lg p-2 border border-red-200">
-                      <div className="flex gap-1 flex-wrap">
-                        {oldArray.map((val, idx) => (
-                          <div
-                            key={idx}
-                            className="w-10 h-10 flex items-center justify-center rounded border-2 text-sm font-medium bg-red-100 border-red-300 text-red-800"
-                          >
-                            {val !== null ? val : ''}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  {/* Arrow */}
-                  <div className="hidden md:flex items-center justify-center absolute left-1/2 -translate-x-1/2">
-                    <div className="text-2xl text-orange-500">→</div>
-                  </div>
-                  {/* New Array */}
-                  <div>
-                    <div className="text-xs font-medium text-gray-600 mb-2">
-                      NEW Array (capacity: {capacity}) - 2x bigger
-                    </div>
-                    <div className="bg-white rounded-lg p-2 border border-green-200">
-                      <div className="flex gap-1 flex-wrap">
-                        {array.map((val, idx) => (
-                          <div
-                            key={idx}
-                            className={`w-10 h-10 flex items-center justify-center rounded border-2 text-sm font-medium ${
-                              idx < size
-                                ? 'bg-green-100 border-green-300 text-green-800'
-                                : 'bg-gray-100 border-gray-200 text-gray-300'
-                            }`}
-                          >
-                            {val !== null ? val : ''}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-3 text-xs text-red-600 text-center">
-                  All {size} elements copied to new array → This is why add() is O(1) <strong>amortized</strong>, not O(1)
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <div className="text-xs font-medium text-gray-600 mb-2">
+                OLD Array (capacity: {oldCapacity}) - FULL!
               </div>
-            )}
-
-            {/* Array Visualization (normal view) */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Internal Array (capacity: {capacity})
-              </div>
-              <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
-                <div className="flex gap-1 min-w-max">
-                  {array.map((val, idx) => (
-                    <div key={idx} className="flex flex-col items-center">
-                      <div
-                        className={`w-12 h-12 flex items-center justify-center rounded border-2 font-medium transition-colors ${getCellStyle(idx)}`}
-                      >
-                        {val !== null ? val : ''}
-                      </div>
-                      <div className="text-[10px] text-gray-400 mt-1">
-                        [{idx}]
-                      </div>
+              <div className="bg-white rounded-lg p-2 border border-red-200">
+                <div className="flex gap-1 flex-wrap">
+                  {oldArray.map((val, idx) => (
+                    <div
+                      key={idx}
+                      className="w-10 h-10 flex items-center justify-center rounded border-2 text-sm font-medium bg-red-100 border-red-300 text-red-800"
+                    >
+                      {val !== null ? val : ''}
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-
-            {/* Size/Capacity Info */}
-            <div className="mb-4 p-3 bg-gray-100 rounded-lg">
-              <div className="flex gap-6 text-xs">
-                <div>
-                  <span className="font-medium text-gray-700">size:</span>{' '}
-                  <span className="text-orange-600 font-mono">{size}</span>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-700">capacity:</span>{' '}
-                  <span className="text-amber-600 font-mono">{capacity}</span>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-700">load:</span>{' '}
-                  <span className="font-mono">
-                    {Math.round((size / capacity) * 100)}%
-                  </span>
+            <div>
+              <div className="text-xs font-medium text-gray-600 mb-2">
+                NEW Array (capacity: {capacity}) - 2x bigger
+              </div>
+              <div className="bg-white rounded-lg p-2 border border-green-200">
+                <div className="flex gap-1 flex-wrap">
+                  {array.map((val, idx) => (
+                    <div
+                      key={idx}
+                      className={`w-10 h-10 flex items-center justify-center rounded border-2 text-sm font-medium ${
+                        idx < size
+                          ? 'bg-green-100 border-green-300 text-green-800'
+                          : 'bg-gray-100 border-gray-200 text-gray-300'
+                      }`}
+                    >
+                      {val !== null ? val : ''}
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+            </div>
+          </div>
+          <div className="mt-3 text-xs text-red-600 text-center">
+            All {size} elements copied to new array → This is why add() is O(1) <strong>amortized</strong>, not O(1)
+          </div>
+        </div>
+      )}
+
+      {/* Array Visualization */}
+      <div className="mb-4">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          Internal Array (capacity: {capacity})
+        </div>
+        <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
+          <div className="flex gap-1 min-w-max">
+            {array.map((val, idx) => (
+              <div key={idx} className="flex flex-col items-center">
                 <div
-                  className="h-full bg-orange-500 transition-all"
-                  style={{ width: `${(size / capacity) * 100}%` }}
-                />
+                  className={`w-12 h-12 flex items-center justify-center rounded border-2 font-medium transition-colors ${getCellStyle(idx)}`}
+                >
+                  {val !== null ? val : ''}
+                </div>
+                <div className="text-[10px] text-gray-400 mt-1">[{idx}]</div>
               </div>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={getStatusVariant()}
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={ARRAYLIST_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
-            </div>
-          )}
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="orange"
-          />
-          <Legend items={LEGEND_ITEMS} />
+      {/* Size/Capacity Info */}
+      <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+        <div className="flex gap-6 text-xs">
+          <div>
+            <span className="font-medium text-gray-700">size:</span>{' '}
+            <span className="text-orange-600 font-mono">{size}</span>
+          </div>
+          <div>
+            <span className="font-medium text-gray-700">capacity:</span>{' '}
+            <span className="text-amber-600 font-mono">{capacity}</span>
+          </div>
+          <div>
+            <span className="font-medium text-gray-700">load:</span>{' '}
+            <span className="font-mono">{Math.round((size / capacity) * 100)}%</span>
+          </div>
         </div>
-      )}
-    </div>
+        <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-orange-500 transition-all"
+            style={{ width: `${(size / capacity) * 100}%` }}
+          />
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="ArrayList Operations"
+      badges={BADGES}
+      gradient="orange"
+      onShare={handleShare}
+      className={className}
+      minHeight={400}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'orange',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? ARRAYLIST_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

@@ -1,13 +1,7 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
-  VisualizationArea,
   useVisualizerPlayback,
 } from '../shared';
 
@@ -129,10 +123,14 @@ const JOIN_CODES: Record<JoinType, string[]> = {
   ],
 };
 
+const BADGES = [
+  { label: 'SQL', variant: 'cyan' as const },
+];
+
 const LEGEND_ITEMS = [
   { color: 'bg-green-400', label: 'Matched rows' },
   { color: 'bg-blue-400', label: 'Current comparison' },
-  { color: 'bg-yellow-400', label: 'NULL (no match)' },
+  { color: 'bg-amber-400', label: 'NULL (no match)' },
   { color: 'bg-gray-300', label: 'Not included' },
 ];
 
@@ -413,12 +411,12 @@ const SQLJoinVisualizerComponent: React.FC<SQLJoinVisualizerProps> = ({
 
   const getResultStyle = (index: number, result: JoinResult): string => {
     if (index === highlightResult) {
-      return result.matched ? 'bg-green-400 text-white' : 'bg-yellow-400 text-gray-900';
+      return result.matched ? 'bg-green-400 text-white' : 'bg-amber-400 text-gray-900';
     }
     if (result.matched) {
       return 'bg-green-100';
     }
-    return 'bg-yellow-100';
+    return 'bg-amber-100';
   };
 
   const getStatusVariant = () => {
@@ -433,46 +431,94 @@ const SQLJoinVisualizerComponent: React.FC<SQLJoinVisualizerProps> = ({
     return copyUrlToClipboard({ step: currentStep });
   }, [copyUrlToClipboard, currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-cyan-50 to-blue-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">SQL JOIN Operations</h3>
-            <span className="px-2 py-0.5 text-xs font-medium bg-cyan-100 text-cyan-700 rounded">
-              {joinType.toUpperCase()} JOIN
-            </span>
+  const headerExtra = (
+    <div className="flex items-center gap-2">
+      <div className="flex gap-1">
+        {(['inner', 'left', 'right', 'full'] as JoinType[]).map((type) => (
+          <button
+            key={type}
+            onClick={() => handleJoinTypeChange(type)}
+            className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+              joinType === type
+                ? 'bg-cyan-500 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            {type.toUpperCase()}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const infoBox = (
+    <div className="mb-4 p-3 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg border border-cyan-200">
+      <div className="flex items-center gap-4">
+        {/* Venn Diagram */}
+        <svg viewBox="0 0 100 60" className="w-24 h-14 flex-shrink-0">
+          {/* Left circle (Employees) */}
+          <circle
+            cx="35"
+            cy="30"
+            r="22"
+            fill={joinType === 'left' || joinType === 'full' ? '#06b6d4' : joinType === 'inner' ? 'transparent' : '#e5e7eb'}
+            fillOpacity={joinType === 'left' || joinType === 'full' ? 0.6 : joinType === 'inner' ? 0 : 0.5}
+            stroke="#0891b2"
+            strokeWidth="2"
+          />
+          {/* Right circle (Departments) */}
+          <circle
+            cx="65"
+            cy="30"
+            r="22"
+            fill={joinType === 'right' || joinType === 'full' ? '#06b6d4' : joinType === 'inner' ? 'transparent' : '#e5e7eb'}
+            fillOpacity={joinType === 'right' || joinType === 'full' ? 0.6 : joinType === 'inner' ? 0 : 0.5}
+            stroke="#0891b2"
+            strokeWidth="2"
+          />
+          {/* Intersection - always highlighted for all join types */}
+          <clipPath id="leftClip">
+            <circle cx="35" cy="30" r="22" />
+          </clipPath>
+          <circle
+            cx="65"
+            cy="30"
+            r="22"
+            fill="#22c55e"
+            fillOpacity="0.7"
+            clipPath="url(#leftClip)"
+          />
+          {/* Labels */}
+          <text x="22" y="33" fontSize="8" fill="#0e7490" fontWeight="bold">L</text>
+          <text x="74" y="33" fontSize="8" fill="#0e7490" fontWeight="bold">R</text>
+        </svg>
+
+        {/* Explanation */}
+        <div className="flex-1">
+          <div className="text-sm font-semibold text-cyan-800 mb-1">
+            {joinType.toUpperCase()} JOIN
           </div>
-          <div className="flex items-center gap-2">
-            <ShareButton onShare={handleShare} />
-            <div className="flex gap-1">
-              {(['inner', 'left', 'right', 'full'] as JoinType[]).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => handleJoinTypeChange(type)}
-                  className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
-                    joinType === type
-                      ? 'bg-cyan-500 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  {type.toUpperCase()}
-                </button>
-              ))}
-            </div>
+          <div className="text-xs text-cyan-700">
+            {joinType === 'inner' && (
+              <>Returns only rows with matches in <strong>both</strong> tables (green intersection).</>
+            )}
+            {joinType === 'left' && (
+              <>Returns <strong>all</strong> rows from left table + matching rows from right. NULL if no match.</>
+            )}
+            {joinType === 'right' && (
+              <>Returns <strong>all</strong> rows from right table + matching rows from left. NULL if no match.</>
+            )}
+            {joinType === 'full' && (
+              <>Returns <strong>all</strong> rows from both tables. NULL where no match exists.</>
+            )}
           </div>
         </div>
       </div>
+    </div>
+  );
 
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={450} className={showCode ? 'flex-1' : 'w-full'}>
+  const visualization = (
+    <>
             {/* Tables */}
             <div className="grid grid-cols-2 gap-4 mb-4">
               {/* Left Table (Employees) */}
@@ -554,113 +600,47 @@ const SQLJoinVisualizerComponent: React.FC<SQLJoinVisualizerProps> = ({
               </div>
             </div>
 
-            {/* Join Type Explanation with Venn Diagram */}
-            <div className="mb-4 p-3 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg border border-cyan-200">
-              <div className="flex items-center gap-4">
-                {/* Venn Diagram */}
-                <svg viewBox="0 0 100 60" className="w-24 h-14 flex-shrink-0">
-                  {/* Left circle (Employees) */}
-                  <circle
-                    cx="35"
-                    cy="30"
-                    r="22"
-                    fill={joinType === 'left' || joinType === 'full' ? '#06b6d4' : joinType === 'inner' ? 'transparent' : '#e5e7eb'}
-                    fillOpacity={joinType === 'left' || joinType === 'full' ? 0.6 : joinType === 'inner' ? 0 : 0.5}
-                    stroke="#0891b2"
-                    strokeWidth="2"
-                  />
-                  {/* Right circle (Departments) */}
-                  <circle
-                    cx="65"
-                    cy="30"
-                    r="22"
-                    fill={joinType === 'right' || joinType === 'full' ? '#06b6d4' : joinType === 'inner' ? 'transparent' : '#e5e7eb'}
-                    fillOpacity={joinType === 'right' || joinType === 'full' ? 0.6 : joinType === 'inner' ? 0 : 0.5}
-                    stroke="#0891b2"
-                    strokeWidth="2"
-                  />
-                  {/* Intersection - always highlighted for all join types */}
-                  <clipPath id="leftClip">
-                    <circle cx="35" cy="30" r="22" />
-                  </clipPath>
-                  <circle
-                    cx="65"
-                    cy="30"
-                    r="22"
-                    fill="#22c55e"
-                    fillOpacity="0.7"
-                    clipPath="url(#leftClip)"
-                  />
-                  {/* Labels */}
-                  <text x="22" y="33" fontSize="8" fill="#0e7490" fontWeight="bold">L</text>
-                  <text x="74" y="33" fontSize="8" fill="#0e7490" fontWeight="bold">R</text>
-                </svg>
+    </>
+  );
 
-                {/* Explanation */}
-                <div className="flex-1">
-                  <div className="text-sm font-semibold text-cyan-800 mb-1">
-                    {joinType.toUpperCase()} JOIN
-                  </div>
-                  <div className="text-xs text-cyan-700">
-                    {joinType === 'inner' && (
-                      <>Returns only rows with matches in <strong>both</strong> tables (green intersection).</>
-                    )}
-                    {joinType === 'left' && (
-                      <>Returns <strong>all</strong> rows from left table + matching rows from right. NULL if no match.</>
-                    )}
-                    {joinType === 'right' && (
-                      <>Returns <strong>all</strong> rows from right table + matching rows from left. NULL if no match.</>
-                    )}
-                    {joinType === 'full' && (
-                      <>Returns <strong>all</strong> rows from both tables. NULL where no match exists.</>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={getStatusVariant()}
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-64 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={JOIN_CODES[joinType]}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="cyan"
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
-    </div>
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="SQL JOIN Operations"
+      badges={BADGES}
+      gradient="cyan"
+      className={className}
+      minHeight={450}
+      onShare={handleShare}
+      headerExtra={headerExtra}
+      infoBox={infoBox}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'cyan',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? JOIN_CODES[joinType] : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

@@ -1,12 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 import { InterviewModePanel } from '../shared/InterviewModePanel';
 import { useInterviewMode, type InterviewQuestion } from '../shared/useInterviewMode';
@@ -37,9 +33,13 @@ interface DijkstraInterviewVisualizerProps {
   className?: string;
 }
 
+const BADGES = [
+  { label: 'O((V+E) log V)', variant: 'orange' as const },
+];
+
 const LEGEND_ITEMS = [
   { color: 'bg-blue-100', label: 'Unvisited', border: '#60a5fa' },
-  { color: 'bg-yellow-400', label: 'Current' },
+  { color: 'bg-amber-400', label: 'Current' },
   { color: 'bg-green-400', label: 'Visited' },
 ];
 
@@ -297,13 +297,13 @@ const DijkstraInterviewVisualizerComponent: React.FC<DijkstraInterviewVisualizer
   const { current, distances, visited, priorityQueue, description } = stepData;
 
   const getNodeColor = (nodeId: number): string => {
-    if (nodeId === current) return 'fill-yellow-400';
+    if (nodeId === current) return 'fill-amber-400';
     if (visited.includes(nodeId)) return 'fill-green-400';
     return 'fill-blue-100';
   };
 
   const getNodeStroke = (nodeId: number): string => {
-    if (nodeId === current) return 'stroke-yellow-600';
+    if (nodeId === current) return 'stroke-amber-600';
     if (visited.includes(nodeId)) return 'stroke-green-600';
     return 'stroke-blue-400';
   };
@@ -312,193 +312,179 @@ const DijkstraInterviewVisualizerComponent: React.FC<DijkstraInterviewVisualizer
     return copyUrlToClipboard({ step: playback.currentStep });
   }, [copyUrlToClipboard, playback.currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">Dijkstra's Algorithm</h3>
-            <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
-              <button
-                onClick={() => setMode('visualize')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'visualize'
-                    ? 'bg-white text-orange-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Visualize
-              </button>
-              <button
-                onClick={() => setMode('interview')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'interview'
-                    ? 'bg-white text-orange-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Interview
-              </button>
+  const visualization = (
+    <>
+      {/* Distance Array */}
+      <div className="mb-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+        <div className="text-sm font-medium text-orange-800 mb-2">
+          Distance Array (from node 0)
+        </div>
+        <div className="flex flex-wrap gap-2 justify-center">
+          {distances.map((dist, idx) => (
+            <div
+              key={idx}
+              className={`flex flex-col items-center p-2 rounded-lg border-2 min-w-[50px] ${
+                idx === current
+                  ? 'bg-amber-100 border-amber-400'
+                  : visited.includes(idx)
+                    ? 'bg-green-100 border-green-400'
+                    : 'bg-white border-gray-200'
+              }`}
+            >
+              <div className="text-xs text-gray-500">Node {idx}</div>
+              <div className="text-lg font-bold font-mono">
+                {dist === Infinity ? '∞' : dist}
+              </div>
             </div>
-            <span className="px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded">
-              O((V+E) log V)
-            </span>
-          </div>
-          <ShareButton onShare={handleShare} accentColor="orange" />
+          ))}
         </div>
       </div>
 
-      <div className="p-4">
-        <div className="flex gap-4 flex-col lg:flex-row">
-          {/* Visualization Panel */}
-          <VisualizationArea minHeight={400} className="flex-1">
-            {/* Distance Array */}
-            <div className="mb-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
-              <div className="text-sm font-medium text-orange-800 mb-2">
-                Distance Array (from node 0)
-              </div>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {distances.map((dist, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex flex-col items-center p-2 rounded-lg border-2 min-w-[50px] ${
-                      idx === current
-                        ? 'bg-yellow-100 border-yellow-400'
-                        : visited.includes(idx)
-                          ? 'bg-green-100 border-green-400'
-                          : 'bg-white border-gray-200'
-                    }`}
-                  >
-                    <div className="text-xs text-gray-500">Node {idx}</div>
-                    <div className="text-lg font-bold font-mono">
-                      {dist === Infinity ? '∞' : dist}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+      {/* Priority Queue */}
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          Priority Queue: [{priorityQueue.sort((a, b) => a.dist - b.dist).map(p => `${p.node}:${p.dist}`).join(', ') || 'empty'}]
+        </div>
+      </div>
 
-            {/* Priority Queue */}
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Priority Queue: [{priorityQueue.sort((a, b) => a.dist - b.dist).map(p => `${p.node}:${p.dist}`).join(', ') || 'empty'}]
-              </div>
-            </div>
+      {/* Graph */}
+      <div className="mb-4">
+        <svg viewBox="0 0 420 300" className="w-full h-52">
+          {/* Edges */}
+          {EDGES.map((edge, idx) => {
+            const from = NODES[edge.from];
+            const to = NODES[edge.to];
+            const midX = (from.x + to.x) / 2;
+            const midY = (from.y + to.y) / 2;
+            return (
+              <g key={idx}>
+                <line
+                  x1={from.x}
+                  y1={from.y}
+                  x2={to.x}
+                  y2={to.y}
+                  stroke="#9ca3af"
+                  strokeWidth="2"
+                  markerEnd="url(#arrow)"
+                />
+                <circle cx={midX} cy={midY} r="10" fill="white" stroke="#d1d5db" />
+                <text x={midX} y={midY + 4} textAnchor="middle" className="text-xs font-bold fill-gray-600">
+                  {edge.weight}
+                </text>
+              </g>
+            );
+          })}
 
-            {/* Graph */}
-            <div className="mb-4">
-              <svg viewBox="0 0 420 300" className="w-full h-52">
-                {/* Edges */}
-                {EDGES.map((edge, idx) => {
-                  const from = NODES[edge.from];
-                  const to = NODES[edge.to];
-                  const midX = (from.x + to.x) / 2;
-                  const midY = (from.y + to.y) / 2;
-                  return (
-                    <g key={idx}>
-                      <line
-                        x1={from.x}
-                        y1={from.y}
-                        x2={to.x}
-                        y2={to.y}
-                        stroke="#9ca3af"
-                        strokeWidth="2"
-                        markerEnd="url(#arrow)"
-                      />
-                      <circle cx={midX} cy={midY} r="10" fill="white" stroke="#d1d5db" />
-                      <text x={midX} y={midY + 4} textAnchor="middle" className="text-xs font-bold fill-gray-600">
-                        {edge.weight}
-                      </text>
-                    </g>
-                  );
-                })}
+          {/* Arrow marker */}
+          <defs>
+            <marker id="arrow" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#9ca3af" />
+            </marker>
+          </defs>
 
-                {/* Arrow marker */}
-                <defs>
-                  <marker id="arrow" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
-                    <polygon points="0 0, 10 3.5, 0 7" fill="#9ca3af" />
-                  </marker>
-                </defs>
-
-                {/* Nodes */}
-                {NODES.map((node) => (
-                  <g key={node.id}>
-                    <circle
-                      cx={node.x}
-                      cy={node.y}
-                      r="20"
-                      className={`${getNodeColor(node.id)} ${getNodeStroke(node.id)} stroke-2`}
-                    />
-                    <text
-                      x={node.x}
-                      y={node.y + 5}
-                      textAnchor="middle"
-                      className="text-sm font-bold fill-gray-700"
-                    >
-                      {node.id}
-                    </text>
-                  </g>
-                ))}
-              </svg>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={playback.currentStep}
-              totalSteps={playback.steps.length}
-              variant={visited.length === NODES.length ? 'success' : 'default'}
-            />
-          </VisualizationArea>
-
-          {/* Interview Panel */}
-          {mode === 'interview' && (
-            <div className="w-full lg:w-96 flex-shrink-0">
-              <InterviewModePanel
-                currentQuestion={interview.currentQuestion}
-                currentQuestionIndex={interview.session.currentQuestionIndex}
-                totalQuestions={interview.session.questions.length}
-                selectedAnswer={interview.selectedAnswer}
-                showExplanation={interview.showExplanation}
-                showHint={interview.showHint}
-                isAnswered={interview.isAnswered}
-                isComplete={interview.isComplete}
-                score={interview.score}
-                onSelectAnswer={interview.selectAnswer}
-                onNextQuestion={interview.nextQuestion}
-                onPreviousQuestion={interview.previousQuestion}
-                onUseHint={interview.useHint}
-                onRestart={interview.restartSession}
-                accentColor="orange"
+          {/* Nodes */}
+          {NODES.map((node) => (
+            <g key={node.id}>
+              <circle
+                cx={node.x}
+                cy={node.y}
+                r="20"
+                className={`${getNodeColor(node.id)} ${getNodeStroke(node.id)} stroke-2`}
               />
-            </div>
-          )}
-        </div>
+              <text
+                x={node.x}
+                y={node.y + 5}
+                textAnchor="middle"
+                className="text-sm font-bold fill-gray-700"
+              >
+                {node.id}
+              </text>
+            </g>
+          ))}
+        </svg>
       </div>
+    </>
+  );
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={playback.isPlaying}
-            currentStep={playback.currentStep}
-            totalSteps={playback.steps.length}
-            speed={playback.speed}
-            onPlayPause={playback.handlePlayPause}
-            onStep={playback.handleStep}
-            onStepBack={playback.handleStepBack}
-            onReset={playback.handleReset}
-            onSpeedChange={playback.setSpeed}
-            accentColor="orange"
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
+  const modeToggle = (
+    <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
+      <button
+        onClick={() => setMode('visualize')}
+        className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+          mode === 'visualize'
+            ? 'bg-white text-orange-600 shadow-sm'
+            : 'text-gray-600 hover:text-gray-800'
+        }`}
+      >
+        Visualize
+      </button>
+      <button
+        onClick={() => setMode('interview')}
+        className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+          mode === 'interview'
+            ? 'bg-white text-orange-600 shadow-sm'
+            : 'text-gray-600 hover:text-gray-800'
+        }`}
+      >
+        Interview
+      </button>
     </div>
+  );
+
+  const sidePanel = mode === 'interview' ? (
+    <InterviewModePanel
+      currentQuestion={interview.currentQuestion}
+      currentQuestionIndex={interview.session.currentQuestionIndex}
+      totalQuestions={interview.session.questions.length}
+      selectedAnswer={interview.selectedAnswer}
+      showExplanation={interview.showExplanation}
+      showHint={interview.showHint}
+      isAnswered={interview.isAnswered}
+      isComplete={interview.isComplete}
+      score={interview.score}
+      onSelectAnswer={interview.selectAnswer}
+      onNextQuestion={interview.nextQuestion}
+      onPreviousQuestion={interview.previousQuestion}
+      onUseHint={interview.useHint}
+      onRestart={interview.restartSession}
+      accentColor="orange"
+    />
+  ) : undefined;
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="Dijkstra's Algorithm (Interview Mode)"
+      badges={BADGES}
+      gradient="orange"
+      className={className}
+      minHeight={500}
+      onShare={handleShare}
+      headerExtra={modeToggle}
+      status={{
+        description,
+        currentStep: playback.currentStep,
+        totalSteps: playback.steps.length,
+        variant: visited.length === NODES.length ? 'success' : 'default',
+      }}
+      controls={{
+        isPlaying: playback.isPlaying,
+        currentStep: playback.currentStep,
+        totalSteps: playback.steps.length,
+        speed: playback.speed,
+        onPlayPause: playback.handlePlayPause,
+        onStep: playback.handleStep,
+        onStepBack: playback.handleStepBack,
+        onReset: playback.handleReset,
+        onSpeedChange: playback.setSpeed,
+        accentColor: 'orange',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      sidePanel={sidePanel}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

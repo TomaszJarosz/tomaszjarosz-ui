@@ -17,9 +17,12 @@ export { SortingComparisonVisualizer } from './visualizers/SortingComparisonVisu
 export { DijkstraVisualizer } from './visualizers/DijkstraVisualizer';
 export { DPVisualizer } from './visualizers/DPVisualizer';
 export { GraphVisualizer } from './visualizers/GraphVisualizer';
+export { AStarVisualizer } from './visualizers/AStarVisualizer';
+export { TopologicalSortVisualizer } from './visualizers/TopologicalSortVisualizer';
 
 // Collection Visualizers
 export { HashMapVisualizer } from './visualizers/HashMapVisualizer';
+export { LRUCacheVisualizer } from './visualizers/LRUCacheVisualizer';
 export { HashMapInterviewVisualizer } from './visualizers/HashMapInterviewVisualizer';
 export { ListComparisonVisualizer } from './visualizers/ListComparisonVisualizer';
 
@@ -33,6 +36,11 @@ export { DijkstraInterviewVisualizer } from './visualizers/DijkstraInterviewVisu
 export { DPInterviewVisualizer } from './visualizers/DPInterviewVisualizer';
 export { ConsistentHashingInterviewVisualizer } from './visualizers/ConsistentHashingInterviewVisualizer';
 export { RaftInterviewVisualizer } from './visualizers/RaftInterviewVisualizer';
+export { TrieInterviewVisualizer } from './visualizers/TrieInterviewVisualizer';
+export { UnionFindInterviewVisualizer } from './visualizers/UnionFindInterviewVisualizer';
+export { AStarInterviewVisualizer } from './visualizers/AStarInterviewVisualizer';
+export { SkipListInterviewVisualizer } from './visualizers/SkipListInterviewVisualizer';
+export { LinkedListInterviewVisualizer } from './visualizers/LinkedListInterviewVisualizer';
 export { HashTableVisualizer } from './visualizers/HashTableVisualizer';
 export { LinkedListVisualizer } from './visualizers/LinkedListVisualizer';
 export { LinkedHashMapVisualizer } from './visualizers/LinkedHashMapVisualizer';
@@ -55,6 +63,8 @@ export { BloomFilterVisualizer } from './visualizers/BloomFilterVisualizer';
 export { BTreeVisualizer } from './visualizers/BTreeVisualizer';
 export { TrieVisualizer } from './visualizers/TrieVisualizer';
 export { UnionFindVisualizer } from './visualizers/UnionFindVisualizer';
+export { SkipListVisualizer } from './visualizers/SkipListVisualizer';
+export { SegmentTreeVisualizer } from './visualizers/SegmentTreeVisualizer';
 
 // Distributed Systems
 export { ConsistentHashingVisualizer } from './visualizers/ConsistentHashingVisualizer';

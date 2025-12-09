@@ -1,12 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 import { InterviewModePanel } from '../shared/InterviewModePanel';
 import { useInterviewMode, type InterviewQuestion } from '../shared/useInterviewMode';
@@ -29,11 +25,15 @@ interface DPInterviewVisualizerProps {
   className?: string;
 }
 
+const BADGES = [
+  { label: 'O(n×W)', variant: 'cyan' as const },
+];
+
 const LEGEND_ITEMS = [
   { color: 'bg-gray-50', label: 'Not computed', border: '#d1d5db' },
   { color: 'bg-blue-100', label: 'Computed' },
   { color: 'bg-green-400', label: 'Take item' },
-  { color: 'bg-yellow-300', label: 'Skip item' },
+  { color: 'bg-amber-300', label: 'Skip item' },
 ];
 
 // Interview questions about Dynamic Programming
@@ -284,7 +284,7 @@ const DPInterviewVisualizerComponent: React.FC<DPInterviewVisualizerProps> = ({
   const getCellStyle = (i: number, w: number): string => {
     if (i === currentI && w === currentW) {
       if (decision === 'take') return 'bg-green-400 text-green-900 font-bold';
-      if (decision === 'skip') return 'bg-yellow-300 text-yellow-900 font-bold';
+      if (decision === 'skip') return 'bg-amber-300 text-amber-900 font-bold';
       return 'bg-purple-400 text-purple-900 font-bold';
     }
     if (i < currentI || (i === currentI && w < currentW)) {
@@ -297,50 +297,14 @@ const DPInterviewVisualizerComponent: React.FC<DPInterviewVisualizerProps> = ({
     return copyUrlToClipboard({ step: playback.currentStep });
   }, [copyUrlToClipboard, playback.currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-teal-50 to-cyan-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">0/1 Knapsack (DP)</h3>
-            <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
-              <button
-                onClick={() => setMode('visualize')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'visualize'
-                    ? 'bg-white text-teal-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Visualize
-              </button>
-              <button
-                onClick={() => setMode('interview')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'interview'
-                    ? 'bg-white text-teal-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Interview
-              </button>
-            </div>
-            <span className="px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-700 rounded">
-              O(n×W)
-            </span>
-          </div>
-          <ShareButton onShare={handleShare} accentColor="cyan" />
-        </div>
-      </div>
+  const getStatusVariant = () => {
+    if (decision === 'take') return 'success';
+    if (decision === 'skip') return 'warning';
+    return 'default';
+  };
 
-      <div className="p-4">
-        <div className="flex gap-4 flex-col lg:flex-row">
-          {/* Visualization Panel */}
-          <VisualizationArea minHeight={400} className="flex-1">
+  const visualization = (
+    <>
             {/* DP Recurrence */}
             <div className="mb-4 p-3 bg-teal-50 rounded-lg border border-teal-200">
               <div className="text-sm font-medium text-teal-800 mb-2">DP Recurrence</div>
@@ -348,8 +312,8 @@ const DPInterviewVisualizerComponent: React.FC<DPInterviewVisualizerProps> = ({
                 dp[i][w] = max(<span className="text-yellow-600">skip</span>, <span className="text-green-600">take</span>)
               </div>
               <div className="mt-2 grid grid-cols-2 gap-2 text-[10px]">
-                <div className="bg-yellow-50 p-1.5 rounded">
-                  <span className="text-yellow-700 font-bold">skip</span> = dp[i-1][w]
+                <div className="bg-amber-50 p-1.5 rounded">
+                  <span className="text-amber-700 font-bold">skip</span> = dp[i-1][w]
                 </div>
                 <div className="bg-green-50 p-1.5 rounded">
                   <span className="text-green-700 font-bold">take</span> = dp[i-1][w-wt] + val
@@ -420,72 +384,94 @@ const DPInterviewVisualizerComponent: React.FC<DPInterviewVisualizerProps> = ({
                 <span className={`px-3 py-1 rounded-full font-bold text-sm ${
                   decision === 'take'
                     ? 'bg-green-100 text-green-700'
-                    : 'bg-yellow-100 text-yellow-700'
+                    : 'bg-amber-100 text-amber-700'
                 }`}>
                   {decision === 'take' ? '✓ TAKE' : '✗ SKIP'}
                 </span>
               </div>
             )}
+    </>
+  );
 
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={playback.currentStep}
-              totalSteps={playback.steps.length}
-              variant={
-                decision === 'take'
-                  ? 'success'
-                  : decision === 'skip'
-                    ? 'warning'
-                    : 'default'
-              }
-            />
-          </VisualizationArea>
-
-          {/* Interview Panel */}
-          {mode === 'interview' && (
-            <div className="w-full lg:w-96 flex-shrink-0">
-              <InterviewModePanel
-                currentQuestion={interview.currentQuestion}
-                currentQuestionIndex={interview.session.currentQuestionIndex}
-                totalQuestions={interview.session.questions.length}
-                selectedAnswer={interview.selectedAnswer}
-                showExplanation={interview.showExplanation}
-                showHint={interview.showHint}
-                isAnswered={interview.isAnswered}
-                isComplete={interview.isComplete}
-                score={interview.score}
-                onSelectAnswer={interview.selectAnswer}
-                onNextQuestion={interview.nextQuestion}
-                onPreviousQuestion={interview.previousQuestion}
-                onUseHint={interview.useHint}
-                onRestart={interview.restartSession}
-                accentColor="cyan"
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={playback.isPlaying}
-            currentStep={playback.currentStep}
-            totalSteps={playback.steps.length}
-            speed={playback.speed}
-            onPlayPause={playback.handlePlayPause}
-            onStep={playback.handleStep}
-            onStepBack={playback.handleStepBack}
-            onReset={playback.handleReset}
-            onSpeedChange={playback.setSpeed}
-            accentColor="cyan"
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
+  const modeToggle = (
+    <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
+      <button
+        onClick={() => setMode('visualize')}
+        className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+          mode === 'visualize'
+            ? 'bg-white text-cyan-600 shadow-sm'
+            : 'text-gray-600 hover:text-gray-800'
+        }`}
+      >
+        Visualize
+      </button>
+      <button
+        onClick={() => setMode('interview')}
+        className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+          mode === 'interview'
+            ? 'bg-white text-cyan-600 shadow-sm'
+            : 'text-gray-600 hover:text-gray-800'
+        }`}
+      >
+        Interview
+      </button>
     </div>
+  );
+
+  const sidePanel = mode === 'interview' ? (
+    <InterviewModePanel
+      currentQuestion={interview.currentQuestion}
+      currentQuestionIndex={interview.session.currentQuestionIndex}
+      totalQuestions={interview.session.questions.length}
+      selectedAnswer={interview.selectedAnswer}
+      showExplanation={interview.showExplanation}
+      showHint={interview.showHint}
+      isAnswered={interview.isAnswered}
+      isComplete={interview.isComplete}
+      score={interview.score}
+      onSelectAnswer={interview.selectAnswer}
+      onNextQuestion={interview.nextQuestion}
+      onPreviousQuestion={interview.previousQuestion}
+      onUseHint={interview.useHint}
+      onRestart={interview.restartSession}
+      accentColor="cyan"
+    />
+  ) : undefined;
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="0/1 Knapsack (DP)"
+      badges={BADGES}
+      gradient="cyan"
+      className={className}
+      minHeight={400}
+      onShare={handleShare}
+      headerExtra={modeToggle}
+      status={{
+        description,
+        currentStep: playback.currentStep,
+        totalSteps: playback.steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying: playback.isPlaying,
+        currentStep: playback.currentStep,
+        totalSteps: playback.steps.length,
+        speed: playback.speed,
+        onPlayPause: playback.handlePlayPause,
+        onStep: playback.handleStep,
+        onStepBack: playback.handleStepBack,
+        onReset: playback.handleReset,
+        onSpeedChange: playback.setSpeed,
+        accentColor: 'cyan',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      sidePanel={sidePanel}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

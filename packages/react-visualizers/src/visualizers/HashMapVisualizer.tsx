@@ -1,14 +1,8 @@
 import React, { useMemo, useCallback } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 
 interface Entry {
@@ -81,6 +75,11 @@ const LEGEND_ITEMS = [
   { color: 'bg-blue-500', label: 'Insert/Update' },
   { color: 'bg-green-400', label: 'Found' },
   { color: 'bg-red-400', label: 'Not found' },
+];
+
+const BADGES = [
+  { label: 'Avg: O(1)', variant: 'indigo' as const },
+  { label: 'Worst: O(n)', variant: 'purple' as const },
 ];
 
 function simpleHash(str: string): number {
@@ -311,143 +310,112 @@ const HashMapVisualizerComponent: React.FC<HashMapVisualizerProps> = ({
     return copyUrlToClipboard({ step: currentStep });
   }, [copyUrlToClipboard, currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">HashMap Operations</h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-700 rounded">
-                Avg: O(1)
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
-                Worst: O(n)
-              </span>
+  const visualization = (
+    <>
+      {/* Hash Function - Prominent */}
+      <div className="mb-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200">
+        <div className="text-sm font-bold text-indigo-800 mb-3 flex items-center gap-2">
+          <span className="text-lg">#️⃣</span> Hash Function
+        </div>
+        <div className="font-mono text-sm bg-white rounded-lg p-3 border border-indigo-200">
+          <div className="text-center text-indigo-700 font-bold mb-2">
+            index = hashCode(key) % capacity
+          </div>
+          <div className="text-xs text-gray-500 text-center">
+            Same key → same index (deterministic) • Different keys may collide → chaining
+          </div>
+        </div>
+        {/* Current hash calculation */}
+        {stepData.hash !== undefined && stepData.key && (
+          <div className="mt-3 p-3 bg-white rounded-lg border border-indigo-200">
+            <div className="text-xs text-center">
+              <div className="font-mono mb-1">
+                hashCode(<span className="text-indigo-600 font-bold">&quot;{stepData.key}&quot;</span>) = <span className="text-purple-600 font-bold">{stepData.hash}</span>
+              </div>
+              <div className="font-mono">
+                <span className="text-purple-600">{stepData.hash}</span> % <span className="text-gray-600">{BUCKET_COUNT}</span> = <span className="text-indigo-600 font-bold text-lg">{stepData.bucketIndex}</span>
+              </div>
+              <div className="mt-2 text-indigo-600 text-lg">↓ bucket[{stepData.bucketIndex}]</div>
             </div>
           </div>
-          <ShareButton onShare={handleShare} />
-        </div>
+        )}
       </div>
 
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={350} className={showCode ? 'flex-1' : 'w-full'}>
-            {/* Hash Function - Prominent */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200">
-              <div className="text-sm font-bold text-indigo-800 mb-3 flex items-center gap-2">
-                <span className="text-lg">#️⃣</span> Hash Function
+      {/* Bucket Array */}
+      <div className="mb-4">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          Bucket Array (capacity: {BUCKET_COUNT})
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {buckets.map((bucket, idx) => (
+            <div key={idx} className="flex flex-col items-center">
+              <div
+                className={`w-8 h-8 flex items-center justify-center text-xs font-medium rounded border-2 transition-colors ${getBucketStyle(idx)}`}
+              >
+                {idx}
               </div>
-              <div className="font-mono text-sm bg-white rounded-lg p-3 border border-indigo-200">
-                <div className="text-center text-indigo-700 font-bold mb-2">
-                  index = hashCode(key) % capacity
-                </div>
-                <div className="text-xs text-gray-500 text-center">
-                  Same key → same index (deterministic) • Different keys may collide → chaining
-                </div>
-              </div>
-              {/* Current hash calculation */}
-              {stepData.hash !== undefined && stepData.key && (
-                <div className="mt-3 p-3 bg-white rounded-lg border border-indigo-200">
-                  <div className="text-xs text-center">
-                    <div className="font-mono mb-1">
-                      hashCode(<span className="text-indigo-600 font-bold">&quot;{stepData.key}&quot;</span>) = <span className="text-purple-600 font-bold">{stepData.hash}</span>
-                    </div>
-                    <div className="font-mono">
-                      <span className="text-purple-600">{stepData.hash}</span> % <span className="text-gray-600">{BUCKET_COUNT}</span> = <span className="text-indigo-600 font-bold text-lg">{stepData.bucketIndex}</span>
-                    </div>
-                    <div className="mt-2 text-indigo-600 text-lg">↓ bucket[{stepData.bucketIndex}]</div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Bucket Array */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Bucket Array (capacity: {BUCKET_COUNT})
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {buckets.map((bucket, idx) => (
-                  <div key={idx} className="flex flex-col items-center">
-                    <div
-                      className={`w-8 h-8 flex items-center justify-center text-xs font-medium rounded border-2 transition-colors ${getBucketStyle(idx)}`}
-                    >
-                      {idx}
-                    </div>
-                    {/* Entries chain */}
-                    <div className="flex flex-col items-center mt-1">
-                      {bucket.entries.length > 0 ? (
-                        bucket.entries.map((entry, eIdx) => (
-                          <React.Fragment key={eIdx}>
-                            {eIdx > 0 && (
-                              <div className="w-0.5 h-2 bg-gray-300" />
-                            )}
-                            <div
-                              className={`px-2 py-1 text-[10px] rounded transition-colors whitespace-nowrap ${getEntryStyle(idx, eIdx)}`}
-                            >
-                              {entry.key}: {entry.value}
-                            </div>
-                          </React.Fragment>
-                        ))
-                      ) : (
-                        <div className="text-[10px] text-gray-400 mt-1">∅</div>
+              {/* Entries chain */}
+              <div className="flex flex-col items-center mt-1">
+                {bucket.entries.length > 0 ? (
+                  bucket.entries.map((entry, eIdx) => (
+                    <React.Fragment key={eIdx}>
+                      {eIdx > 0 && (
+                        <div className="w-0.5 h-2 bg-gray-300" />
                       )}
-                    </div>
-                  </div>
-                ))}
+                      <div
+                        className={`px-2 py-1 text-[10px] rounded transition-colors whitespace-nowrap ${getEntryStyle(idx, eIdx)}`}
+                      >
+                        {entry.key}: {entry.value}
+                      </div>
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <div className="text-[10px] text-gray-400 mt-1">∅</div>
+                )}
               </div>
             </div>
-
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={getStatusVariant()}
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={HASHMAP_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
-            </div>
-          )}
+          ))}
         </div>
       </div>
+    </>
+  );
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="indigo"
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
-    </div>
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="HashMap Operations"
+      badges={BADGES}
+      gradient="indigo"
+      onShare={handleShare}
+      className={className}
+      minHeight={350}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'indigo',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? HASHMAP_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

@@ -1,12 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 import { InterviewModePanel } from '../shared/InterviewModePanel';
 import { useInterviewMode, type InterviewQuestion } from '../shared/useInterviewMode';
@@ -40,11 +36,15 @@ interface ConsistentHashingInterviewVisualizerProps {
   className?: string;
 }
 
+const BADGES = [
+  { label: 'Distributed Systems', variant: 'cyan' as const },
+];
+
 const LEGEND_ITEMS = [
   { color: 'bg-blue-500', label: 'Server A' },
   { color: 'bg-green-500', label: 'Server B' },
   { color: 'bg-purple-500', label: 'Server C' },
-  { color: 'bg-yellow-400', label: 'Data key' },
+  { color: 'bg-amber-400', label: 'Data key' },
   { color: 'bg-red-400', label: 'Moving' },
 ];
 
@@ -342,225 +342,217 @@ const ConsistentHashingInterviewVisualizerComponent: React.FC<ConsistentHashingI
     };
   };
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-cyan-50 to-blue-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">Consistent Hashing</h3>
-            <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
-              <button
-                onClick={() => setMode('visualize')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'visualize'
-                    ? 'bg-white text-cyan-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Visualize
-              </button>
-              <button
-                onClick={() => setMode('interview')}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  mode === 'interview'
-                    ? 'bg-white text-cyan-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                Interview
-              </button>
-            </div>
-            <span className="px-2 py-0.5 text-xs font-medium bg-cyan-100 text-cyan-700 rounded">
-              Distributed Systems
+  const getStatusVariant = () => {
+    if (stepData.operation === 'done') return 'success';
+    if (stepData.operation === 'removeServer') return 'warning';
+    return 'default';
+  };
+
+  const visualization = (
+    <>
+      {/* Key Concept */}
+      <div className="mb-4 p-3 bg-cyan-50 rounded-lg border border-cyan-200">
+        <div className="text-sm font-medium text-cyan-800 mb-1">Key Insight</div>
+        <div className="text-xs text-gray-700">
+          Regular hashing (key % N) remaps ~100% of keys when N changes.
+          Consistent hashing only remaps ~K/N keys (minimal disruption).
+        </div>
+      </div>
+
+      {/* Hash Ring */}
+      <div className="mb-4 flex justify-center">
+        <svg width="240" height="240" className="overflow-visible">
+          {/* Ring */}
+          <circle
+            cx={CENTER.x}
+            cy={CENTER.y}
+            r={RING_RADIUS}
+            fill="none"
+            stroke="#e5e7eb"
+            strokeWidth="2"
+          />
+
+          {/* Virtual nodes */}
+          {virtualNodes.map((node) => {
+            const pos = getPositionOnRing(node.position);
+            const isHighlighted = highlightServer === node.serverId;
+            const fillColor = SERVER_COLORS[node.serverId]
+              ?.replace('bg-', '')
+              .replace('blue-500', '#3b82f6')
+              .replace('green-500', '#22c55e')
+              .replace('purple-500', '#a855f7') || '#6b7280';
+
+            return (
+              <circle
+                key={node.id}
+                cx={pos.x}
+                cy={pos.y}
+                r={isHighlighted ? 9 : 7}
+                fill={fillColor}
+                stroke={isHighlighted ? '#fbbf24' : 'white'}
+                strokeWidth={isHighlighted ? 3 : 2}
+              />
+            );
+          })}
+
+          {/* Data keys */}
+          {dataKeys.map((key) => {
+            const pos = getPositionOnRing(key.position);
+            const isHighlighted = highlightKey === key.key;
+            const isMoving = movingKeys?.includes(key.key);
+
+            return (
+              <rect
+                key={key.key}
+                x={pos.x - 4}
+                y={pos.y - 4}
+                width={8}
+                height={8}
+                fill={isMoving ? '#ef4444' : '#fbbf24'}
+                stroke={isHighlighted ? '#000' : 'white'}
+                strokeWidth={isHighlighted ? 2 : 1}
+                transform={`rotate(45 ${pos.x} ${pos.y})`}
+              />
+            );
+          })}
+
+          {/* Center label */}
+          <text x={CENTER.x} y={CENTER.y} textAnchor="middle" dominantBaseline="middle" className="text-[9px] fill-gray-500">
+            Hash Ring
+          </text>
+        </svg>
+      </div>
+
+      {/* Server Legend */}
+      <div className="mb-4 flex flex-wrap gap-2 justify-center">
+        {servers.map((server) => (
+          <div
+            key={server}
+            className={`flex items-center gap-1 px-2 py-1 rounded border ${
+              highlightServer === server ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200'
+            }`}
+          >
+            <div className={`w-2 h-2 rounded-full ${SERVER_COLORS[server]}`} />
+            <span className="text-xs">{server}</span>
+            <span className="text-[10px] text-gray-500">
+              ({dataKeys.filter((k) => k.assignedServer === server).length})
             </span>
           </div>
-          <ShareButton onShare={handleShare} accentColor="cyan" />
-        </div>
+        ))}
       </div>
 
-      <div className="p-4">
-        <div className="flex gap-4 flex-col lg:flex-row">
-          {/* Visualization Panel */}
-          <VisualizationArea minHeight={400} className="flex-1">
-            {/* Key Concept */}
-            <div className="mb-4 p-3 bg-cyan-50 rounded-lg border border-cyan-200">
-              <div className="text-sm font-medium text-cyan-800 mb-1">Key Insight</div>
-              <div className="text-xs text-gray-700">
-                Regular hashing (key % N) remaps ~100% of keys when N changes.
-                Consistent hashing only remaps ~K/N keys (minimal disruption).
-              </div>
-            </div>
-
-            {/* Hash Ring */}
-            <div className="mb-4 flex justify-center">
-              <svg width="240" height="240" className="overflow-visible">
-                {/* Ring */}
-                <circle
-                  cx={CENTER.x}
-                  cy={CENTER.y}
-                  r={RING_RADIUS}
-                  fill="none"
-                  stroke="#e5e7eb"
-                  strokeWidth="2"
-                />
-
-                {/* Virtual nodes */}
-                {virtualNodes.map((node) => {
-                  const pos = getPositionOnRing(node.position);
-                  const isHighlighted = highlightServer === node.serverId;
-                  const fillColor = SERVER_COLORS[node.serverId]
-                    ?.replace('bg-', '')
-                    .replace('blue-500', '#3b82f6')
-                    .replace('green-500', '#22c55e')
-                    .replace('purple-500', '#a855f7') || '#6b7280';
-
-                  return (
-                    <circle
-                      key={node.id}
-                      cx={pos.x}
-                      cy={pos.y}
-                      r={isHighlighted ? 9 : 7}
-                      fill={fillColor}
-                      stroke={isHighlighted ? '#fbbf24' : 'white'}
-                      strokeWidth={isHighlighted ? 3 : 2}
-                    />
-                  );
-                })}
-
-                {/* Data keys */}
-                {dataKeys.map((key) => {
-                  const pos = getPositionOnRing(key.position);
-                  const isHighlighted = highlightKey === key.key;
-                  const isMoving = movingKeys?.includes(key.key);
-
-                  return (
-                    <rect
-                      key={key.key}
-                      x={pos.x - 4}
-                      y={pos.y - 4}
-                      width={8}
-                      height={8}
-                      fill={isMoving ? '#ef4444' : '#fbbf24'}
-                      stroke={isHighlighted ? '#000' : 'white'}
-                      strokeWidth={isHighlighted ? 2 : 1}
-                      transform={`rotate(45 ${pos.x} ${pos.y})`}
-                    />
-                  );
-                })}
-
-                {/* Center label */}
-                <text x={CENTER.x} y={CENTER.y} textAnchor="middle" dominantBaseline="middle" className="text-[9px] fill-gray-500">
-                  Hash Ring
-                </text>
-              </svg>
-            </div>
-
-            {/* Server Legend */}
-            <div className="mb-4 flex flex-wrap gap-2 justify-center">
-              {servers.map((server) => (
-                <div
-                  key={server}
-                  className={`flex items-center gap-1 px-2 py-1 rounded border ${
-                    highlightServer === server ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200'
-                  }`}
+      {/* Keys Table */}
+      {dataKeys.length > 0 && (
+        <div className="mb-4 overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-2 py-1 text-left">Key</th>
+                <th className="px-2 py-1 text-left">Hash</th>
+                <th className="px-2 py-1 text-left">Server</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dataKeys.map((key) => (
+                <tr
+                  key={key.key}
+                  className={`${highlightKey === key.key ? 'bg-yellow-100' : ''} ${movingKeys?.includes(key.key) ? 'bg-red-100' : ''}`}
                 >
-                  <div className={`w-2 h-2 rounded-full ${SERVER_COLORS[server]}`} />
-                  <span className="text-xs">{server}</span>
-                  <span className="text-[10px] text-gray-500">
-                    ({dataKeys.filter((k) => k.assignedServer === server).length})
-                  </span>
-                </div>
+                  <td className="px-2 py-1 font-mono">{key.key}</td>
+                  <td className="px-2 py-1">{key.position}°</td>
+                  <td className="px-2 py-1">
+                    <span className={`px-1.5 py-0.5 rounded text-white text-[10px] ${SERVER_COLORS[key.assignedServer || ''] || 'bg-gray-400'}`}>
+                      {key.assignedServer || 'none'}
+                    </span>
+                  </td>
+                </tr>
               ))}
-            </div>
-
-            {/* Keys Table */}
-            {dataKeys.length > 0 && (
-              <div className="mb-4 overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="px-2 py-1 text-left">Key</th>
-                      <th className="px-2 py-1 text-left">Hash</th>
-                      <th className="px-2 py-1 text-left">Server</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dataKeys.map((key) => (
-                      <tr
-                        key={key.key}
-                        className={`${highlightKey === key.key ? 'bg-yellow-100' : ''} ${movingKeys?.includes(key.key) ? 'bg-red-100' : ''}`}
-                      >
-                        <td className="px-2 py-1 font-mono">{key.key}</td>
-                        <td className="px-2 py-1">{key.position}°</td>
-                        <td className="px-2 py-1">
-                          <span className={`px-1.5 py-0.5 rounded text-white text-[10px] ${SERVER_COLORS[key.assignedServer || ''] || 'bg-gray-400'}`}>
-                            {key.assignedServer || 'none'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={playback.currentStep}
-              totalSteps={playback.steps.length}
-              variant={stepData.operation === 'done' ? 'success' : stepData.operation === 'removeServer' ? 'warning' : 'default'}
-            />
-          </VisualizationArea>
-
-          {/* Interview Panel */}
-          {mode === 'interview' && (
-            <div className="w-full lg:w-96 flex-shrink-0">
-              <InterviewModePanel
-                currentQuestion={interview.currentQuestion}
-                currentQuestionIndex={interview.session.currentQuestionIndex}
-                totalQuestions={interview.session.questions.length}
-                selectedAnswer={interview.selectedAnswer}
-                showExplanation={interview.showExplanation}
-                showHint={interview.showHint}
-                isAnswered={interview.isAnswered}
-                isComplete={interview.isComplete}
-                score={interview.score}
-                onSelectAnswer={interview.selectAnswer}
-                onNextQuestion={interview.nextQuestion}
-                onPreviousQuestion={interview.previousQuestion}
-                onUseHint={interview.useHint}
-                onRestart={interview.restartSession}
-                accentColor="cyan"
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={playback.isPlaying}
-            currentStep={playback.currentStep}
-            totalSteps={playback.steps.length}
-            speed={playback.speed}
-            onPlayPause={playback.handlePlayPause}
-            onStep={playback.handleStep}
-            onStepBack={playback.handleStepBack}
-            onReset={playback.handleReset}
-            onSpeedChange={playback.setSpeed}
-            accentColor="cyan"
-          />
-          <Legend items={LEGEND_ITEMS} />
+            </tbody>
+          </table>
         </div>
       )}
+    </>
+  );
+
+  const modeToggle = (
+    <div className="flex gap-1 bg-gray-200 rounded-lg p-0.5">
+      <button
+        onClick={() => setMode('visualize')}
+        className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+          mode === 'visualize'
+            ? 'bg-white text-cyan-600 shadow-sm'
+            : 'text-gray-600 hover:text-gray-800'
+        }`}
+      >
+        Visualize
+      </button>
+      <button
+        onClick={() => setMode('interview')}
+        className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+          mode === 'interview'
+            ? 'bg-white text-cyan-600 shadow-sm'
+            : 'text-gray-600 hover:text-gray-800'
+        }`}
+      >
+        Interview
+      </button>
     </div>
+  );
+
+  const sidePanel = mode === 'interview' ? (
+    <InterviewModePanel
+      currentQuestion={interview.currentQuestion}
+      currentQuestionIndex={interview.session.currentQuestionIndex}
+      totalQuestions={interview.session.questions.length}
+      selectedAnswer={interview.selectedAnswer}
+      showExplanation={interview.showExplanation}
+      showHint={interview.showHint}
+      isAnswered={interview.isAnswered}
+      isComplete={interview.isComplete}
+      score={interview.score}
+      onSelectAnswer={interview.selectAnswer}
+      onNextQuestion={interview.nextQuestion}
+      onPreviousQuestion={interview.previousQuestion}
+      onUseHint={interview.useHint}
+      onRestart={interview.restartSession}
+      accentColor="cyan"
+    />
+  ) : undefined;
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="Consistent Hashing (Interview Mode)"
+      badges={BADGES}
+      gradient="cyan"
+      className={className}
+      minHeight={500}
+      onShare={handleShare}
+      headerExtra={modeToggle}
+      status={{
+        description,
+        currentStep: playback.currentStep,
+        totalSteps: playback.steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying: playback.isPlaying,
+        currentStep: playback.currentStep,
+        totalSteps: playback.steps.length,
+        speed: playback.speed,
+        onPlayPause: playback.handlePlayPause,
+        onStep: playback.handleStep,
+        onStepBack: playback.handleStepBack,
+        onReset: playback.handleReset,
+        onSpeedChange: playback.setSpeed,
+        accentColor: 'cyan',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      sidePanel={sidePanel}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

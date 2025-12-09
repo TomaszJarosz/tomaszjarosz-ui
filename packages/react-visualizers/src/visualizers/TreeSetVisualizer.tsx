@@ -1,13 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
-  VisualizationArea,
 } from '../shared';
 
 interface TreeNode {
@@ -75,6 +69,11 @@ const LEGEND_ITEMS = [
   { color: 'bg-blue-500', label: 'Current/Insert' },
   { color: 'bg-green-500', label: 'Found' },
   { color: 'bg-red-500', label: 'Not found' },
+];
+
+const BADGES = [
+  { label: 'Avg: O(log n)', variant: 'green' as const },
+  { label: 'Worst: O(n)', variant: 'amber' as const },
 ];
 
 function cloneTree(node: TreeNode | null): TreeNode | null {
@@ -469,191 +468,158 @@ const TreeSetVisualizerComponent: React.FC<TreeSetVisualizerProps> = ({
     return copyUrlToClipboard({ step: currentStep });
   }, [copyUrlToClipboard, currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">
-              TreeSet Operations (BST)
-            </h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700 rounded">
-                Avg: O(log n)
+  const getStatusVariant = () => {
+    if (currentStepData.operation === 'contains' && found === false) return 'error' as const;
+    if (currentStepData.operation === 'contains' && found === true) return 'success' as const;
+    if (currentStepData.operation === 'done') return 'success' as const;
+    return 'default' as const;
+  };
+
+  const visualization = (
+    <>
+      {/* BST Property - Prominent */}
+      <div className="mb-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200">
+        <div className="text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2">
+          <span className="text-lg">🌳</span> Binary Search Tree Property
+        </div>
+        <div className="font-mono text-sm bg-white rounded-lg p-3 border border-emerald-200">
+          <div className="text-center text-emerald-700 font-bold text-base mb-2">
+            left &lt; <span className="text-gray-800">node</span> &lt; right
+          </div>
+          <div className="text-xs text-gray-500 text-center">
+            All values in left subtree are smaller • All values in right subtree are larger
+          </div>
+        </div>
+        {/* Current comparison */}
+        {currentStepData.operation === 'add' && currentStepData.value !== undefined && currentNode !== undefined && currentNode !== currentStepData.value && (
+          <div className="mt-3 p-2 bg-white rounded-lg border border-emerald-200">
+            <div className="text-xs text-center">
+              <span className="font-semibold text-emerald-700">Comparing:</span>{' '}
+              <span className="font-mono">
+                {currentStepData.value} {currentStepData.value < currentNode ? '<' : '>'} {currentNode}
               </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-700 rounded">
-                Worst: O(n)
+              {' → '}
+              <span className={`font-bold ${currentStepData.value < currentNode ? 'text-blue-600' : 'text-orange-600'}`}>
+                Go {currentStepData.value < currentNode ? 'LEFT' : 'RIGHT'}
               </span>
             </div>
           </div>
-          <ShareButton onShare={handleShare} />
-        </div>
+        )}
+        {currentStepData.operation === 'contains' && currentStepData.value !== undefined && currentNode !== undefined && !found && path.length > 0 && path[path.length - 1] !== currentStepData.value && (
+          <div className="mt-3 p-2 bg-white rounded-lg border border-emerald-200">
+            <div className="text-xs text-center">
+              <span className="font-semibold text-emerald-700">Comparing:</span>{' '}
+              <span className="font-mono">
+                {currentStepData.value} {currentStepData.value < currentNode ? '<' : '>'} {currentNode}
+              </span>
+              {' → '}
+              <span className={`font-bold ${currentStepData.value < currentNode ? 'text-blue-600' : 'text-orange-600'}`}>
+                Go {currentStepData.value < currentNode ? 'LEFT' : 'RIGHT'}
+              </span>
+            </div>
+          </div>
+        )}
+        {found === true && (
+          <div className="mt-3 p-2 bg-green-100 rounded-lg border border-green-300">
+            <div className="text-xs text-center text-green-800 font-bold">
+              ✓ Found! {currentStepData.value} == {currentNode}
+            </div>
+          </div>
+        )}
+        {found === false && (
+          <div className="mt-3 p-2 bg-red-100 rounded-lg border border-red-300">
+            <div className="text-xs text-center text-red-800 font-bold">
+              ✗ Not found! Reached null (no more children to check)
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={400} className={showCode ? 'flex-1' : 'w-full'}>
-            {/* BST Property - Prominent */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200">
-              <div className="text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2">
-                <span className="text-lg">🌳</span> Binary Search Tree Property
-              </div>
-              <div className="font-mono text-sm bg-white rounded-lg p-3 border border-emerald-200">
-                <div className="text-center text-emerald-700 font-bold text-base mb-2">
-                  left &lt; <span className="text-gray-800">node</span> &lt; right
-                </div>
-                <div className="text-xs text-gray-500 text-center">
-                  All values in left subtree are smaller • All values in right subtree are larger
-                </div>
-              </div>
-              {/* Current comparison */}
-              {currentStepData.operation === 'add' && currentStepData.value !== undefined && currentNode !== undefined && currentNode !== currentStepData.value && (
-                <div className="mt-3 p-2 bg-white rounded-lg border border-emerald-200">
-                  <div className="text-xs text-center">
-                    <span className="font-semibold text-emerald-700">Comparing:</span>{' '}
-                    <span className="font-mono">
-                      {currentStepData.value} {currentStepData.value < currentNode ? '<' : '>'} {currentNode}
-                    </span>
-                    {' → '}
-                    <span className={`font-bold ${currentStepData.value < currentNode ? 'text-blue-600' : 'text-orange-600'}`}>
-                      Go {currentStepData.value < currentNode ? 'LEFT' : 'RIGHT'}
-                    </span>
-                  </div>
-                </div>
-              )}
-              {currentStepData.operation === 'contains' && currentStepData.value !== undefined && currentNode !== undefined && !found && path.length > 0 && path[path.length - 1] !== currentStepData.value && (
-                <div className="mt-3 p-2 bg-white rounded-lg border border-emerald-200">
-                  <div className="text-xs text-center">
-                    <span className="font-semibold text-emerald-700">Comparing:</span>{' '}
-                    <span className="font-mono">
-                      {currentStepData.value} {currentStepData.value < currentNode ? '<' : '>'} {currentNode}
-                    </span>
-                    {' → '}
-                    <span className={`font-bold ${currentStepData.value < currentNode ? 'text-blue-600' : 'text-orange-600'}`}>
-                      Go {currentStepData.value < currentNode ? 'LEFT' : 'RIGHT'}
-                    </span>
-                  </div>
-                </div>
-              )}
-              {found === true && (
-                <div className="mt-3 p-2 bg-green-100 rounded-lg border border-green-300">
-                  <div className="text-xs text-center text-green-800 font-bold">
-                    ✓ Found! {currentStepData.value} == {currentNode}
-                  </div>
-                </div>
-              )}
-              {found === false && (
-                <div className="mt-3 p-2 bg-red-100 rounded-lg border border-red-300">
-                  <div className="text-xs text-center text-red-800 font-bold">
-                    ✗ Not found! Reached null (no more children to check)
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Tree Visualization */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Binary Search Tree
-              </div>
-              <div className="bg-gray-50 rounded-lg p-2 overflow-x-auto">
-                {tree ? (
-                  <svg width="300" height="250" className="mx-auto">
-                    {renderTree(tree)}
-                  </svg>
-                ) : (
-                  <div className="h-32 flex items-center justify-center text-gray-400 text-sm">
-                    Empty tree
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Path Display */}
-            {path.length > 0 && (
-              <div className="mb-4 p-3 bg-gray-100 rounded-lg">
-                <div className="text-xs text-gray-600">
-                  <span className="font-medium">Traversal Path:</span>
-                  <div className="mt-1 flex items-center gap-1 flex-wrap">
-                    {path.map((v, idx) => (
-                      <React.Fragment key={idx}>
-                        {idx > 0 && <span className="text-gray-400">→</span>}
-                        <span
-                          className={`px-2 py-0.5 rounded text-xs font-mono ${
-                            v === currentNode
-                              ? found === false
-                                ? 'bg-red-100 text-red-700'
-                                : found
-                                  ? 'bg-green-100 text-green-700'
-                                  : 'bg-blue-100 text-blue-700'
-                              : 'bg-yellow-100 text-yellow-700'
-                          }`}
-                        >
-                          {v}
-                        </span>
-                      </React.Fragment>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={
-                currentStepData.operation === 'contains' && found === false
-                  ? 'error'
-                  : currentStepData.operation === 'contains' && found === true
-                    ? 'success'
-                    : currentStepData.operation === 'done'
-                      ? 'success'
-                      : 'default'
-              }
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={TREESET_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
+      {/* Tree Visualization */}
+      <div className="mb-4">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          Binary Search Tree
+        </div>
+        <div className="bg-gray-50 rounded-lg p-2 overflow-x-auto">
+          {tree ? (
+            <svg width="300" height="250" className="mx-auto">
+              {renderTree(tree)}
+            </svg>
+          ) : (
+            <div className="h-32 flex items-center justify-center text-gray-400 text-sm">
+              Empty tree
             </div>
           )}
         </div>
       </div>
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="green"
-          />
-          <Legend items={LEGEND_ITEMS} />
+      {/* Path Display */}
+      {path.length > 0 && (
+        <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+          <div className="text-xs text-gray-600">
+            <span className="font-medium">Traversal Path:</span>
+            <div className="mt-1 flex items-center gap-1 flex-wrap">
+              {path.map((v, idx) => (
+                <React.Fragment key={idx}>
+                  {idx > 0 && <span className="text-gray-400">→</span>}
+                  <span
+                    className={`px-2 py-0.5 rounded text-xs font-mono ${
+                      v === currentNode
+                        ? found === false
+                          ? 'bg-red-100 text-red-700'
+                          : found
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-blue-100 text-blue-700'
+                        : 'bg-yellow-100 text-yellow-700'
+                    }`}
+                  >
+                    {v}
+                  </span>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
         </div>
       )}
-    </div>
+    </>
+  );
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="TreeSet Operations (BST)"
+      badges={BADGES}
+      gradient="green"
+      className={className}
+      minHeight={400}
+      onShare={handleShare}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'green',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? TREESET_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

@@ -1,14 +1,8 @@
 import React, { useMemo, useCallback } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 
 interface BTreeNode {
@@ -84,6 +78,11 @@ const LEGEND_ITEMS = [
   { color: 'bg-green-500', label: 'Found / Inserted' },
   { color: 'bg-red-400', label: 'Not found' },
   { color: 'bg-purple-400', label: 'Splitting' },
+];
+
+const BADGES = [
+  { label: 'Search: O(log n)', variant: 'green' as const },
+  { label: 'Insert: O(log n)', variant: 'green' as const },
 ];
 
 let nodeIdCounter = 0;
@@ -448,132 +447,102 @@ const BTreeVisualizerComponent: React.FC<BTreeVisualizerProps> = ({
     );
   };
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">B-Tree (Order {ORDER})</h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700 rounded">
-                Search: O(log n)
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-700 rounded">
-                Insert: O(log n)
-              </span>
-            </div>
+  const visualization = (
+    <>
+      {/* Key Concept */}
+      <div className="mb-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200">
+        <div className="text-sm font-bold text-emerald-800 mb-2 flex items-center gap-2">
+          <span className="text-lg">🌳</span> B-Tree Properties
+        </div>
+        <div className="text-xs text-gray-700 space-y-1">
+          <p><strong>Self-balancing:</strong> All leaves at same depth</p>
+          <p><strong>Order {ORDER}:</strong> Max {ORDER - 1} keys, {ORDER} children per node</p>
+          <p><strong>Sorted:</strong> Keys within node are sorted</p>
+          <p><strong>Use case:</strong> Database indexes, file systems</p>
+        </div>
+      </div>
+
+      {/* Tree Visualization */}
+      <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[150px] flex items-center justify-center">
+        {nodes.size > 0 ? (
+          renderNode(rootId)
+        ) : (
+          <span className="text-gray-400">Empty tree</span>
+        )}
+      </div>
+
+      {/* Current Operation */}
+      {targetKey !== undefined && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="text-sm">
+            <span className="text-gray-500">Target key: </span>
+            <span className="font-mono font-bold text-emerald-600">{targetKey}</span>
           </div>
-          <ShareButton onShare={handleShare} accentColor="green" />
-        </div>
-      </div>
-
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={350} className={showCode ? 'flex-1' : 'w-full'}>
-            {/* Key Concept */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200">
-              <div className="text-sm font-bold text-emerald-800 mb-2 flex items-center gap-2">
-                <span className="text-lg">🌳</span> B-Tree Properties
-              </div>
-              <div className="text-xs text-gray-700 space-y-1">
-                <p><strong>Self-balancing:</strong> All leaves at same depth</p>
-                <p><strong>Order {ORDER}:</strong> Max {ORDER - 1} keys, {ORDER} children per node</p>
-                <p><strong>Sorted:</strong> Keys within node are sorted</p>
-                <p><strong>Use case:</strong> Database indexes, file systems</p>
-              </div>
-            </div>
-
-            {/* Tree Visualization */}
-            <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[150px] flex items-center justify-center">
-              {nodes.size > 0 ? (
-                renderNode(rootId)
-              ) : (
-                <span className="text-gray-400">Empty tree</span>
-              )}
-            </div>
-
-            {/* Current Operation */}
-            {targetKey !== undefined && (
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="text-sm">
-                  <span className="text-gray-500">Target key: </span>
-                  <span className="font-mono font-bold text-emerald-600">{targetKey}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Split Info */}
-            {splitInfo && (
-              <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                <div className="text-sm font-medium text-purple-800 mb-1">Node Split</div>
-                <div className="text-xs text-purple-700 font-mono">
-                  <div>Median: <strong>{splitInfo.medianKey}</strong> (promoted)</div>
-                  <div>Left: [{splitInfo.leftKeys.join(', ')}]</div>
-                  <div>Right: [{splitInfo.rightKeys.join(', ')}]</div>
-                </div>
-              </div>
-            )}
-
-            {/* Operations Queue */}
-            <div className="mb-4 p-2 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="text-xs font-medium text-blue-800 mb-1">Operations</div>
-              <div className="text-xs text-blue-700 font-mono">
-                {OPERATIONS.map((op, i) => (
-                  <span key={i} className="mr-2">
-                    {op.op}({op.key})
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={getStatusVariant()}
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={BTREE_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="green"
-          />
-          <Legend items={LEGEND_ITEMS} />
         </div>
       )}
-    </div>
+
+      {/* Split Info */}
+      {splitInfo && (
+        <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+          <div className="text-sm font-medium text-purple-800 mb-1">Node Split</div>
+          <div className="text-xs text-purple-700 font-mono">
+            <div>Median: <strong>{splitInfo.medianKey}</strong> (promoted)</div>
+            <div>Left: [{splitInfo.leftKeys.join(', ')}]</div>
+            <div>Right: [{splitInfo.rightKeys.join(', ')}]</div>
+          </div>
+        </div>
+      )}
+
+      {/* Operations Queue */}
+      <div className="mb-4 p-2 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="text-xs font-medium text-blue-800 mb-1">Operations</div>
+        <div className="text-xs text-blue-700 font-mono">
+          {OPERATIONS.map((op, i) => (
+            <span key={i} className="mr-2">
+              {op.op}({op.key})
+            </span>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title={`B-Tree (Order ${ORDER})`}
+      badges={BADGES}
+      gradient="green"
+      className={className}
+      minHeight={350}
+      onShare={handleShare}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'green',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? BTREE_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

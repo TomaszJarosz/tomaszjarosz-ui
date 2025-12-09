@@ -1,12 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Lock, Shield } from 'lucide-react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  VisualizationArea,
+  BaseVisualizerLayout,
 } from '../shared';
 
 interface ImmutableStep {
@@ -48,6 +43,11 @@ const LEGEND_ITEMS = [
   { color: 'bg-violet-100', label: 'Immutable', border: '#c4b5fd' },
   { color: 'bg-green-100', label: 'Mutable copy', border: '#86efac' },
   { color: 'bg-red-100', label: 'Error', border: '#fca5a5' },
+];
+
+const BADGES = [
+  { label: 'Unmodifiable', variant: 'purple' as const },
+  { label: 'Thread-safe', variant: 'purple' as const },
 ];
 
 function generateImmutableSteps(): ImmutableStep[] {
@@ -264,167 +264,134 @@ const ImmutableCollectionsVisualizerComponent: React.FC<
   const { original, derived, description, error, showDerived } =
     currentStepData;
 
-  return (
-    <div
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
-    >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-violet-50 to-purple-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">
-              Immutable Collections
-            </h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-violet-100 text-violet-700 rounded flex items-center gap-1">
-                <Lock className="w-3 h-3" />
-                Unmodifiable
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded flex items-center gap-1">
-                <Shield className="w-3 h-3" />
-                Thread-safe
+  const getStatusVariant = () => {
+    if (error) return 'error' as const;
+    if (currentStepData.operation === 'done') return 'success' as const;
+    return 'default' as const;
+  };
+
+  const visualization = (
+    <>
+      {/* Collections Display */}
+      <div className="mb-4 space-y-4">
+        {/* Original Immutable */}
+        {original.length > 0 && (
+          <div className="p-4 bg-violet-50 rounded-lg border-2 border-violet-200">
+            <div className="flex items-center gap-2 mb-2">
+              <Lock className="w-4 h-4 text-violet-600" />
+              <span className="text-sm font-medium text-violet-700">
+                Immutable List (List.of)
               </span>
             </div>
+            <div className="flex gap-2">
+              {original.map((item, idx) => (
+                <div
+                  key={idx}
+                  className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 font-bold transition-colors ${
+                    error
+                      ? 'bg-red-100 border-red-300 text-red-700 animate-pulse'
+                      : 'bg-violet-100 border-violet-300 text-violet-700'
+                  }`}
+                >
+                  {item}
+                </div>
+              ))}
+              {error && (
+                <div className="flex items-center text-red-600 text-sm font-medium ml-2">
+                  ✗ Cannot modify!
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Derived Mutable */}
+        {showDerived && derived && (
+          <div className="p-4 bg-green-50 rounded-lg border-2 border-green-200">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm font-medium text-green-700">
+                Mutable Copy (ArrayList)
+              </span>
+            </div>
+            <div className="flex gap-2">
+              {derived.map((item, idx) => (
+                <div
+                  key={idx}
+                  className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 font-bold ${
+                    idx === derived.length - 1 &&
+                    derived.length > original.length
+                      ? 'bg-green-500 border-green-600 text-white'
+                      : 'bg-green-100 border-green-300 text-green-700'
+                  }`}
+                >
+                  {item}
+                </div>
+              ))}
+              <div className="flex items-center text-green-600 text-sm font-medium ml-2">
+                ✓ Modifiable
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Benefits */}
+      <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+        <div className="text-xs text-gray-600 grid grid-cols-3 gap-2">
+          <div className="text-center">
+            <div className="font-medium text-violet-700">No Locks</div>
+            <div className="text-gray-500">Thread-safe by nature</div>
+          </div>
+          <div className="text-center">
+            <div className="font-medium text-violet-700">Compact</div>
+            <div className="text-gray-500">Optimized memory</div>
+          </div>
+          <div className="text-center">
+            <div className="font-medium text-violet-700">
+              Safe Sharing
+            </div>
+            <div className="text-gray-500">Pass freely</div>
           </div>
         </div>
       </div>
+    </>
+  );
 
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={350}>
-            {/* Collections Display */}
-            <div className="mb-4 space-y-4">
-              {/* Original Immutable */}
-              {original.length > 0 && (
-                <div className="p-4 bg-violet-50 rounded-lg border-2 border-violet-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Lock className="w-4 h-4 text-violet-600" />
-                    <span className="text-sm font-medium text-violet-700">
-                      Immutable List (List.of)
-                    </span>
-                  </div>
-                  <div className="flex gap-2">
-                    {original.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 font-bold transition-colors ${
-                          error
-                            ? 'bg-red-100 border-red-300 text-red-700 animate-pulse'
-                            : 'bg-violet-100 border-violet-300 text-violet-700'
-                        }`}
-                      >
-                        {item}
-                      </div>
-                    ))}
-                    {error && (
-                      <div className="flex items-center text-red-600 text-sm font-medium ml-2">
-                        ✗ Cannot modify!
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Derived Mutable */}
-              {showDerived && derived && (
-                <div className="p-4 bg-green-50 rounded-lg border-2 border-green-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-medium text-green-700">
-                      Mutable Copy (ArrayList)
-                    </span>
-                  </div>
-                  <div className="flex gap-2">
-                    {derived.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 font-bold ${
-                          idx === derived.length - 1 &&
-                          derived.length > original.length
-                            ? 'bg-green-500 border-green-600 text-white'
-                            : 'bg-green-100 border-green-300 text-green-700'
-                        }`}
-                      >
-                        {item}
-                      </div>
-                    ))}
-                    <div className="flex items-center text-green-600 text-sm font-medium ml-2">
-                      ✓ Modifiable
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Benefits */}
-            <div className="mb-4 p-3 bg-gray-100 rounded-lg">
-              <div className="text-xs text-gray-600 grid grid-cols-3 gap-2">
-                <div className="text-center">
-                  <div className="font-medium text-violet-700">No Locks</div>
-                  <div className="text-gray-500">Thread-safe by nature</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-medium text-violet-700">Compact</div>
-                  <div className="text-gray-500">Optimized memory</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-medium text-violet-700">
-                    Safe Sharing
-                  </div>
-                  <div className="text-gray-500">Pass freely</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={
-                error
-                  ? 'error'
-                  : currentStepData.operation === 'done'
-                    ? 'success'
-                    : 'default'
-              }
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-56 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={IMMUTABLE_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="violet"
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
-    </div>
+  return (
+    <BaseVisualizerLayout
+      id="immutablecollections-visualizer"
+      title="Immutable Collections"
+      badges={BADGES}
+      gradient="purple"
+      className={className}
+      minHeight={350}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'purple',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? IMMUTABLE_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

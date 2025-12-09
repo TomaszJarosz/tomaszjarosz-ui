@@ -1,15 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
+  BaseVisualizerLayout,
   CodePanel,
   HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
   ArrayInput,
   StepHistory,
-  ShareButton,
   useUrlState,
-  VisualizationArea,
   ALGORITHM_NAMES,
   ALGORITHM_COMPLEXITIES,
 } from '../shared';
@@ -102,7 +98,7 @@ const ALGORITHM_CODE: Record<SortingAlgorithm, string[]> = {
 
 const LEGEND_ITEMS = [
   { color: 'bg-blue-500', label: 'Default' },
-  { color: 'bg-yellow-400', label: 'Comparing' },
+  { color: 'bg-amber-400', label: 'Comparing' },
   { color: 'bg-red-500', label: 'Swapping' },
   { color: 'bg-purple-500', label: 'Pivot' },
   { color: 'bg-green-500', label: 'Sorted' },
@@ -821,7 +817,7 @@ const SortingVisualizerComponent: React.FC<SortingVisualizerProps> = ({
   const getBarColor = (state: ArrayBar['state']): string => {
     switch (state) {
       case 'comparing':
-        return 'bg-yellow-400';
+        return 'bg-amber-400';
       case 'swapping':
         return 'bg-red-500';
       case 'sorted':
@@ -859,6 +855,13 @@ const SortingVisualizerComponent: React.FC<SortingVisualizerProps> = ({
     });
   }, [copyUrlToClipboard, currentArray, algorithm, speed]);
 
+  const BADGES = useMemo(() => [
+    { label: `Time: ${complexity.time}`, variant: 'indigo' as const },
+    { label: `Space: ${complexity.space}`, variant: 'purple' as const },
+    { label: `Comparisons: ${currentStepData?.comparisons ?? 0}`, variant: 'amber' as const },
+    { label: `${algorithm === 'merge' ? 'Writes' : 'Swaps'}: ${currentStepData?.swaps ?? 0}`, variant: 'red' as const },
+  ], [complexity, currentStepData, algorithm]);
+
   const sizeControl = useMemo(
     () => (
       <div className="flex items-center gap-3">
@@ -889,62 +892,23 @@ const SortingVisualizerComponent: React.FC<SortingVisualizerProps> = ({
     [arraySize, isPlaying, currentArray, handleCustomArrayChange]
   );
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
+  const headerExtra = showAlgorithmSelector ? (
+    <select
+      value={algorithm}
+      onChange={(e) => setAlgorithm(e.target.value as SortingAlgorithm)}
+      className="px-3 py-1.5 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+      disabled={isPlaying}
     >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-indigo-50 to-blue-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">
-              {ALGORITHM_NAMES[algorithm]}
-            </h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-700 rounded">
-                Time: {complexity.time}
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
-                Space: {complexity.space}
-              </span>
-            </div>
-            {/* Live operation counters */}
-            <div className="flex gap-2 ml-2 border-l border-gray-300 pl-3">
-              <span className="px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded">
-                Comparisons: {currentStepData?.comparisons ?? 0}
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
-                {algorithm === 'merge' ? 'Writes' : 'Swaps'}: {currentStepData?.swaps ?? 0}
-              </span>
-            </div>
-          </div>
+      {Object.entries(ALGORITHM_NAMES).map(([key, name]) => (
+        <option key={key} value={key}>
+          {name}
+        </option>
+      ))}
+    </select>
+  ) : undefined;
 
-          <div className="flex items-center gap-2">
-            {showAlgorithmSelector && (
-              <select
-                value={algorithm}
-                onChange={(e) => setAlgorithm(e.target.value as SortingAlgorithm)}
-                className="px-3 py-1.5 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                disabled={isPlaying}
-              >
-                {Object.entries(ALGORITHM_NAMES).map(([key, name]) => (
-                  <option key={key} value={key}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-            )}
-            <ShareButton onShare={handleShare} accentColor="indigo" />
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Visualization Area */}
-          <VisualizationArea minHeight={300} className={showCode ? 'flex-1' : 'w-full'}>
+  const visualization = (
+    <>
             <div className="flex items-end justify-center gap-1 h-48 bg-gray-50 rounded-lg p-4">
               {bars.map((bar, index) => (
                 <div
@@ -969,41 +933,26 @@ const SortingVisualizerComponent: React.FC<SortingVisualizerProps> = ({
               ))}
             </div>
 
-            {/* Status */}
-            <div className="mt-6">
-              <StatusPanel
-                description={currentDescription}
-                currentStep={currentStep}
-                totalSteps={steps.length}
-                variant={currentDescription.startsWith('✓') ? 'success' : 'default'}
-              />
-            </div>
-          </VisualizationArea>
+    </>
+  );
 
-          {/* Code Panel & History */}
-          {showCode && (
-            <div className="w-full lg:w-64 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={ALGORITHM_CODE[algorithm]}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <StepHistory
-                steps={historySteps}
-                currentStep={currentStep}
-                onStepClick={setCurrentStep}
-                maxHeight="180px"
-                showStats={true}
-                accentColor="indigo"
-                collapsed={historyCollapsed}
-                onToggleCollapse={() => setHistoryCollapsed(!historyCollapsed)}
-              />
-              <HelpPanel />
-            </div>
-          )}
-        </div>
-      </div>
+  const sidePanel = showCode ? (
+    <>
+      <StepHistory
+        steps={historySteps}
+        currentStep={currentStep}
+        onStepClick={setCurrentStep}
+        maxHeight="180px"
+        showStats={true}
+        accentColor="indigo"
+        collapsed={historyCollapsed}
+        onToggleCollapse={() => setHistoryCollapsed(!historyCollapsed)}
+      />
+    </>
+  ) : undefined;
 
+  const footer = (
+    <>
       {/* Complexity Comparison Table */}
       <div className="px-4 pb-2">
         <button
@@ -1096,29 +1045,51 @@ const SortingVisualizerComponent: React.FC<SortingVisualizerProps> = ({
           </div>
         )}
       </div>
+    </>
+  );
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            onShuffle={handleShuffle}
-            accentColor="indigo"
-            showShuffle={true}
-            extraControls={sizeControl}
-          />
-          <Legend items={LEGEND_ITEMS} />
-        </div>
-      )}
-    </div>
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title={ALGORITHM_NAMES[algorithm]}
+      badges={BADGES}
+      gradient="indigo"
+      className={className}
+      minHeight={300}
+      onShare={handleShare}
+      headerExtra={headerExtra}
+      status={{
+        description: currentDescription,
+        currentStep,
+        totalSteps: steps.length,
+        variant: currentDescription.startsWith('✓') ? 'success' : 'default',
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        onShuffle: handleShuffle,
+        accentColor: 'indigo',
+        showShuffle: true,
+        extraControls: sizeControl,
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? ALGORITHM_CODE[algorithm] : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+      sidePanel={sidePanel}
+      footer={footer}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 

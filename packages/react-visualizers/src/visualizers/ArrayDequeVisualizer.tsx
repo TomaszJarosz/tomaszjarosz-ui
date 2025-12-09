@@ -1,14 +1,8 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import {
-  CodePanel,
-  HelpPanel,
-  ControlPanel,
-  Legend,
-  StatusPanel,
-  ShareButton,
+  BaseVisualizerLayout,
   useUrlState,
   useVisualizerPlayback,
-  VisualizationArea,
 } from '../shared';
 
 interface ArrayDequeStep {
@@ -97,6 +91,11 @@ const LEGEND_ITEMS = [
   { color: 'bg-green-400', label: 'Added element' },
   { color: 'bg-red-400', label: 'Removed element' },
   { color: 'bg-yellow-200', label: 'Resize' },
+];
+
+const BADGES = [
+  { label: 'O(1) all ops', variant: 'teal' as const },
+  { label: 'Circular buffer', variant: 'purple' as const },
 ];
 
 function generateArrayDequeSteps(): ArrayDequeStep[] {
@@ -402,187 +401,159 @@ const ArrayDequeVisualizerComponent: React.FC<ArrayDequeVisualizerProps> = ({
     return copyUrlToClipboard({ step: currentStep });
   }, [copyUrlToClipboard, currentStep]);
 
-  return (
-    <div
-      id={VISUALIZER_ID}
-      className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ${className}`}
+  const headerExtra = (
+    <button
+      onClick={toggleCircular}
+      className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+        showCircular
+          ? 'bg-teal-500 text-white'
+          : 'bg-gray-200 text-gray-700'
+      }`}
     >
-      {/* Header */}
-      <div className="px-4 py-3 bg-gradient-to-r from-teal-50 to-violet-50 border-b border-gray-200">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-gray-900">ArrayDeque</h3>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-700 rounded">
-                O(1) all ops
-              </span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-violet-100 text-violet-700 rounded">
-                Circular buffer
-              </span>
+      {showCircular ? 'Circular View' : 'Linear View'}
+    </button>
+  );
+
+  const visualization = (
+    <>
+      {/* Array visualization */}
+      <div className="mb-4">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          Internal Array (capacity: {capacity})
+        </div>
+
+        {showCircular ? (
+          /* Circular view */
+          <div className="flex justify-center mb-4">
+            <div className="relative w-64 h-64">
+              {array.map((val, idx) => {
+                const angle = (idx / capacity) * 2 * Math.PI - Math.PI / 2;
+                const radius = 100;
+                const x = 128 + radius * Math.cos(angle);
+                const y = 128 + radius * Math.sin(angle);
+
+                return (
+                  <div
+                    key={idx}
+                    className={`absolute w-10 h-10 -ml-5 -mt-5 rounded flex flex-col items-center justify-center text-xs font-medium ${getCellStyle(idx)}`}
+                    style={{ left: x, top: y }}
+                  >
+                    <span className="text-[8px] text-gray-400">{idx}</span>
+                    <span>{val ?? '∅'}</span>
+                  </div>
+                );
+              })}
+              {/* Center info */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-xs">
+                <div className="text-teal-600">H: {head}</div>
+                <div className="text-violet-600">T: {tail}</div>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <ShareButton onShare={handleShare} />
-            <button
-              onClick={toggleCircular}
-              className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                showCircular
-                  ? 'bg-teal-500 text-white'
-                  : 'bg-gray-200 text-gray-700'
-              }`}
-            >
-              {showCircular ? 'Circular View' : 'Linear View'}
-            </button>
+        ) : (
+          /* Linear view */
+          <div className="flex flex-wrap gap-1 mb-4">
+            {array.map((val, idx) => (
+              <div key={idx} className="flex flex-col items-center">
+                <div
+                  className={`w-10 h-10 rounded flex flex-col items-center justify-center text-xs font-medium ${getCellStyle(idx)}`}
+                >
+                  <span className="text-[8px] text-gray-400">{idx}</span>
+                  <span>{val ?? '∅'}</span>
+                </div>
+                <div className="text-[9px] text-gray-500 mt-0.5">
+                  {idx === head && idx === tail
+                    ? 'H/T'
+                    : idx === head
+                      ? 'H'
+                      : idx === tail
+                        ? 'T'
+                        : ''}
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Visualization Area */}
-      <div className="p-4">
-        <div className={`flex gap-4 ${showCode ? 'flex-col lg:flex-row' : ''}`}>
-          {/* Main Visualization */}
-          <VisualizationArea minHeight={450} className={showCode ? 'flex-1' : 'w-full'}>
-            {/* Array visualization */}
-            <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                Internal Array (capacity: {capacity})
-              </div>
-
-              {showCircular ? (
-                /* Circular view */
-                <div className="flex justify-center mb-4">
-                  <div className="relative w-64 h-64">
-                    {array.map((val, idx) => {
-                      const angle = (idx / capacity) * 2 * Math.PI - Math.PI / 2;
-                      const radius = 100;
-                      const x = 128 + radius * Math.cos(angle);
-                      const y = 128 + radius * Math.sin(angle);
-
-                      return (
-                        <div
-                          key={idx}
-                          className={`absolute w-10 h-10 -ml-5 -mt-5 rounded flex flex-col items-center justify-center text-xs font-medium ${getCellStyle(idx)}`}
-                          style={{ left: x, top: y }}
-                        >
-                          <span className="text-[8px] text-gray-400">{idx}</span>
-                          <span>{val ?? '∅'}</span>
-                        </div>
-                      );
-                    })}
-                    {/* Center info */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-xs">
-                      <div className="text-teal-600">H: {head}</div>
-                      <div className="text-violet-600">T: {tail}</div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                /* Linear view */
-                <div className="flex flex-wrap gap-1 mb-4">
-                  {array.map((val, idx) => (
-                    <div key={idx} className="flex flex-col items-center">
-                      <div
-                        className={`w-10 h-10 rounded flex flex-col items-center justify-center text-xs font-medium ${getCellStyle(idx)}`}
-                      >
-                        <span className="text-[8px] text-gray-400">{idx}</span>
-                        <span>{val ?? '∅'}</span>
-                      </div>
-                      <div className="text-[9px] text-gray-500 mt-0.5">
-                        {idx === head && idx === tail
-                          ? 'H/T'
-                          : idx === head
-                            ? 'H'
-                            : idx === tail
-                              ? 'T'
-                              : ''}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Logical order */}
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-              <div className="text-xs text-gray-600 mb-2">
-                <span className="font-medium">Logical Order (front → back):</span>
-              </div>
-              <div className="flex flex-wrap items-center gap-1">
-                {getLogicalElements().length > 0 ? (
-                  <>
-                    <span className="text-[10px] text-teal-600">FRONT →</span>
-                    {getLogicalElements().map((val, idx) => (
-                      <React.Fragment key={idx}>
-                        {idx > 0 && <span className="text-gray-400">→</span>}
-                        <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">
-                          {val}
-                        </span>
-                      </React.Fragment>
-                    ))}
-                    <span className="text-[10px] text-violet-600">→ BACK</span>
-                  </>
-                ) : (
-                  <span className="text-xs text-gray-400 italic">Empty deque</span>
-                )}
-              </div>
-            </div>
-
-            {/* Pointer arithmetic explanation */}
-            <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-              <div className="text-xs text-blue-700">
-                <strong>Circular indexing:</strong>
-                <div className="mt-1 font-mono text-[11px] space-y-1">
-                  <div>next = (index + 1) & (capacity - 1)</div>
-                  <div>prev = (index - 1) & (capacity - 1)</div>
-                </div>
-                <div className="mt-1 text-[10px] text-blue-600">
-                  Bitwise AND for power-of-2 capacity (faster than modulo)
-                </div>
-              </div>
-            </div>
-
-            {/* Status */}
-            <StatusPanel
-              description={description}
-              currentStep={currentStep}
-              totalSteps={steps.length}
-              variant={getStatusVariant()}
-            />
-          </VisualizationArea>
-
-          {/* Code Panel */}
-          {showCode && (
-            <div className="w-full lg:w-64 flex-shrink-0 space-y-2">
-              <CodePanel
-                code={ARRAYDEQUE_CODE}
-                activeLine={currentStepData?.codeLine ?? -1}
-                variables={currentStepData?.variables}
-              />
-              <HelpPanel />
-            </div>
+      {/* Logical order */}
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="text-xs text-gray-600 mb-2">
+          <span className="font-medium">Logical Order (front → back):</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-1">
+          {getLogicalElements().length > 0 ? (
+            <>
+              <span className="text-[10px] text-teal-600">FRONT →</span>
+              {getLogicalElements().map((val, idx) => (
+                <React.Fragment key={idx}>
+                  {idx > 0 && <span className="text-gray-400">→</span>}
+                  <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">
+                    {val}
+                  </span>
+                </React.Fragment>
+              ))}
+              <span className="text-[10px] text-violet-600">→ BACK</span>
+            </>
+          ) : (
+            <span className="text-xs text-gray-400 italic">Empty deque</span>
           )}
         </div>
       </div>
 
-      {/* Controls */}
-      {showControls && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <ControlPanel
-            isPlaying={isPlaying}
-            currentStep={currentStep}
-            totalSteps={steps.length}
-            speed={speed}
-            onPlayPause={handlePlayPause}
-            onStep={handleStep}
-            onStepBack={handleStepBack}
-            onReset={handleReset}
-            onSpeedChange={setSpeed}
-            accentColor="teal"
-          />
-          <Legend items={LEGEND_ITEMS} />
+      {/* Pointer arithmetic explanation */}
+      <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+        <div className="text-xs text-blue-700">
+          <strong>Circular indexing:</strong>
+          <div className="mt-1 font-mono text-[11px] space-y-1">
+            <div>next = (index + 1) & (capacity - 1)</div>
+            <div>prev = (index - 1) & (capacity - 1)</div>
+          </div>
+          <div className="mt-1 text-[10px] text-blue-600">
+            Bitwise AND for power-of-2 capacity (faster than modulo)
+          </div>
         </div>
-      )}
-    </div>
+      </div>
+    </>
+  );
+
+  return (
+    <BaseVisualizerLayout
+      id={VISUALIZER_ID}
+      title="ArrayDeque"
+      badges={BADGES}
+      gradient="teal"
+      onShare={handleShare}
+      className={className}
+      minHeight={450}
+      headerExtra={headerExtra}
+      status={{
+        description,
+        currentStep,
+        totalSteps: steps.length,
+        variant: getStatusVariant(),
+      }}
+      controls={{
+        isPlaying,
+        currentStep,
+        totalSteps: steps.length,
+        speed,
+        onPlayPause: handlePlayPause,
+        onStep: handleStep,
+        onStepBack: handleStepBack,
+        onReset: handleReset,
+        onSpeedChange: setSpeed,
+        accentColor: 'teal',
+      }}
+      showControls={showControls}
+      legendItems={LEGEND_ITEMS}
+      code={showCode ? ARRAYDEQUE_CODE : undefined}
+      currentCodeLine={currentStepData?.codeLine}
+      codeVariables={currentStepData?.variables}
+      showCode={showCode}
+    >
+      {visualization}
+    </BaseVisualizerLayout>
   );
 };
 
