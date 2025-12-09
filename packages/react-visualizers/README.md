@@ -8,7 +8,7 @@ Interactive algorithm and data structure visualizers for React. Perfect for lear
 
 ## Features
 
-- **36 interactive visualizers** covering algorithms, data structures, and distributed systems
+- **38 interactive visualizers** covering algorithms, data structures, and distributed systems
 - **Interview Mode** with built-in questions, scoring, hints, and explanations
 - **Step-by-step animations** with playback controls (play, pause, step forward/back)
 - **Code highlighting** showing the current line being executed
@@ -90,12 +90,14 @@ function App() {
 | `CopyOnWriteVisualizer` | Copy-on-write pattern for reads |
 | `ImmutableCollectionsVisualizer` | Java 9+ immutable collections |
 
-### Advanced Data Structures (2)
+### Advanced Data Structures (4)
 
 | Visualizer | Description |
 |------------|-------------|
 | `BloomFilterVisualizer` | Probabilistic set membership |
 | `BTreeVisualizer` | B-Tree with node splitting |
+| `TrieVisualizer` | Prefix tree for autocomplete, spell checking |
+| `UnionFindVisualizer` | Disjoint set union with path compression |
 
 ### Distributed Systems (2)
 
