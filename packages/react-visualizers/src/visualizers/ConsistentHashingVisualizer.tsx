@@ -584,19 +584,19 @@ const ConsistentHashingVisualizerComponent: React.FC<ConsistentHashingVisualizer
         ))}
       </div>
 
-      {/* Data Keys Table */}
-      {dataKeys.length > 0 && (
-        <div className="mb-4 overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="px-2 py-1 text-left">Key</th>
-                <th className="px-2 py-1 text-left">Hash (°)</th>
-                <th className="px-2 py-1 text-left">Server</th>
-              </tr>
-            </thead>
-            <tbody>
-              {dataKeys.map((key) => (
+      {/* Data Keys Table - always visible */}
+      <div className="mb-4 overflow-x-auto min-h-[100px]">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="px-2 py-1 text-left">Key</th>
+              <th className="px-2 py-1 text-left">Hash (°)</th>
+              <th className="px-2 py-1 text-left">Server</th>
+            </tr>
+          </thead>
+          <tbody>
+            {dataKeys.length > 0 ? (
+              dataKeys.map((key) => (
                 <tr
                   key={key.key}
                   className={`
@@ -617,11 +617,17 @@ const ConsistentHashingVisualizerComponent: React.FC<ConsistentHashingVisualizer
                     </span>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              ))
+            ) : (
+              <tr>
+                <td colSpan={3} className="px-2 py-4 text-center text-gray-400 italic">
+                  No keys added yet...
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 

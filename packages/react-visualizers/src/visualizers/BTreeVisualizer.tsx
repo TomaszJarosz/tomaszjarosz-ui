@@ -471,27 +471,33 @@ const BTreeVisualizerComponent: React.FC<BTreeVisualizerProps> = ({
         )}
       </div>
 
-      {/* Current Operation */}
-      {targetKey !== undefined && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+      {/* Current Operation - always visible container */}
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 min-h-[44px]">
+        {targetKey !== undefined ? (
           <div className="text-sm">
             <span className="text-gray-500">Target key: </span>
             <span className="font-mono font-bold text-emerald-600">{targetKey}</span>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="text-sm text-gray-400 italic">Target key will appear here...</div>
+        )}
+      </div>
 
-      {/* Split Info */}
-      {splitInfo && (
-        <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
-          <div className="text-sm font-medium text-purple-800 mb-1">Node Split</div>
-          <div className="text-xs text-purple-700 font-mono">
-            <div>Median: <strong>{splitInfo.medianKey}</strong> (promoted)</div>
-            <div>Left: [{splitInfo.leftKeys.join(', ')}]</div>
-            <div>Right: [{splitInfo.rightKeys.join(', ')}]</div>
-          </div>
-        </div>
-      )}
+      {/* Split Info - always visible container */}
+      <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200 min-h-[76px]">
+        {splitInfo ? (
+          <>
+            <div className="text-sm font-medium text-purple-800 mb-1">Node Split</div>
+            <div className="text-xs text-purple-700 font-mono">
+              <div>Median: <strong>{splitInfo.medianKey}</strong> (promoted)</div>
+              <div>Left: [{splitInfo.leftKeys.join(', ')}]</div>
+              <div>Right: [{splitInfo.rightKeys.join(', ')}]</div>
+            </div>
+          </>
+        ) : (
+          <div className="text-sm text-purple-400 italic text-center py-2">Split info will appear here when node overflows...</div>
+        )}
+      </div>
 
       {/* Operations Queue */}
       <div className="mb-4 p-2 bg-blue-50 rounded-lg border border-blue-200">
