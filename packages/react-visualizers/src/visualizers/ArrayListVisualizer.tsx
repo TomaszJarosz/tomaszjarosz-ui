@@ -283,6 +283,30 @@ const ArrayListVisualizerComponent: React.FC<ArrayListVisualizerProps> = ({
   // Custom visualization content
   const visualization = (
     <>
+      {/* Size/Capacity Info - at top for stable layout */}
+      <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+        <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
+          <div
+            className="h-full bg-orange-500 transition-all"
+            style={{ width: `${(size / capacity) * 100}%` }}
+          />
+        </div>
+        <div className="flex gap-6 text-xs">
+          <div>
+            <span className="font-medium text-gray-700">size:</span>{' '}
+            <span className="text-orange-600 font-mono">{size}</span>
+          </div>
+          <div>
+            <span className="font-medium text-gray-700">capacity:</span>{' '}
+            <span className="text-amber-600 font-mono">{capacity}</span>
+          </div>
+          <div>
+            <span className="font-medium text-gray-700">load:</span>{' '}
+            <span className="font-mono">{Math.round((size / capacity) * 100)}%</span>
+          </div>
+        </div>
+      </div>
+
       {/* Resize Comparison */}
       {operation === 'resize' && oldArray && (
         <div className="mb-4 p-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-xl border-2 border-red-200">
@@ -356,29 +380,6 @@ const ArrayListVisualizerComponent: React.FC<ArrayListVisualizerProps> = ({
         </div>
       </div>
 
-      {/* Size/Capacity Info */}
-      <div className="mb-4 p-3 bg-gray-100 rounded-lg">
-        <div className="flex gap-6 text-xs">
-          <div>
-            <span className="font-medium text-gray-700">size:</span>{' '}
-            <span className="text-orange-600 font-mono">{size}</span>
-          </div>
-          <div>
-            <span className="font-medium text-gray-700">capacity:</span>{' '}
-            <span className="text-amber-600 font-mono">{capacity}</span>
-          </div>
-          <div>
-            <span className="font-medium text-gray-700">load:</span>{' '}
-            <span className="font-mono">{Math.round((size / capacity) * 100)}%</span>
-          </div>
-        </div>
-        <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-orange-500 transition-all"
-            style={{ width: `${(size / capacity) * 100}%` }}
-          />
-        </div>
-      </div>
     </>
   );
 

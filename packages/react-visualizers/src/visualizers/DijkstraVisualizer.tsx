@@ -327,7 +327,7 @@ const DijkstraVisualizerComponent: React.FC<DijkstraVisualizerProps> = ({
       </div>
 
       {/* Priority Queue - More visible */}
-      <div className="mb-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+      <div className="mb-4 p-3 bg-orange-50 rounded-lg border border-orange-200 min-h-[72px]">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-sm font-semibold text-orange-800">Priority Queue (min-heap)</span>
           <span className="text-xs text-orange-600">(node:distance)</span>

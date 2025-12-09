@@ -351,39 +351,41 @@ const BinarySearchVisualizerComponent: React.FC<
             If target exists, it must be within current search bounds
           </div>
         </div>
-        {/* Search space info */}
-        {left <= right && (
-          <div className="mt-3 p-2 bg-white rounded-lg border border-green-200">
-            <div className="flex justify-between items-center text-xs">
-              <div>
-                <span className="font-semibold text-green-700">Search space:</span>{' '}
-                <span className="font-mono">[{left}..{right}]</span> = <span className="font-bold text-green-600">{right - left + 1}</span> elements
+        {/* Search space info - always visible with min-height */}
+        <div className="mt-3 p-2 bg-white rounded-lg border border-green-200 min-h-[60px]">
+          {left <= right ? (
+            <>
+              <div className="flex justify-between items-center text-xs">
+                <div>
+                  <span className="font-semibold text-green-700">Search space:</span>{' '}
+                  <span className="font-mono">[{left}..{right}]</span> = <span className="font-bold text-green-600">{right - left + 1}</span> elements
+                </div>
+                <div className="text-gray-500">
+                  {currentStep > 0 && (
+                    <span>
+                      Eliminated: <span className="font-bold text-red-500">{Math.round((1 - (right - left + 1) / array.length) * 100)}%</span>
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="text-gray-500">
-                {currentStep > 0 && (
-                  <span>
-                    Eliminated: <span className="font-bold text-red-500">{Math.round((1 - (right - left + 1) / array.length) * 100)}%</span>
-                  </span>
-                )}
-              </div>
+              {mid >= 0 && (
+                <div className="mt-2 text-xs text-center text-gray-600">
+                  mid = ⌊({left} + {right}) / 2⌋ = <span className="font-bold text-purple-600">{mid}</span>
+                </div>
+              )}
+            </>
+          ) : found === true ? (
+            <div className="text-center py-1">
+              <span className="text-green-800 font-bold">✓ Found in {currentStep} steps (log₂{array.length} ≈ {Math.ceil(Math.log2(array.length))} max)</span>
             </div>
-            {mid >= 0 && (
-              <div className="mt-2 text-xs text-center text-gray-600">
-                mid = ⌊({left} + {right}) / 2⌋ = <span className="font-bold text-purple-600">{mid}</span>
-              </div>
-            )}
-          </div>
-        )}
-        {found === true && (
-          <div className="mt-3 p-2 bg-green-100 rounded-lg border border-green-300 text-center">
-            <span className="text-green-800 font-bold">✓ Found in {currentStep} steps (log₂{array.length} ≈ {Math.ceil(Math.log2(array.length))} max)</span>
-          </div>
-        )}
-        {found === false && (
-          <div className="mt-3 p-2 bg-red-100 rounded-lg border border-red-300 text-center">
-            <span className="text-red-800 font-bold">✗ Not found - search space exhausted</span>
-          </div>
-        )}
+          ) : found === false ? (
+            <div className="text-center py-1">
+              <span className="text-red-800 font-bold">✗ Not found - search space exhausted</span>
+            </div>
+          ) : (
+            <div className="text-center text-xs text-gray-400 py-2">Ready to search...</div>
+          )}
+        </div>
       </div>
 
       {/* Array Display */}

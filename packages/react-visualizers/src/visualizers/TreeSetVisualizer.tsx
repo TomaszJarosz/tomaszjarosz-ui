@@ -490,49 +490,31 @@ const TreeSetVisualizerComponent: React.FC<TreeSetVisualizerProps> = ({
             All values in left subtree are smaller • All values in right subtree are larger
           </div>
         </div>
-        {/* Current comparison */}
-        {currentStepData.operation === 'add' && currentStepData.value !== undefined && currentNode !== undefined && currentNode !== currentStepData.value && (
-          <div className="mt-3 p-2 bg-white rounded-lg border border-emerald-200">
-            <div className="text-xs text-center">
-              <span className="font-semibold text-emerald-700">Comparing:</span>{' '}
-              <span className="font-mono">
-                {currentStepData.value} {currentStepData.value < currentNode ? '<' : '>'} {currentNode}
-              </span>
-              {' → '}
-              <span className={`font-bold ${currentStepData.value < currentNode ? 'text-blue-600' : 'text-orange-600'}`}>
-                Go {currentStepData.value < currentNode ? 'LEFT' : 'RIGHT'}
-              </span>
-            </div>
-          </div>
-        )}
-        {currentStepData.operation === 'contains' && currentStepData.value !== undefined && currentNode !== undefined && !found && path.length > 0 && path[path.length - 1] !== currentStepData.value && (
-          <div className="mt-3 p-2 bg-white rounded-lg border border-emerald-200">
-            <div className="text-xs text-center">
-              <span className="font-semibold text-emerald-700">Comparing:</span>{' '}
-              <span className="font-mono">
-                {currentStepData.value} {currentStepData.value < currentNode ? '<' : '>'} {currentNode}
-              </span>
-              {' → '}
-              <span className={`font-bold ${currentStepData.value < currentNode ? 'text-blue-600' : 'text-orange-600'}`}>
-                Go {currentStepData.value < currentNode ? 'LEFT' : 'RIGHT'}
-              </span>
-            </div>
-          </div>
-        )}
-        {found === true && (
-          <div className="mt-3 p-2 bg-green-100 rounded-lg border border-green-300">
-            <div className="text-xs text-center text-green-800 font-bold">
+        {/* Current comparison - always visible with min-height */}
+        <div className="mt-3 p-2 bg-white rounded-lg border border-emerald-200 min-h-[40px]">
+          {found === true ? (
+            <div className="text-xs text-center text-green-800 font-bold bg-green-100 rounded p-1">
               ✓ Found! {currentStepData.value} == {currentNode}
             </div>
-          </div>
-        )}
-        {found === false && (
-          <div className="mt-3 p-2 bg-red-100 rounded-lg border border-red-300">
-            <div className="text-xs text-center text-red-800 font-bold">
+          ) : found === false ? (
+            <div className="text-xs text-center text-red-800 font-bold bg-red-100 rounded p-1">
               ✗ Not found! Reached null (no more children to check)
             </div>
-          </div>
-        )}
+          ) : (currentStepData.operation === 'add' || currentStepData.operation === 'contains') && currentStepData.value !== undefined && currentNode !== undefined && currentNode !== currentStepData.value ? (
+            <div className="text-xs text-center">
+              <span className="font-semibold text-emerald-700">Comparing:</span>{' '}
+              <span className="font-mono">
+                {currentStepData.value} {currentStepData.value < currentNode ? '<' : '>'} {currentNode}
+              </span>
+              {' → '}
+              <span className={`font-bold ${currentStepData.value < currentNode ? 'text-blue-600' : 'text-orange-600'}`}>
+                Go {currentStepData.value < currentNode ? 'LEFT' : 'RIGHT'}
+              </span>
+            </div>
+          ) : (
+            <div className="text-xs text-center text-gray-400">Ready for operation...</div>
+          )}
+        </div>
       </div>
 
       {/* Tree Visualization */}
