@@ -244,28 +244,34 @@ const DPVisualizerComponent: React.FC<DPVisualizerProps> = ({
           </div>
         </div>
 
-        {/* Current Calculation */}
-        {currentI > 0 && currentW > 0 && (
-          <div className="mt-4 p-3 bg-white rounded-lg border-2 border-purple-300">
-            <div className="text-sm font-semibold text-purple-800 mb-2">
-              Current: dp[{currentI}][{currentW}]
-            </div>
-            <div className="flex items-center gap-4 text-sm">
-              <div className="text-gray-600">
-                Item {currentI}: <span className="font-mono">w={items[currentI-1]?.weight}, v={items[currentI-1]?.value}</span>
+        {/* Current Calculation - always visible container */}
+        <div className="mt-4 p-3 bg-white rounded-lg border-2 border-purple-300 min-h-[76px]">
+          {currentI > 0 && currentW > 0 ? (
+            <>
+              <div className="text-sm font-semibold text-purple-800 mb-2">
+                Current: dp[{currentI}][{currentW}]
               </div>
-              {decision && (
-                <div className={`px-3 py-1 rounded-full font-bold ${
-                  decision === 'take'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-yellow-100 text-yellow-700'
-                }`}>
-                  {decision === 'take' ? '✓ TAKE' : '✗ SKIP'}
+              <div className="flex items-center gap-4 text-sm">
+                <div className="text-gray-600">
+                  Item {currentI}: <span className="font-mono">w={items[currentI-1]?.weight}, v={items[currentI-1]?.value}</span>
                 </div>
-              )}
+                {decision && (
+                  <div className={`px-3 py-1 rounded-full font-bold ${
+                    decision === 'take'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-yellow-100 text-yellow-700'
+                  }`}>
+                    {decision === 'take' ? '✓ TAKE' : '✗ SKIP'}
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="text-sm text-purple-400 italic text-center py-2">
+              Current cell calculation will appear here...
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="flex gap-6">

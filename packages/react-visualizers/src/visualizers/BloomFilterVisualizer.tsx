@@ -369,9 +369,9 @@ const BloomFilterVisualizerComponent: React.FC<BloomFilterVisualizerProps> = ({
         </div>
       </div>
 
-      {/* Current Operation */}
-      {stepData.element && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+      {/* Current Operation - always visible container */}
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 min-h-[44px]">
+        {stepData.element ? (
           <div className="text-sm">
             <span className="text-gray-500">Element: </span>
             <span className="font-mono font-bold text-purple-600">&quot;{stepData.element}&quot;</span>
@@ -382,20 +382,20 @@ const BloomFilterVisualizerComponent: React.FC<BloomFilterVisualizerProps> = ({
               </>
             )}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="text-sm text-gray-400 italic">Current operation will appear here...</div>
+        )}
+      </div>
 
-      {/* Hash Functions Explanation */}
-      {stepData.operation === 'init' && (
-        <div className="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-          <div className="text-xs font-medium text-indigo-800 mb-2">Hash Functions (k={NUM_HASH_FUNCTIONS})</div>
-          <div className="font-mono text-[10px] text-gray-600 space-y-1">
-            <div>hash_1(x) = (x * 31) % {BIT_ARRAY_SIZE}</div>
-            <div>hash_2(x) = (djb2 hash) % {BIT_ARRAY_SIZE}</div>
-            <div>hash_3(x) = (x * 17 * pos) % {BIT_ARRAY_SIZE}</div>
-          </div>
+      {/* Hash Functions Explanation - always visible */}
+      <div className="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200 min-h-[76px]">
+        <div className="text-xs font-medium text-indigo-800 mb-2">Hash Functions (k={NUM_HASH_FUNCTIONS})</div>
+        <div className="font-mono text-[10px] text-gray-600 space-y-1">
+          <div>hash_1(x) = (x * 31) % {BIT_ARRAY_SIZE}</div>
+          <div>hash_2(x) = (djb2 hash) % {BIT_ARRAY_SIZE}</div>
+          <div>hash_3(x) = (x * 17 * pos) % {BIT_ARRAY_SIZE}</div>
         </div>
-      )}
+      </div>
 
       {/* Elements Summary */}
       <div className="mb-4 grid grid-cols-2 gap-3">
