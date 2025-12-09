@@ -3,7 +3,7 @@
 Interactive algorithm and data structure visualizers for React. Perfect for learning, teaching, and interview preparation.
 
 [![npm version](https://img.shields.io/npm/v/@tomaszjarosz/react-visualizers)](https://www.npmjs.com/package/@tomaszjarosz/react-visualizers)
-[![Storybook](https://img.shields.io/badge/Storybook-Live%20Demo-ff4785?logo=storybook&logoColor=white)](https://6934a2d9e17d1e509a92c935-rdicbxowdr.chromatic.com/)
+[![Storybook](https://img.shields.io/badge/Storybook-Live%20Demo-ff4785?logo=storybook&logoColor=white)](https://6934a2d9e17d1e509a92c935-oajoxaxuir.chromatic.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
@@ -19,7 +19,7 @@ Interactive algorithm and data structure visualizers for React. Perfect for lear
 
 ## Live Demo
 
-**[View all visualizers in Storybook](https://6934a2d9e17d1e509a92c935-rdicbxowdr.chromatic.com/)**
+**[View all visualizers in Storybook](https://6934a2d9e17d1e509a92c935-oajoxaxuir.chromatic.com/)**
 
 ## Installation
 
@@ -284,7 +284,7 @@ bun run test:watch
 All visualizers have interactive stories in [Storybook](https://storybook.js.org/):
 
 - **Local:** `bun run storybook` → http://localhost:6006
-- **Live Demo:** https://6934a2d9e17d1e509a92c935-rdicbxowdr.chromatic.com/
+- **Live Demo:** https://6934a2d9e17d1e509a92c935-oajoxaxuir.chromatic.com/
 
 Stories are located in `src/visualizers/stories/` directory.
 
