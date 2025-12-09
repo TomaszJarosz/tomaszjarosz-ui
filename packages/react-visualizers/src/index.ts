@@ -50,6 +50,7 @@ export { TreeSetVisualizer } from './visualizers/TreeSetVisualizer';
 export { EnumSetVisualizer } from './visualizers/EnumSetVisualizer';
 export { PriorityQueueVisualizer } from './visualizers/PriorityQueueVisualizer';
 export { HeapVisualizer } from './visualizers/HeapVisualizer';
+export { HeapInterviewVisualizer } from './visualizers/HeapInterviewVisualizer';
 
 // Concurrency Visualizers
 export { ConcurrentHashMapVisualizer } from './visualizers/ConcurrentHashMapVisualizer';

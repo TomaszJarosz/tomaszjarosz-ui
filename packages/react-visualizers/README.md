@@ -8,7 +8,7 @@ Interactive algorithm and data structure visualizers for React. Perfect for lear
 
 ## Features
 
-- **51 interactive visualizers** covering algorithms, data structures, and distributed systems
+- **53 interactive visualizers** covering algorithms, data structures, and distributed systems
 - **Interview Mode** with built-in questions, scoring, hints, and explanations
 - **Step-by-step animations** with playback controls (play, pause, step forward/back)
 - **Code highlighting** showing the current line being executed
@@ -68,7 +68,7 @@ function App() {
 | `AStarVisualizer` | A* pathfinding with f(n) = g(n) + h(n) |
 | `TopologicalSortVisualizer` | Kahn's algorithm for DAG ordering |
 
-### Data Structures (12)
+### Data Structures (13)
 
 | Visualizer | Description |
 |------------|-------------|
@@ -78,6 +78,7 @@ function App() {
 | `HashTableVisualizer` | Hash function internals and collisions |
 | `ArrayDequeVisualizer` | Circular buffer double-ended queue |
 | `PriorityQueueVisualizer` | Binary min-heap operations |
+| `HeapVisualizer` | Max-heap with build heap and HeapSort |
 | `TreeSetVisualizer` | Red-Black tree (balanced BST) |
 | `LinkedHashMapVisualizer` | HashMap + insertion order linked list |
 | `EnumSetVisualizer` | Bit vector implementation |
@@ -118,7 +119,7 @@ function App() {
 | `GCVisualizer` | JVM generational garbage collection |
 | `SQLJoinVisualizer` | SQL JOIN operations (INNER, LEFT, RIGHT, FULL) |
 
-### Interview Mode (15)
+### Interview Mode (16)
 
 Interview visualizers include built-in questions with multiple choice answers, hints, and detailed explanations. Perfect for interview preparation.
 
@@ -139,6 +140,7 @@ Interview visualizers include built-in questions with multiple choice answers, h
 | `AStarInterviewVisualizer` | f=g+h, admissible heuristics, Manhattan distance |
 | `SkipListInterviewVisualizer` | Probabilistic levels, expected complexity, Redis |
 | `LinkedListInterviewVisualizer` | Two-pointer techniques, cycle detection, reversal |
+| `HeapInterviewVisualizer` | Heap property, HeapSort, time complexity, priority queues |
 
 ## Interview Mode Usage
 
