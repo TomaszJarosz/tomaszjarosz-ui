@@ -49,6 +49,7 @@ export { ArrayDequeVisualizer } from './visualizers/ArrayDequeVisualizer';
 export { TreeSetVisualizer } from './visualizers/TreeSetVisualizer';
 export { EnumSetVisualizer } from './visualizers/EnumSetVisualizer';
 export { PriorityQueueVisualizer } from './visualizers/PriorityQueueVisualizer';
+export { HeapVisualizer } from './visualizers/HeapVisualizer';
 
 // Concurrency Visualizers
 export { ConcurrentHashMapVisualizer } from './visualizers/ConcurrentHashMapVisualizer';
