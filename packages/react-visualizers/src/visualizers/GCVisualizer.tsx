@@ -76,7 +76,7 @@ const BADGES = [
   { label: 'Generational GC', variant: 'purple' as const },
 ];
 
-const PROMOTION_THRESHOLD = 2;
+const PROMOTION_THRESHOLD = 3;
 
 function generateGCSteps(): GCStep[] {
   const steps: GCStep[] = [];
@@ -220,8 +220,8 @@ function generateGCSteps(): GCStep[] {
     activeSurvivor,
   });
 
-  // Minor GC #2 - simulate multiple cycles to show promotion
-  for (let gc = 0; gc < 2; gc++) {
+  // Minor GC #2+ - simulate multiple cycles to show promotion
+  for (let gc = 0; gc < 4; gc++) {
     steps.push({
       operation: 'minor_gc',
       objects: objects.map((o) => ({ ...o })),
@@ -297,13 +297,29 @@ function generateGCSteps(): GCStep[] {
 
     activeSurvivor = activeSurvivor === 0 ? 1 : 0;
 
-    // Allocate more
-    if (gc < 1) {
+    // Allocate more objects between GC cycles
+    if (gc < 3) {
+      const newObjs: HeapObject[] = [];
       for (let i = 0; i < 3; i++) {
-        const obj = createObject(true);
+        const obj = createObject(gc < 2 ? true : i === 0); // Mix of reachable/unreachable
         objects.push(obj);
         eden.push(obj.id);
+        newObjs.push(obj);
       }
+
+      steps.push({
+        operation: 'allocate',
+        objects: objects.map((o) => ({ ...o })),
+        eden: [...eden],
+        survivor0: [...survivor0],
+        survivor1: [...survivor1],
+        old: [...old],
+        description: `Allocated ${newObjs.length} new objects in Eden.`,
+        codeLine: 3,
+        variables: { edenUsed: eden.length },
+        highlightObjects: newObjs.map((o) => o.id),
+        activeSurvivor,
+      });
     }
   }
 
