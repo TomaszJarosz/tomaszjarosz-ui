@@ -403,7 +403,7 @@ const TopologicalSortVisualizerComponent: React.FC<TopologicalSortVisualizerProp
 
             {/* Queue and Result */}
             <div className="flex gap-4 mb-4">
-              <div className="flex-1 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex-1 p-3 bg-blue-50 rounded-lg border border-blue-200 min-h-[72px]">
                 <div className="text-xs font-medium text-blue-800 mb-2">Queue (in-degree = 0)</div>
                 <div className="flex gap-1 min-h-[32px]">
                   {stepData.queue.length === 0 ? (
@@ -421,7 +421,7 @@ const TopologicalSortVisualizerComponent: React.FC<TopologicalSortVisualizerProp
                 </div>
               </div>
 
-              <div className="flex-1 p-3 bg-green-50 rounded-lg border border-green-200">
+              <div className="flex-1 p-3 bg-green-50 rounded-lg border border-green-200 min-h-[72px]">
                 <div className="text-xs font-medium text-green-800 mb-2">Result (sorted order)</div>
                 <div className="flex gap-1 min-h-[32px]">
                   {stepData.result.length === 0 ? (

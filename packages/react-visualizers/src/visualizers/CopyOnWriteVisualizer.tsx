@@ -374,7 +374,7 @@ const CopyOnWriteVisualizerComponent: React.FC<CopyOnWriteVisualizerProps> = ({
       </div>
 
       {/* Arrays Visualization */}
-      <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+      <div className="mb-4 p-4 bg-gray-50 rounded-lg min-h-[100px]">
         {showCopy ? (
           <div className="flex items-center gap-4">
             {renderArray(oldArray, 'Old Array (readers use this)')}

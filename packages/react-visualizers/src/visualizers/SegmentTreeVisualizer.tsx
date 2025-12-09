@@ -399,16 +399,20 @@ const SegmentTreeVisualizerComponent: React.FC<SegmentTreeVisualizerProps> = ({
                   );
                 })}
               </div>
-              {stepData.queryRange && (
-                <div className="text-center text-xs text-gray-600 mt-2">
-                  Query range: [{stepData.queryRange[0]}, {stepData.queryRange[1]}]
-                  {stepData.queryResult !== undefined && (
-                    <span className="ml-2 text-green-600 font-medium">
-                      = {stepData.queryResult}
-                    </span>
-                  )}
-                </div>
-              )}
+              <div className="text-center text-xs text-gray-600 mt-2 min-h-[20px]">
+                {stepData.queryRange ? (
+                  <>
+                    Query range: [{stepData.queryRange[0]}, {stepData.queryRange[1]}]
+                    {stepData.queryResult !== undefined && (
+                      <span className="ml-2 text-green-600 font-medium">
+                        = {stepData.queryResult}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-gray-400">Ready for query...</span>
+                )}
+              </div>
             </div>
 
             {/* Tree Visualization */}

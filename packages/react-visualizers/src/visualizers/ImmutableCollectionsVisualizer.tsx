@@ -273,66 +273,64 @@ const ImmutableCollectionsVisualizerComponent: React.FC<
   const visualization = (
     <>
       {/* Collections Display */}
-      <div className="mb-4 space-y-4">
+      <div className="mb-4 space-y-4 min-h-[180px]">
         {/* Original Immutable */}
-        {original.length > 0 && (
-          <div className="p-4 bg-violet-50 rounded-lg border-2 border-violet-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Lock className="w-4 h-4 text-violet-600" />
-              <span className="text-sm font-medium text-violet-700">
-                Immutable List (List.of)
-              </span>
-            </div>
-            <div className="flex gap-2">
-              {original.map((item, idx) => (
-                <div
-                  key={idx}
-                  className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 font-bold transition-colors ${
-                    error
-                      ? 'bg-red-100 border-red-300 text-red-700 animate-pulse'
-                      : 'bg-violet-100 border-violet-300 text-violet-700'
-                  }`}
-                >
-                  {item}
-                </div>
-              ))}
-              {error && (
-                <div className="flex items-center text-red-600 text-sm font-medium ml-2">
-                  ✗ Cannot modify!
-                </div>
-              )}
-            </div>
+        <div className={`p-4 bg-violet-50 rounded-lg border-2 border-violet-200 min-h-[80px] ${original.length === 0 ? 'hidden' : ''}`}>
+          <div className="flex items-center gap-2 mb-2">
+            <Lock className="w-4 h-4 text-violet-600" />
+            <span className="text-sm font-medium text-violet-700">
+              Immutable List (List.of)
+            </span>
           </div>
-        )}
+          <div className="flex gap-2 min-h-[48px]">
+            {original.map((item, idx) => (
+              <div
+                key={idx}
+                className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 font-bold transition-colors ${
+                  error
+                    ? 'bg-red-100 border-red-300 text-red-700 animate-pulse'
+                    : 'bg-violet-100 border-violet-300 text-violet-700'
+                }`}
+              >
+                {item}
+              </div>
+            ))}
+            {error && (
+              <div className="flex items-center text-red-600 text-sm font-medium ml-2">
+                ✗ Cannot modify!
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Derived Mutable */}
-        {showDerived && derived && (
-          <div className="p-4 bg-green-50 rounded-lg border-2 border-green-200">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-medium text-green-700">
-                Mutable Copy (ArrayList)
-              </span>
-            </div>
-            <div className="flex gap-2">
-              {derived.map((item, idx) => (
-                <div
-                  key={idx}
-                  className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 font-bold ${
-                    idx === derived.length - 1 &&
-                    derived.length > original.length
-                      ? 'bg-green-500 border-green-600 text-white'
-                      : 'bg-green-100 border-green-300 text-green-700'
-                  }`}
-                >
-                  {item}
-                </div>
-              ))}
+        <div className={`p-4 bg-green-50 rounded-lg border-2 border-green-200 min-h-[80px] ${!(showDerived && derived) ? 'invisible' : ''}`}>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm font-medium text-green-700">
+              Mutable Copy (ArrayList)
+            </span>
+          </div>
+          <div className="flex gap-2 min-h-[48px]">
+            {derived && derived.map((item, idx) => (
+              <div
+                key={idx}
+                className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 font-bold ${
+                  idx === derived.length - 1 &&
+                  derived.length > original.length
+                    ? 'bg-green-500 border-green-600 text-white'
+                    : 'bg-green-100 border-green-300 text-green-700'
+                }`}
+              >
+                {item}
+              </div>
+            ))}
+            {showDerived && (
               <div className="flex items-center text-green-600 text-sm font-medium ml-2">
                 ✓ Modifiable
               </div>
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Benefits */}

@@ -477,11 +477,11 @@ const ArrayDequeVisualizerComponent: React.FC<ArrayDequeVisualizerProps> = ({
       </div>
 
       {/* Logical order */}
-      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg min-h-[60px]">
         <div className="text-xs text-gray-600 mb-2">
           <span className="font-medium">Logical Order (front → back):</span>
         </div>
-        <div className="flex flex-wrap items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1 min-h-[24px]">
           {getLogicalElements().length > 0 ? (
             <>
               <span className="text-[10px] text-teal-600">FRONT →</span>

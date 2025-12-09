@@ -471,14 +471,16 @@ const RaftVisualizerComponent: React.FC<RaftVisualizerProps> = ({
         </svg>
       </div>
 
-      {/* Message Type */}
-      {stepData.messageType && (
-        <div className="mb-4 text-center">
+      {/* Message Type - always visible container */}
+      <div className="mb-4 text-center min-h-[32px]">
+        {stepData.messageType ? (
           <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
             📨 {stepData.messageType}
           </span>
-        </div>
-      )}
+        ) : (
+          <span className="text-gray-300 text-sm">—</span>
+        )}
+      </div>
 
       {/* Node Details Table */}
       <div className="mb-4 overflow-x-auto">

@@ -517,24 +517,26 @@ const TrieVisualizerComponent: React.FC<TrieVisualizerProps> = ({
         )}
       </div>
 
-      {/* Matched Words */}
-      {stepData.matchedWords && stepData.matchedWords.length > 0 && (
-        <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
-          <div className="text-xs font-medium text-purple-800 mb-2">
-            Words found:
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {stepData.matchedWords.map((word) => (
+      {/* Matched Words - always visible container */}
+      <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-200 min-h-[64px]">
+        <div className="text-xs font-medium text-purple-800 mb-2">
+          Words found:
+        </div>
+        <div className="flex flex-wrap gap-2 min-h-[28px]">
+          {stepData.matchedWords && stepData.matchedWords.length > 0 ? (
+            stepData.matchedWords.map((word) => (
               <span
                 key={word}
                 className="px-2 py-1 bg-purple-100 text-purple-700 text-sm rounded font-mono"
               >
                 {word}
               </span>
-            ))}
-          </div>
+            ))
+          ) : (
+            <span className="text-xs text-purple-400 italic">No words matched yet...</span>
+          )}
         </div>
-      )}
+      </div>
     </>
   );
 

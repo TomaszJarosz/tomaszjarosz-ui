@@ -403,7 +403,7 @@ const UnionFindVisualizerComponent: React.FC<UnionFindVisualizerProps> = ({
         <div className="text-sm font-medium text-gray-700 mb-2">
           Connected Components ({groups.size} set{groups.size !== 1 ? 's' : ''})
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 min-h-[60px]">
           {Array.from(groups.entries()).map(([root, members], idx) => (
             <div
               key={root}

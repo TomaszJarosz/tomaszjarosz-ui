@@ -421,18 +421,16 @@ const AStarVisualizerComponent: React.FC<AStarVisualizerProps> = ({
       </div>
 
       {/* Stats */}
-      <div className="flex gap-4 justify-center mb-4 text-sm">
+      <div className="flex gap-4 justify-center mb-4 text-sm min-h-[32px]">
         <div className="px-3 py-1 bg-blue-100 rounded">
           Open: <span className="font-bold">{stepData.openSet.length}</span>
         </div>
         <div className="px-3 py-1 bg-orange-100 rounded">
           Closed: <span className="font-bold">{stepData.closedSet.length}</span>
         </div>
-        {stepData.path && (
-          <div className="px-3 py-1 bg-purple-100 rounded">
-            Path: <span className="font-bold">{stepData.path.length}</span> cells
-          </div>
-        )}
+        <div className={`px-3 py-1 bg-purple-100 rounded ${!stepData.path ? 'invisible' : ''}`}>
+          Path: <span className="font-bold">{stepData.path?.length || 0}</span> cells
+        </div>
       </div>
     </>
   );

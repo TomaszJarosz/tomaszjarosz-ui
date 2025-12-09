@@ -313,47 +313,47 @@ const EnumSetVisualizerComponent: React.FC<EnumSetVisualizerProps> = ({
           })}
         </div>
 
-        {/* Binary representation */}
-        {showBinary && (
-          <div className="p-3 bg-gray-900 rounded-lg text-sm font-mono">
-            <div className="flex items-center gap-2 text-gray-400">
-              <span className="text-green-400">elements</span>
-              <span>=</span>
-              <span className="text-yellow-300">
-                0b{bitmask.toString(2).padStart(7, '0')}
-              </span>
-              <span className="text-gray-500">
-                ({bitmask} in decimal)
-              </span>
-            </div>
+        {/* Binary representation - always visible container */}
+        <div className={`p-3 bg-gray-900 rounded-lg text-sm font-mono min-h-[76px] ${showBinary ? '' : 'hidden'}`}>
+          <div className="flex items-center gap-2 text-gray-400">
+            <span className="text-green-400">elements</span>
+            <span>=</span>
+            <span className="text-yellow-300">
+              0b{bitmask.toString(2).padStart(7, '0')}
+            </span>
+            <span className="text-gray-500">
+              ({bitmask} in decimal)
+            </span>
+          </div>
+          <div className="mt-2 min-h-[20px]">
             {stepData.operation === 'add' && highlightBit !== undefined && (
-              <div className="mt-2 text-blue-300">
+              <div className="text-blue-300">
                 <span className="text-gray-500">// Set bit: </span>
                 elements |= (1L &lt;&lt; {highlightBit})
               </div>
             )}
             {stepData.operation === 'remove' && highlightBit !== undefined && (
-              <div className="mt-2 text-orange-300">
+              <div className="text-orange-300">
                 <span className="text-gray-500">// Clear bit: </span>
                 elements &amp;= ~(1L &lt;&lt; {highlightBit})
               </div>
             )}
             {stepData.operation === 'contains' && highlightBit !== undefined && (
-              <div className="mt-2 text-purple-300">
+              <div className="text-purple-300">
                 <span className="text-gray-500">// Check bit: </span>
                 (elements &amp; (1L &lt;&lt; {highlightBit})) != 0
               </div>
             )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Set contents */}
-      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg min-h-[68px]">
         <div className="text-xs text-gray-600 mb-2">
           <span className="font-medium">Set Contents:</span>
         </div>
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1 min-h-[24px]">
           {DAYS_OF_WEEK.filter((_, idx) => (bitmask & (1 << idx)) !== 0).map(
             (day) => (
               <span
