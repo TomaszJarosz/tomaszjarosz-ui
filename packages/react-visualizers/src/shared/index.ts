@@ -42,7 +42,7 @@ export { InterviewModePanel } from './InterviewModePanel';
 export type { default as InterviewModePanelProps } from './InterviewModePanel';
 
 // Constants
-export type { SortingAlgorithm } from './constants';
+export type { SortingAlgorithm, AlgorithmComplexity } from './constants';
 export {
   ALGORITHM_NAMES,
   ALGORITHM_COMPLEXITIES,

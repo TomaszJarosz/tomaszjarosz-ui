@@ -2,42 +2,15 @@
 
 ## Priority 1 - Quick Wins
 
-### [ ] Publish v0.2.12
-```bash
-npm version patch
-pnpm publish --access public
-```
+### [x] ~~Publish v0.2.12~~ → Published v0.2.13
 
-### [ ] SortingVisualizer - Add Complexity Table
-Add educational section comparing algorithm complexities:
-```tsx
-<div className="mb-4 p-4 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border-2 border-indigo-200">
-  <div className="text-sm font-bold text-indigo-800 mb-3">Algorithm Complexity</div>
-  <table className="w-full text-xs">
-    <thead>
-      <tr><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Space</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>Bubble</td><td>O(n)</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td></tr>
-      <tr><td>Selection</td><td>O(n²)</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td></tr>
-      <tr><td>Insertion</td><td>O(n)</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td></tr>
-      <tr><td>QuickSort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n²)</td><td>O(log n)</td></tr>
-      <tr><td>MergeSort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n)</td></tr>
-    </tbody>
-  </table>
-</div>
-```
-**File:** `src/visualizers/SortingVisualizer.tsx`
+### [x] SortingVisualizer - Complexity Comparison Table ✅
+Added collapsible table showing Best/Average/Worst time complexity + Space + Stability for all algorithms.
+Includes color-coded badges and highlights current algorithm.
 
-### [ ] SQLJoinVisualizer - Add Venn Diagrams
-Add ASCII/SVG Venn diagrams for JOIN types:
-```
-INNER JOIN:     LEFT JOIN:      RIGHT JOIN:     FULL JOIN:
-   ┌───┬───┐      ████┬───┐      ┌───┬████       ████┬████
-   │   │███│      ████│███│      │███│████       ████│████
-   └───┴───┘      ████┴───┘      └───┴████       ████┴████
-```
-**File:** `src/visualizers/SQLJoinVisualizer.tsx`
+### [x] SQLJoinVisualizer - Venn Diagrams ✅
+Added interactive SVG Venn diagrams that dynamically highlight included regions based on JOIN type.
+Green = intersection (matched), Cyan = included table regions, Gray = excluded.
 
 ---
 
@@ -126,6 +99,10 @@ Visualizers without ShareButton:
 - [x] Migrate DijkstraVisualizer to hook
 - [x] Create PUBLISHING.md documentation
 - [x] Create VISUALIZER_REVIEW.md audit
+- [x] Update README.md with all 36 visualizers (Dec 2024)
+- [x] Add complexity comparison table to SortingVisualizer (Dec 2024)
+- [x] Add Venn diagrams to SQLJoinVisualizer (Dec 2024)
+- [x] Export Tailwind CSS as `styles.css` (v0.2.13)
 
 ---
 

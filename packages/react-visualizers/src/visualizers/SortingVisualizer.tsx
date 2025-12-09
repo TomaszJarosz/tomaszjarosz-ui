@@ -650,6 +650,7 @@ const SortingVisualizerComponent: React.FC<SortingVisualizerProps> = ({
   const [customArray, setCustomArray] = useState<number[] | null>(null);
   const [historyCollapsed, setHistoryCollapsed] = useState(true);
   const [urlStateLoaded, setUrlStateLoaded] = useState(false);
+  const [showComplexityTable, setShowComplexityTable] = useState(false);
 
   const playingRef = useRef(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -1001,6 +1002,99 @@ const SortingVisualizerComponent: React.FC<SortingVisualizerProps> = ({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Complexity Comparison Table */}
+      <div className="px-4 pb-2">
+        <button
+          onClick={() => setShowComplexityTable(!showComplexityTable)}
+          className="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+        >
+          <svg
+            className={`w-4 h-4 transition-transform ${showComplexityTable ? 'rotate-90' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          Algorithm Complexity Comparison
+        </button>
+
+        {showComplexityTable && (
+          <div className="mt-3 p-4 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border border-indigo-200">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-indigo-900">
+                    <th className="pb-2 pr-4 font-semibold">Algorithm</th>
+                    <th className="pb-2 px-3 font-semibold text-center">Best</th>
+                    <th className="pb-2 px-3 font-semibold text-center">Average</th>
+                    <th className="pb-2 px-3 font-semibold text-center">Worst</th>
+                    <th className="pb-2 px-3 font-semibold text-center">Space</th>
+                    <th className="pb-2 pl-3 font-semibold text-center">Stable</th>
+                  </tr>
+                </thead>
+                <tbody className="text-gray-700">
+                  {(Object.keys(ALGORITHM_NAMES) as SortingAlgorithm[]).map((alg) => {
+                    const comp = ALGORITHM_COMPLEXITIES[alg];
+                    const isCurrentAlgorithm = alg === algorithm;
+                    return (
+                      <tr
+                        key={alg}
+                        className={`border-t border-indigo-100 ${isCurrentAlgorithm ? 'bg-indigo-100/50 font-medium' : ''}`}
+                      >
+                        <td className="py-2 pr-4">
+                          <span className={isCurrentAlgorithm ? 'text-indigo-700' : ''}>
+                            {ALGORITHM_NAMES[alg]}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 text-center">
+                          <span className={`px-2 py-0.5 rounded text-xs ${
+                            comp.best.includes('log') ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {comp.best}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 text-center">
+                          <span className={`px-2 py-0.5 rounded text-xs ${
+                            comp.average.includes('log') ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {comp.average}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 text-center">
+                          <span className={`px-2 py-0.5 rounded text-xs ${
+                            comp.worst.includes('log') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {comp.worst}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 text-center">
+                          <span className={`px-2 py-0.5 rounded text-xs ${
+                            comp.space === 'O(1)' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
+                          }`}>
+                            {comp.space}
+                          </span>
+                        </td>
+                        <td className="py-2 pl-3 text-center">
+                          {comp.stable ? (
+                            <span className="text-green-600">✓</span>
+                          ) : (
+                            <span className="text-red-400">✗</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-3 text-xs text-indigo-600">
+              <strong>Stable:</strong> A sorting algorithm is stable if elements with equal keys maintain their relative order.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Controls */}

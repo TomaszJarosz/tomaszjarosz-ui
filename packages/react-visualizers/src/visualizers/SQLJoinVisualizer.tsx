@@ -554,14 +554,68 @@ const SQLJoinVisualizerComponent: React.FC<SQLJoinVisualizerProps> = ({
               </div>
             </div>
 
-            {/* Join Type Explanation */}
-            <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-              <div className="text-xs text-blue-700">
-                <strong>{joinType.toUpperCase()} JOIN:</strong>
-                {joinType === 'inner' && ' Returns only rows with matches in BOTH tables.'}
-                {joinType === 'left' && ' Returns ALL rows from left + matching rows from right (NULL if no match).'}
-                {joinType === 'right' && ' Returns ALL rows from right + matching rows from left (NULL if no match).'}
-                {joinType === 'full' && ' Returns ALL rows from BOTH tables (NULL where no match exists).'}
+            {/* Join Type Explanation with Venn Diagram */}
+            <div className="mb-4 p-3 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg border border-cyan-200">
+              <div className="flex items-center gap-4">
+                {/* Venn Diagram */}
+                <svg viewBox="0 0 100 60" className="w-24 h-14 flex-shrink-0">
+                  {/* Left circle (Employees) */}
+                  <circle
+                    cx="35"
+                    cy="30"
+                    r="22"
+                    fill={joinType === 'left' || joinType === 'full' ? '#06b6d4' : joinType === 'inner' ? 'transparent' : '#e5e7eb'}
+                    fillOpacity={joinType === 'left' || joinType === 'full' ? 0.6 : joinType === 'inner' ? 0 : 0.5}
+                    stroke="#0891b2"
+                    strokeWidth="2"
+                  />
+                  {/* Right circle (Departments) */}
+                  <circle
+                    cx="65"
+                    cy="30"
+                    r="22"
+                    fill={joinType === 'right' || joinType === 'full' ? '#06b6d4' : joinType === 'inner' ? 'transparent' : '#e5e7eb'}
+                    fillOpacity={joinType === 'right' || joinType === 'full' ? 0.6 : joinType === 'inner' ? 0 : 0.5}
+                    stroke="#0891b2"
+                    strokeWidth="2"
+                  />
+                  {/* Intersection - always highlighted for all join types */}
+                  <clipPath id="leftClip">
+                    <circle cx="35" cy="30" r="22" />
+                  </clipPath>
+                  <circle
+                    cx="65"
+                    cy="30"
+                    r="22"
+                    fill="#22c55e"
+                    fillOpacity="0.7"
+                    clipPath="url(#leftClip)"
+                  />
+                  {/* Labels */}
+                  <text x="22" y="33" fontSize="8" fill="#0e7490" fontWeight="bold">L</text>
+                  <text x="74" y="33" fontSize="8" fill="#0e7490" fontWeight="bold">R</text>
+                </svg>
+
+                {/* Explanation */}
+                <div className="flex-1">
+                  <div className="text-sm font-semibold text-cyan-800 mb-1">
+                    {joinType.toUpperCase()} JOIN
+                  </div>
+                  <div className="text-xs text-cyan-700">
+                    {joinType === 'inner' && (
+                      <>Returns only rows with matches in <strong>both</strong> tables (green intersection).</>
+                    )}
+                    {joinType === 'left' && (
+                      <>Returns <strong>all</strong> rows from left table + matching rows from right. NULL if no match.</>
+                    )}
+                    {joinType === 'right' && (
+                      <>Returns <strong>all</strong> rows from right table + matching rows from left. NULL if no match.</>
+                    )}
+                    {joinType === 'full' && (
+                      <>Returns <strong>all</strong> rows from both tables. NULL where no match exists.</>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 

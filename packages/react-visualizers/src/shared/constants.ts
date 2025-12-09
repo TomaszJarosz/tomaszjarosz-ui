@@ -18,15 +18,56 @@ export const ALGORITHM_NAMES: Record<SortingAlgorithm, string> = {
   merge: 'MergeSort',
 };
 
-export const ALGORITHM_COMPLEXITIES: Record<
-  SortingAlgorithm,
-  { time: string; space: string }
-> = {
-  bubble: { time: 'O(n²)', space: 'O(1)' },
-  selection: { time: 'O(n²)', space: 'O(1)' },
-  insertion: { time: 'O(n²)', space: 'O(1)' },
-  quick: { time: 'O(n log n)', space: 'O(log n)' },
-  merge: { time: 'O(n log n)', space: 'O(n)' },
+export interface AlgorithmComplexity {
+  time: string; // Average/typical
+  best: string;
+  average: string;
+  worst: string;
+  space: string;
+  stable: boolean;
+}
+
+export const ALGORITHM_COMPLEXITIES: Record<SortingAlgorithm, AlgorithmComplexity> = {
+  bubble: {
+    time: 'O(n²)',
+    best: 'O(n)',
+    average: 'O(n²)',
+    worst: 'O(n²)',
+    space: 'O(1)',
+    stable: true,
+  },
+  selection: {
+    time: 'O(n²)',
+    best: 'O(n²)',
+    average: 'O(n²)',
+    worst: 'O(n²)',
+    space: 'O(1)',
+    stable: false,
+  },
+  insertion: {
+    time: 'O(n²)',
+    best: 'O(n)',
+    average: 'O(n²)',
+    worst: 'O(n²)',
+    space: 'O(1)',
+    stable: true,
+  },
+  quick: {
+    time: 'O(n log n)',
+    best: 'O(n log n)',
+    average: 'O(n log n)',
+    worst: 'O(n²)',
+    space: 'O(log n)',
+    stable: false,
+  },
+  merge: {
+    time: 'O(n log n)',
+    best: 'O(n log n)',
+    average: 'O(n log n)',
+    worst: 'O(n log n)',
+    space: 'O(n)',
+    stable: true,
+  },
 };
 
 export const ALGORITHM_CODE: Record<SortingAlgorithm, string[]> = {
