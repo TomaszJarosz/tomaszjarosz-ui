@@ -41,6 +41,7 @@ export { UnionFindInterviewVisualizer } from './visualizers/UnionFindInterviewVi
 export { AStarInterviewVisualizer } from './visualizers/AStarInterviewVisualizer';
 export { SkipListInterviewVisualizer } from './visualizers/SkipListInterviewVisualizer';
 export { LinkedListInterviewVisualizer } from './visualizers/LinkedListInterviewVisualizer';
+export { SegmentTreeInterviewVisualizer } from './visualizers/SegmentTreeInterviewVisualizer';
 export { HashTableVisualizer } from './visualizers/HashTableVisualizer';
 export { LinkedListVisualizer } from './visualizers/LinkedListVisualizer';
 export { LinkedHashMapVisualizer } from './visualizers/LinkedHashMapVisualizer';
