@@ -253,27 +253,99 @@ import type {
 
 ## Development
 
+This project uses **bun** as the package manager.
+
 ```bash
 # Clone the repository
 git clone https://github.com/tomaszjarosz/tomaszjarosz-ui.git
 cd tomaszjarosz-ui/packages/react-visualizers
 
 # Install dependencies
-pnpm install
+bun install
 
-# Run Storybook locally
-pnpm run storybook
+# Run Storybook locally (port 6006)
+bun run storybook
 
 # Build library
-pnpm run build
+bun run build
 
 # Type check
-pnpm run typecheck
+bun run typecheck
+
+# Run unit tests
+bun run test
+
+# Run tests in watch mode
+bun run test:watch
+```
+
+## Storybook
+
+All visualizers have interactive stories in [Storybook](https://storybook.js.org/):
+
+- **Local:** `bun run storybook` → http://localhost:6006
+- **Live Demo:** https://6934a2d9e17d1e509a92c935-rdicbxowdr.chromatic.com/
+
+Stories are located in `src/visualizers/stories/` directory.
+
+## Chromatic (Visual Testing)
+
+This project uses [Chromatic](https://www.chromatic.com/) for visual regression testing and Storybook hosting.
+
+- **Automatic deployment** on every push to `main` branch
+- **Visual diff detection** for UI changes
+- **Storybook hosting** at the live demo URL
+
+Chromatic runs via GitHub Actions (`.github/workflows/chromatic.yml`).
+
+## Project Structure
+
+```
+packages/react-visualizers/
+├── src/
+│   ├── index.ts              # Main exports
+│   ├── styles.css            # Tailwind entry point
+│   ├── shared/               # Shared components & hooks
+│   │   ├── ControlPanel.tsx
+│   │   ├── CodePanel.tsx
+│   │   ├── useVisualizerPlayback.ts
+│   │   ├── useInterviewMode.ts
+│   │   └── *.test.ts         # Unit tests
+│   └── visualizers/          # All visualizers
+│       ├── SortingVisualizer.tsx
+│       ├── HashMapVisualizer.tsx
+│       └── stories/          # Storybook stories
+├── dist/                     # Build output
+├── .storybook/               # Storybook config
+├── package.json
+└── vite.config.ts
+```
+
+## Publishing
+
+```bash
+# Bump version
+npm version patch  # or minor/major
+
+# Build
+bun run build
+
+# Publish to npm
+npm publish --access public
+
+# Push version tag
+git push && git push --tags
 ```
 
 ## Contributing
 
-Contributions are welcome! Please read the contributing guidelines before submitting a PR.
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass (`bun run test`)
+5. Submit a pull request
 
 ## License
 
