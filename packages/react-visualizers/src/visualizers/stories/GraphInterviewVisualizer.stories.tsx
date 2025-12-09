@@ -37,7 +37,7 @@ type Story = StoryObj<typeof GraphInterviewVisualizer>;
 
 export const Default: Story = {
   args: {
-    showControls: true,
+    showControls: false,
   },
 };
 

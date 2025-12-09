@@ -27,6 +27,10 @@ const config: StorybookConfig = {
   viteFinal: async (config) => {
     config.plugins = config.plugins || [];
     config.plugins.push(tailwindcss());
+    // Remove vite-plugin-dts from Storybook build (it's only needed for library build)
+    config.plugins = config.plugins.filter(
+      (plugin) => plugin && typeof plugin === 'object' && 'name' in plugin && plugin.name !== 'vite:dts'
+    );
     return config;
   }
 };
