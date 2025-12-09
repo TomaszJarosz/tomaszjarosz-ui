@@ -437,30 +437,34 @@ const TreeSetInterviewVisualizerComponent: React.FC<TreeSetInterviewVisualizerPr
         </div>
       </div>
 
-      {/* Path Display */}
-      {path.length > 0 && (
-        <div className="mb-4 p-3 bg-gray-100 rounded-lg">
-          <div className="text-xs text-gray-600">
-            <span className="font-medium">Path:</span>{' '}
-            {path.map((v, idx) => (
-              <React.Fragment key={idx}>
-                {idx > 0 && ' → '}
-                <span
-                  className={`px-1.5 py-0.5 rounded font-mono ${
-                    v === currentNode
-                      ? found === false
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-green-100 text-green-700'
-                      : 'bg-yellow-100 text-yellow-700'
-                  }`}
-                >
-                  {v}
-                </span>
-              </React.Fragment>
-            ))}
-          </div>
+      {/* Path Display - always visible container */}
+      <div className="mb-4 p-3 bg-gray-100 rounded-lg min-h-[44px]">
+        <div className="text-xs text-gray-600">
+          {path.length > 0 ? (
+            <>
+              <span className="font-medium">Path:</span>{' '}
+              {path.map((v, idx) => (
+                <React.Fragment key={idx}>
+                  {idx > 0 && ' → '}
+                  <span
+                    className={`px-1.5 py-0.5 rounded font-mono ${
+                      v === currentNode
+                        ? found === false
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-green-100 text-green-700'
+                        : 'bg-yellow-100 text-yellow-700'
+                    }`}
+                  >
+                    {v}
+                  </span>
+                </React.Fragment>
+              ))}
+            </>
+          ) : (
+            <span className="text-gray-400 italic">Path will appear here...</span>
+          )}
         </div>
-      )}
+      </div>
     </>
   );
 

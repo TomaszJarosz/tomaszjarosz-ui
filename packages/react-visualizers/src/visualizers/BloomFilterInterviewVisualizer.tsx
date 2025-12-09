@@ -348,26 +348,32 @@ const BloomFilterInterviewVisualizerComponent: React.FC<BloomFilterInterviewVisu
         </div>
       </div>
 
-      {/* Result Display */}
-      {result && (
+      {/* Result Display - always visible container */}
+      <div
+        className={`mb-4 p-3 rounded-lg border min-h-[44px] ${
+          result === 'probably_yes'
+            ? 'bg-amber-50 border-amber-200'
+            : result === 'definitely_no'
+              ? 'bg-green-50 border-green-200'
+              : 'bg-gray-50 border-gray-200'
+        }`}
+      >
         <div
-          className={`mb-4 p-3 rounded-lg border ${
+          className={`text-sm font-medium text-center ${
             result === 'probably_yes'
-              ? 'bg-amber-50 border-amber-200'
-              : 'bg-green-50 border-green-200'
+              ? 'text-amber-800'
+              : result === 'definitely_no'
+                ? 'text-green-800'
+                : 'text-gray-400 italic'
           }`}
         >
-          <div
-            className={`text-sm font-medium text-center ${
-              result === 'probably_yes' ? 'text-amber-800' : 'text-green-800'
-            }`}
-          >
-            {result === 'probably_yes'
-              ? '⚠️ Probably in set (could be false positive)'
-              : '✓ Definitely NOT in set'}
-          </div>
+          {result === 'probably_yes'
+            ? '⚠️ Probably in set (could be false positive)'
+            : result === 'definitely_no'
+              ? '✓ Definitely NOT in set'
+              : 'Query result will appear here...'}
         </div>
-      )}
+      </div>
     </>
   );
 

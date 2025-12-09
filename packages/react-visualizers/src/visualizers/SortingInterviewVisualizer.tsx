@@ -293,14 +293,18 @@ const SortingInterviewVisualizerComponent: React.FC<SortingInterviewVisualizerPr
         </div>
       </div>
 
-      {/* Current Operation Info */}
-      {pivot !== undefined && (
-        <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
-          <div className="text-sm text-purple-800">
-            <span className="font-medium">Pivot:</span> {array[pivot]} at index {pivot}
-          </div>
+      {/* Current Operation Info - always visible container */}
+      <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200 min-h-[44px]">
+        <div className="text-sm text-purple-800">
+          {pivot !== undefined ? (
+            <>
+              <span className="font-medium">Pivot:</span> {array[pivot]} at index {pivot}
+            </>
+          ) : (
+            <span className="text-purple-400 italic">Pivot will be selected...</span>
+          )}
         </div>
-      )}
+      </div>
     </>
   );
 

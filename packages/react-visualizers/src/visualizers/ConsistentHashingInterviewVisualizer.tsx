@@ -441,19 +441,19 @@ const ConsistentHashingInterviewVisualizerComponent: React.FC<ConsistentHashingI
         ))}
       </div>
 
-      {/* Keys Table */}
-      {dataKeys.length > 0 && (
-        <div className="mb-4 overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="px-2 py-1 text-left">Key</th>
-                <th className="px-2 py-1 text-left">Hash</th>
-                <th className="px-2 py-1 text-left">Server</th>
-              </tr>
-            </thead>
-            <tbody>
-              {dataKeys.map((key) => (
+      {/* Keys Table - always visible container */}
+      <div className="mb-4 overflow-x-auto min-h-[100px]">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="px-2 py-1 text-left">Key</th>
+              <th className="px-2 py-1 text-left">Hash</th>
+              <th className="px-2 py-1 text-left">Server</th>
+            </tr>
+          </thead>
+          <tbody>
+            {dataKeys.length > 0 ? (
+              dataKeys.map((key) => (
                 <tr
                   key={key.key}
                   className={`${highlightKey === key.key ? 'bg-yellow-100' : ''} ${movingKeys?.includes(key.key) ? 'bg-red-100' : ''}`}
@@ -466,11 +466,17 @@ const ConsistentHashingInterviewVisualizerComponent: React.FC<ConsistentHashingI
                     </span>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              ))
+            ) : (
+              <tr>
+                <td colSpan={3} className="px-2 py-4 text-center text-gray-400 italic">
+                  Keys will be added here...
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 

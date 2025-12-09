@@ -76,7 +76,7 @@ const BADGES = [
   { label: 'Generational GC', variant: 'purple' as const },
 ];
 
-const PROMOTION_THRESHOLD = 3;
+const PROMOTION_THRESHOLD = 2;
 
 function generateGCSteps(): GCStep[] {
   const steps: GCStep[] = [];
