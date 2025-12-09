@@ -116,16 +116,20 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 }) => {
   const colors = ACCENT_COLORS[accentColor];
 
+  const speedLabelId = React.useId();
+
   return (
-    <div className="flex items-center justify-between flex-wrap gap-3">
+    <div className="flex items-center justify-between flex-wrap gap-3" role="toolbar" aria-label="Playback controls">
       {/* Playback Controls */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2" role="group" aria-label="Navigation">
         {isPlaying && (
           <span
             className={`flex items-center gap-1 text-xs ${colors.playing} font-medium`}
+            aria-live="polite"
           >
             <span
               className={`w-2 h-2 ${colors.playingDot} rounded-full animate-pulse`}
+              aria-hidden="true"
             />
             Playing
           </span>
@@ -136,11 +140,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             isPlaying ? colors.buttonActive : colors.button
           }`}
           title="Play/Pause (P)"
+          aria-label={isPlaying ? 'Pause' : 'Play'}
+          aria-pressed={isPlaying}
         >
           {isPlaying ? (
-            <Pause className="w-4 h-4" />
+            <Pause className="w-4 h-4" aria-hidden="true" />
           ) : (
-            <Play className="w-4 h-4" />
+            <Play className="w-4 h-4" aria-hidden="true" />
           )}
         </button>
         <button
@@ -148,23 +154,26 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           disabled={isPlaying || currentStep <= 0}
           className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
           title="Step Back ([)"
+          aria-label="Step back"
         >
-          <SkipBack className="w-4 h-4" />
+          <SkipBack className="w-4 h-4" aria-hidden="true" />
         </button>
         <button
           onClick={onStep}
           disabled={isPlaying || currentStep >= totalSteps - 1}
           className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
           title="Step Forward (])"
+          aria-label="Step forward"
         >
-          <SkipForward className="w-4 h-4" />
+          <SkipForward className="w-4 h-4" aria-hidden="true" />
         </button>
         <button
           onClick={onReset}
           className="p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
           title="Reset (R)"
+          aria-label="Reset"
         >
-          <RotateCcw className="w-4 h-4" />
+          <RotateCcw className="w-4 h-4" aria-hidden="true" />
         </button>
         {showShuffle && onShuffle && (
           <button
@@ -172,16 +181,17 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             disabled={isPlaying}
             className={`bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 ${shuffleLabel ? 'px-3 py-2 text-sm' : 'p-2'}`}
             title={shuffleLabel || 'Shuffle'}
+            aria-label={shuffleLabel || 'Shuffle'}
           >
-            {shuffleLabel || <Shuffle className="w-4 h-4" />}
+            {shuffleLabel || <Shuffle className="w-4 h-4" aria-hidden="true" />}
           </button>
         )}
       </div>
 
       {/* Speed & Extra Controls */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4" role="group" aria-label="Speed control">
         <div className="flex items-center gap-2">
-          <label className="text-xs text-gray-500">Speed</label>
+          <label id={speedLabelId} className="text-xs text-gray-500">Speed</label>
           <input
             type="range"
             min="1"
@@ -189,6 +199,10 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             value={speed}
             onChange={(e) => onSpeedChange(Number(e.target.value))}
             className="w-24 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer"
+            aria-labelledby={speedLabelId}
+            aria-valuemin={1}
+            aria-valuemax={100}
+            aria-valuenow={speed}
           />
         </div>
         {extraControls}

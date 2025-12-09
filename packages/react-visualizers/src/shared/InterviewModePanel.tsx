@@ -87,13 +87,13 @@ export const InterviewModePanel: React.FC<InterviewModePanelProps> = ({
   // Completion screen
   if (isComplete) {
     return (
-      <div className="p-6 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200">
+      <div className="p-6 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200" role="region" aria-label="Quiz results">
         <div className="text-center">
-          <Trophy className="w-16 h-16 mx-auto mb-4 text-yellow-500" />
+          <Trophy className="w-16 h-16 mx-auto mb-4 text-yellow-500" aria-hidden="true" />
           <h3 className="text-2xl font-bold text-gray-900 mb-2">Interview Complete!</h3>
 
-          <div className="mb-6">
-            <div className="text-5xl font-bold text-gray-900 mb-1">
+          <div className="mb-6" aria-live="polite">
+            <div className="text-5xl font-bold text-gray-900 mb-1" aria-label={`Score: ${score.percentage} percent`}>
               {score.percentage}%
             </div>
             <div className="text-gray-500">
@@ -107,7 +107,7 @@ export const InterviewModePanel: React.FC<InterviewModePanelProps> = ({
             ${score.percentage >= 80 ? 'bg-green-100 text-green-700' : ''}
             ${score.percentage >= 60 && score.percentage < 80 ? 'bg-yellow-100 text-yellow-700' : ''}
             ${score.percentage < 60 ? 'bg-red-100 text-red-700' : ''}
-          `}>
+          `} role="status">
             {score.percentage >= 80 && '🎉 Excellent! Ready for interviews!'}
             {score.percentage >= 60 && score.percentage < 80 && '👍 Good job! Keep practicing!'}
             {score.percentage < 60 && '📚 Review the concepts and try again!'}
@@ -115,13 +115,14 @@ export const InterviewModePanel: React.FC<InterviewModePanelProps> = ({
 
           <button
             onClick={onRestart}
+            aria-label="Restart quiz"
             className={`
               flex items-center gap-2 mx-auto px-6 py-3 rounded-lg
               text-white font-medium transition-colors
               ${colors.button}
             `}
           >
-            <RotateCcw className="w-5 h-5" />
+            <RotateCcw className="w-5 h-5" aria-hidden="true" />
             Try Again
           </button>
         </div>
@@ -177,7 +178,7 @@ export const InterviewModePanel: React.FC<InterviewModePanelProps> = ({
         </h4>
 
         {/* Options */}
-        <div className="space-y-2 mb-4">
+        <div className="space-y-2 mb-4" role="radiogroup" aria-label="Answer options">
           {currentQuestion.options.map((option, index) => {
             const isSelected = selectedAnswer === index;
             const isCorrect = index === currentQuestion.correctAnswer;
@@ -200,6 +201,9 @@ export const InterviewModePanel: React.FC<InterviewModePanelProps> = ({
                 key={index}
                 onClick={() => !isAnswered && onSelectAnswer(index)}
                 disabled={isAnswered}
+                role="radio"
+                aria-checked={isSelected}
+                aria-disabled={isAnswered}
                 className={`
                   w-full p-3 rounded-lg border-2 text-left transition-all
                   flex items-center gap-3
@@ -207,12 +211,15 @@ export const InterviewModePanel: React.FC<InterviewModePanelProps> = ({
                   ${isAnswered ? 'cursor-default' : 'cursor-pointer'}
                 `}
               >
-                <span className={`
-                  w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
-                  ${showResult && isCorrect ? 'bg-green-500 text-white' : ''}
-                  ${showResult && isSelected && !isCorrect ? 'bg-red-500 text-white' : ''}
-                  ${!showResult ? 'bg-gray-200 text-gray-600' : ''}
-                `}>
+                <span
+                  className={`
+                    w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
+                    ${showResult && isCorrect ? 'bg-green-500 text-white' : ''}
+                    ${showResult && isSelected && !isCorrect ? 'bg-red-500 text-white' : ''}
+                    ${!showResult ? 'bg-gray-200 text-gray-600' : ''}
+                  `}
+                  aria-hidden="true"
+                >
                   {showResult && isCorrect && <CheckCircle className="w-4 h-4" />}
                   {showResult && isSelected && !isCorrect && <XCircle className="w-4 h-4" />}
                   {!showResult && String.fromCharCode(65 + index)}
@@ -229,9 +236,9 @@ export const InterviewModePanel: React.FC<InterviewModePanelProps> = ({
         {currentQuestion.hint && !showExplanation && (
           <div className="mb-4">
             {showHint ? (
-              <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200" role="note" aria-label="Hint">
                 <div className="flex items-start gap-2">
-                  <Lightbulb className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                  <Lightbulb className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div>
                     <div className="text-xs font-medium text-yellow-800 mb-1">Hint</div>
                     <div className="text-sm text-yellow-700">{currentQuestion.hint}</div>
@@ -242,8 +249,9 @@ export const InterviewModePanel: React.FC<InterviewModePanelProps> = ({
               <button
                 onClick={onUseHint}
                 className="flex items-center gap-2 text-sm text-yellow-600 hover:text-yellow-700"
+                aria-label="Show hint for this question"
               >
-                <Lightbulb className="w-4 h-4" />
+                <Lightbulb className="w-4 h-4" aria-hidden="true" />
                 Show hint
               </button>
             )}
@@ -283,10 +291,11 @@ export const InterviewModePanel: React.FC<InterviewModePanelProps> = ({
       </div>
 
       {/* Navigation */}
-      <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+      <nav className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between" aria-label="Question navigation">
         <button
           onClick={onPreviousQuestion}
           disabled={currentQuestionIndex === 0}
+          aria-label="Previous question"
           className={`
             flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium
             transition-colors
@@ -296,13 +305,14 @@ export const InterviewModePanel: React.FC<InterviewModePanelProps> = ({
             }
           `}
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-4 h-4" aria-hidden="true" />
           Previous
         </button>
 
         <button
           onClick={onNextQuestion}
           disabled={currentQuestionIndex === totalQuestions - 1}
+          aria-label={currentQuestionIndex === totalQuestions - 1 ? 'Finish quiz' : 'Next question'}
           className={`
             flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium
             transition-colors text-white
@@ -313,9 +323,9 @@ export const InterviewModePanel: React.FC<InterviewModePanelProps> = ({
           `}
         >
           {currentQuestionIndex === totalQuestions - 1 ? 'Finish' : 'Next'}
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-4 h-4" aria-hidden="true" />
         </button>
-      </div>
+      </nav>
     </div>
   );
 };

@@ -23,10 +23,10 @@ describe('ControlPanel', () => {
     it('renders all control buttons', () => {
       render(<ControlPanel {...defaultProps} />);
 
-      expect(screen.getByTitle('Play/Pause (P)')).toBeInTheDocument();
-      expect(screen.getByTitle('Step Back ([)')).toBeInTheDocument();
-      expect(screen.getByTitle('Step Forward (])')).toBeInTheDocument();
-      expect(screen.getByTitle('Reset (R)')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Step back' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Step forward' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Reset' })).toBeInTheDocument();
     });
 
     it('renders speed slider', () => {
@@ -55,7 +55,7 @@ describe('ControlPanel', () => {
         <ControlPanel {...defaultProps} showShuffle={true} onShuffle={onShuffle} />
       );
 
-      expect(screen.getByTitle('Shuffle')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Shuffle' })).toBeInTheDocument();
     });
 
     it('renders shuffle button with custom label', () => {
@@ -88,28 +88,28 @@ describe('ControlPanel', () => {
     it('calls onPlayPause when play button clicked', () => {
       render(<ControlPanel {...defaultProps} />);
 
-      fireEvent.click(screen.getByTitle('Play/Pause (P)'));
+      fireEvent.click(screen.getByRole('button', { name: 'Play' }));
       expect(defaultProps.onPlayPause).toHaveBeenCalledTimes(1);
     });
 
     it('calls onStep when step forward clicked', () => {
       render(<ControlPanel {...defaultProps} />);
 
-      fireEvent.click(screen.getByTitle('Step Forward (])'));
+      fireEvent.click(screen.getByRole('button', { name: 'Step forward' }));
       expect(defaultProps.onStep).toHaveBeenCalledTimes(1);
     });
 
     it('calls onStepBack when step back clicked', () => {
       render(<ControlPanel {...defaultProps} currentStep={5} />);
 
-      fireEvent.click(screen.getByTitle('Step Back ([)'));
+      fireEvent.click(screen.getByRole('button', { name: 'Step back' }));
       expect(defaultProps.onStepBack).toHaveBeenCalledTimes(1);
     });
 
     it('calls onReset when reset clicked', () => {
       render(<ControlPanel {...defaultProps} />);
 
-      fireEvent.click(screen.getByTitle('Reset (R)'));
+      fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
       expect(defaultProps.onReset).toHaveBeenCalledTimes(1);
     });
 
@@ -128,7 +128,7 @@ describe('ControlPanel', () => {
         <ControlPanel {...defaultProps} showShuffle={true} onShuffle={onShuffle} />
       );
 
-      fireEvent.click(screen.getByTitle('Shuffle'));
+      fireEvent.click(screen.getByRole('button', { name: 'Shuffle' }));
       expect(onShuffle).toHaveBeenCalledTimes(1);
     });
   });
@@ -137,32 +137,32 @@ describe('ControlPanel', () => {
     it('disables step back at first step', () => {
       render(<ControlPanel {...defaultProps} currentStep={0} />);
 
-      expect(screen.getByTitle('Step Back ([)')).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Step back' })).toBeDisabled();
     });
 
     it('enables step back when not at first step', () => {
       render(<ControlPanel {...defaultProps} currentStep={5} />);
 
-      expect(screen.getByTitle('Step Back ([)')).not.toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Step back' })).not.toBeDisabled();
     });
 
     it('disables step forward at last step', () => {
       render(<ControlPanel {...defaultProps} currentStep={9} totalSteps={10} />);
 
-      expect(screen.getByTitle('Step Forward (])')).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Step forward' })).toBeDisabled();
     });
 
     it('enables step forward when not at last step', () => {
       render(<ControlPanel {...defaultProps} currentStep={5} totalSteps={10} />);
 
-      expect(screen.getByTitle('Step Forward (])')).not.toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Step forward' })).not.toBeDisabled();
     });
 
     it('disables step buttons when playing', () => {
       render(<ControlPanel {...defaultProps} isPlaying={true} currentStep={5} />);
 
-      expect(screen.getByTitle('Step Back ([)')).toBeDisabled();
-      expect(screen.getByTitle('Step Forward (])')).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Step back' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Step forward' })).toBeDisabled();
     });
 
     it('disables shuffle when playing', () => {
@@ -176,7 +176,7 @@ describe('ControlPanel', () => {
         />
       );
 
-      expect(screen.getByTitle('Shuffle')).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Shuffle' })).toBeDisabled();
     });
   });
 
@@ -198,9 +198,34 @@ describe('ControlPanel', () => {
       it(`applies ${color} accent color`, () => {
         render(<ControlPanel {...defaultProps} accentColor={color} />);
 
-        const playButton = screen.getByTitle('Play/Pause (P)');
+        const playButton = screen.getByRole('button', { name: 'Play' });
         expect(playButton.className).toContain(color);
       });
+    });
+  });
+
+  describe('accessibility', () => {
+    it('has toolbar role with label', () => {
+      render(<ControlPanel {...defaultProps} />);
+
+      expect(screen.getByRole('toolbar', { name: 'Playback controls' })).toBeInTheDocument();
+    });
+
+    it('has aria-pressed on play/pause button', () => {
+      const { rerender } = render(<ControlPanel {...defaultProps} isPlaying={false} />);
+
+      expect(screen.getByRole('button', { name: 'Play' })).toHaveAttribute('aria-pressed', 'false');
+
+      rerender(<ControlPanel {...defaultProps} isPlaying={true} />);
+
+      expect(screen.getByRole('button', { name: 'Pause' })).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    it('has aria-labelledby on speed slider', () => {
+      render(<ControlPanel {...defaultProps} />);
+
+      const slider = screen.getByRole('slider');
+      expect(slider).toHaveAttribute('aria-labelledby');
     });
   });
 });
