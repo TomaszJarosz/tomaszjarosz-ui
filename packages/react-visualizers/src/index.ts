@@ -53,6 +53,8 @@ export { BloomFilterVisualizer } from './visualizers/BloomFilterVisualizer';
 
 // Tree Structures
 export { BTreeVisualizer } from './visualizers/BTreeVisualizer';
+export { TrieVisualizer } from './visualizers/TrieVisualizer';
+export { UnionFindVisualizer } from './visualizers/UnionFindVisualizer';
 
 // Distributed Systems
 export { ConsistentHashingVisualizer } from './visualizers/ConsistentHashingVisualizer';
