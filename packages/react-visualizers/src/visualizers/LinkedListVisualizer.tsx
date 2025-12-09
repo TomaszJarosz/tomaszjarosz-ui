@@ -303,9 +303,9 @@ const LinkedListVisualizerComponent: React.FC<LinkedListVisualizerProps> = ({
         </div>
       </div>
 
-      {/* Pointers Info */}
-      {nodes.length > 0 && (
-        <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+      {/* Pointers Info - always visible */}
+      <div className="mb-4 p-3 bg-gray-100 rounded-lg min-h-[44px]">
+        {nodes.length > 0 ? (
           <div className="text-xs text-gray-600 flex gap-4">
             <span>
               <span className="font-medium">head:</span> {nodes[0]?.value}
@@ -317,8 +317,10 @@ const LinkedListVisualizerComponent: React.FC<LinkedListVisualizerProps> = ({
               <span className="font-medium">size:</span> {nodes.length}
             </span>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="text-xs text-gray-400 text-center">head = tail = null, size = 0</div>
+        )}
+      </div>
     </>
   );
 

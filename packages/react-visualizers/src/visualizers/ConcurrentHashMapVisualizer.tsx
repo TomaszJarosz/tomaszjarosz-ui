@@ -420,7 +420,7 @@ const ConcurrentHashMapVisualizerComponent: React.FC<
                   </span>
                 )}
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1 min-h-[60px]">
                 {seg.entries.length > 0 ? (
                   seg.entries.map((entry, eIdx) => (
                     <div

@@ -325,9 +325,9 @@ const HashMapVisualizerComponent: React.FC<HashMapVisualizerProps> = ({
             Same key → same index (deterministic) • Different keys may collide → chaining
           </div>
         </div>
-        {/* Current hash calculation */}
-        {stepData.hash !== undefined && stepData.key && (
-          <div className="mt-3 p-3 bg-white rounded-lg border border-indigo-200">
+        {/* Current hash calculation - always visible with min-height */}
+        <div className="mt-3 p-3 bg-white rounded-lg border border-indigo-200 min-h-[80px]">
+          {stepData.hash !== undefined && stepData.key ? (
             <div className="text-xs text-center">
               <div className="font-mono mb-1">
                 hashCode(<span className="text-indigo-600 font-bold">&quot;{stepData.key}&quot;</span>) = <span className="text-purple-600 font-bold">{stepData.hash}</span>
@@ -337,8 +337,10 @@ const HashMapVisualizerComponent: React.FC<HashMapVisualizerProps> = ({
               </div>
               <div className="mt-2 text-indigo-600 text-lg">↓ bucket[{stepData.bucketIndex}]</div>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-xs text-gray-400 text-center py-4">Ready to hash...</div>
+          )}
+        </div>
       </div>
 
       {/* Bucket Array */}

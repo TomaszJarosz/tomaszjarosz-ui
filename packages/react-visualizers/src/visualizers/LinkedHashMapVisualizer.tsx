@@ -565,9 +565,9 @@ const LinkedHashMapVisualizerComponent: React.FC<LinkedHashMapVisualizerProps> =
         </div>
       </div>
 
-      {/* LRU Cache Example */}
-      {accessOrder && (
-        <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+      {/* LRU Cache Example - always visible with min-height when accessOrder mode */}
+      <div className="mb-4 p-3 bg-blue-50 rounded-lg min-h-[52px]">
+        {accessOrder ? (
           <div className="text-xs text-blue-700">
             <strong>LRU Cache Usage:</strong>
             <div className="mt-1 text-[11px]">
@@ -581,8 +581,12 @@ const LinkedHashMapVisualizerComponent: React.FC<LinkedHashMapVisualizerProps> =
               )}
             </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="text-xs text-gray-400 text-center">
+            Insertion order mode (switch to access order for LRU behavior)
+          </div>
+        )}
+      </div>
     </>
   );
 

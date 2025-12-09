@@ -481,9 +481,9 @@ const PriorityQueueVisualizerComponent: React.FC<
             </div>
           </div>
         </div>
-        {/* Current Index Calculation */}
-        {currentIndex !== undefined && currentIndex >= 0 && (
-          <div className="mt-3 p-2 bg-white rounded-lg border border-purple-200">
+        {/* Current Index Calculation - always visible with min-height */}
+        <div className="mt-3 p-2 bg-white rounded-lg border border-purple-200 min-h-[36px]">
+          {currentIndex !== undefined && currentIndex >= 0 ? (
             <div className="text-xs text-gray-600 text-center">
               <span className="font-semibold text-purple-700">Current: i = {currentIndex}</span>
               {currentIndex > 0 && (
@@ -493,8 +493,10 @@ const PriorityQueueVisualizerComponent: React.FC<
                 <span className="mx-2">→ left({currentIndex}) = <span className="text-purple-600 font-bold">{2 * currentIndex + 1}</span></span>
               )}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-xs text-gray-400 text-center">Ready for heap operations...</div>
+          )}
+        </div>
       </div>
 
       {/* Heap Tree Visualization */}
