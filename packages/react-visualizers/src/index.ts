@@ -2,7 +2,13 @@
  * @tomaszjarosz/react-visualizers
  *
  * Interactive algorithm and data structure visualizers for React.
+ *
+ * IMPORTANT: Import the CSS file in your application:
+ * import '@tomaszjarosz/react-visualizers/styles.css';
  */
+
+// Import CSS for Tailwind to scan and build
+import './styles.css';
 
 // Algorithm Visualizers
 export { BinarySearchVisualizer } from './visualizers/BinarySearchVisualizer';
@@ -23,6 +29,10 @@ export { SortingInterviewVisualizer } from './visualizers/SortingInterviewVisual
 export { GraphInterviewVisualizer } from './visualizers/GraphInterviewVisualizer';
 export { BloomFilterInterviewVisualizer } from './visualizers/BloomFilterInterviewVisualizer';
 export { BTreeInterviewVisualizer } from './visualizers/BTreeInterviewVisualizer';
+export { DijkstraInterviewVisualizer } from './visualizers/DijkstraInterviewVisualizer';
+export { DPInterviewVisualizer } from './visualizers/DPInterviewVisualizer';
+export { ConsistentHashingInterviewVisualizer } from './visualizers/ConsistentHashingInterviewVisualizer';
+export { RaftInterviewVisualizer } from './visualizers/RaftInterviewVisualizer';
 export { HashTableVisualizer } from './visualizers/HashTableVisualizer';
 export { LinkedListVisualizer } from './visualizers/LinkedListVisualizer';
 export { LinkedHashMapVisualizer } from './visualizers/LinkedHashMapVisualizer';

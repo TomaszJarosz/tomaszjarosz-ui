@@ -1,6 +1,6 @@
 {
   "name": "@tomaszjarosz/react-visualizers",
-  "version": "0.2.11",
+  "version": "0.2.13",
   "description": "Interactive algorithm and data structure visualizers for React",
   "author": "Tomasz Jarosz <tomaszjarosz1994@gmail.com>",
   "license": "MIT",
@@ -36,7 +36,7 @@
         "default": "./dist/index.cjs"
       }
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles.css": "./dist/react-visualizers.css"
   },
   "files": [
     "dist",

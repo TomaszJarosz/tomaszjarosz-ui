@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/*
+ * This CSS file includes all Tailwind classes used by the visualizer components.
+ * Import this file in your application to style the visualizers:
+ *
+ * import '@tomaszjarosz/react-visualizers/styles.css';
+ */
+
+/* Pulse animation for playing indicator */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

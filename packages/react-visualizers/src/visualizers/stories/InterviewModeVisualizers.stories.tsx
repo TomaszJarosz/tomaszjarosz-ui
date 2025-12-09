@@ -5,6 +5,10 @@ import { GraphInterviewVisualizer } from '../GraphInterviewVisualizer';
 import { BloomFilterInterviewVisualizer } from '../BloomFilterInterviewVisualizer';
 import { BTreeInterviewVisualizer } from '../BTreeInterviewVisualizer';
 import { HashMapInterviewVisualizer } from '../HashMapInterviewVisualizer';
+import { DijkstraInterviewVisualizer } from '../DijkstraInterviewVisualizer';
+import { DPInterviewVisualizer } from '../DPInterviewVisualizer';
+import { ConsistentHashingInterviewVisualizer } from '../ConsistentHashingInterviewVisualizer';
+import { RaftInterviewVisualizer } from '../RaftInterviewVisualizer';
 
 // TreeSet Interview
 const treeSetMeta: Meta<typeof TreeSetInterviewVisualizer> = {
@@ -229,4 +233,145 @@ export const HashMapInterview: StoryObj<typeof HashMapInterviewVisualizer> = {
     showControls: true,
   },
   render: (args) => <HashMapInterviewVisualizer {...args} />,
+};
+
+// Dijkstra Interview
+const dijkstraMeta: Meta<typeof DijkstraInterviewVisualizer> = {
+  title: 'Interview Mode/Dijkstra',
+  component: DijkstraInterviewVisualizer,
+  parameters: {
+    layout: 'padded',
+    docs: {
+      description: {
+        component: `
+# Dijkstra's Algorithm Interview Mode
+
+Shortest path algorithm visualization with interview questions.
+
+## Topics Covered
+- Time complexity O((V+E) log V)
+- Priority queue usage
+- Negative edge weight limitation
+- Relaxation concept
+- Space complexity
+- Path reconstruction
+- Bellman-Ford alternative
+- Applications (GPS, routing)
+        `,
+      },
+    },
+  },
+  tags: ['autodocs'],
+};
+
+export const DijkstraInterview: StoryObj<typeof DijkstraInterviewVisualizer> = {
+  args: {
+    showControls: true,
+  },
+  render: (args) => <DijkstraInterviewVisualizer {...args} />,
+};
+
+// Dynamic Programming Interview
+const dpMeta: Meta<typeof DPInterviewVisualizer> = {
+  title: 'Interview Mode/DynamicProgramming',
+  component: DPInterviewVisualizer,
+  parameters: {
+    layout: 'padded',
+    docs: {
+      description: {
+        component: `
+# Dynamic Programming Interview Mode
+
+0/1 Knapsack visualization with comprehensive DP interview questions.
+
+## Topics Covered
+- Optimal substructure and overlapping subproblems
+- Top-down vs bottom-up approaches
+- DP state definition
+- Space optimization techniques
+- Pseudopolynomial complexity
+- Classic DP problems (LCS, Edit Distance)
+- Problem identification
+        `,
+      },
+    },
+  },
+  tags: ['autodocs'],
+};
+
+export const DPInterview: StoryObj<typeof DPInterviewVisualizer> = {
+  args: {
+    showControls: true,
+  },
+  render: (args) => <DPInterviewVisualizer {...args} />,
+};
+
+// Consistent Hashing Interview
+const consistentHashingMeta: Meta<typeof ConsistentHashingInterviewVisualizer> = {
+  title: 'Interview Mode/ConsistentHashing',
+  component: ConsistentHashingInterviewVisualizer,
+  parameters: {
+    layout: 'padded',
+    docs: {
+      description: {
+        component: `
+# Consistent Hashing Interview Mode
+
+Distributed systems key distribution visualization with interview questions.
+
+## Topics Covered
+- Minimal key redistribution
+- Virtual nodes for load balancing
+- Clockwise assignment
+- Node addition/removal impact
+- Time complexity O(log N)
+- Real-world applications (caching, sharding)
+- Jump consistent hash alternative
+        `,
+      },
+    },
+  },
+  tags: ['autodocs'],
+};
+
+export const ConsistentHashingInterview: StoryObj<typeof ConsistentHashingInterviewVisualizer> = {
+  args: {
+    showControls: true,
+  },
+  render: (args) => <ConsistentHashingInterviewVisualizer {...args} />,
+};
+
+// Raft Consensus Interview
+const raftMeta: Meta<typeof RaftInterviewVisualizer> = {
+  title: 'Interview Mode/Raft',
+  component: RaftInterviewVisualizer,
+  parameters: {
+    layout: 'padded',
+    docs: {
+      description: {
+        component: `
+# Raft Consensus Interview Mode
+
+Distributed consensus algorithm visualization with interview questions.
+
+## Topics Covered
+- Follower, Candidate, Leader states
+- Leader election and terms
+- Majority quorum requirement
+- Log replication and commitment
+- Safety guarantees
+- Election timeout randomization
+- Comparison with Paxos
+        `,
+      },
+    },
+  },
+  tags: ['autodocs'],
+};
+
+export const RaftInterview: StoryObj<typeof RaftInterviewVisualizer> = {
+  args: {
+    showControls: true,
+  },
+  render: (args) => <RaftInterviewVisualizer {...args} />,
 };
