@@ -3,6 +3,8 @@ import React from 'react';
 export interface VisualizationAreaProps {
   children: React.ReactNode;
   minHeight?: number;
+  /** If true, height is fixed (not just minimum) with overflow scroll */
+  fixedHeight?: boolean;
   className?: string;
 }
 
@@ -13,12 +15,17 @@ export interface VisualizationAreaProps {
 export const VisualizationArea: React.FC<VisualizationAreaProps> = ({
   children,
   minHeight = 300,
+  fixedHeight = false,
   className = '',
 }) => {
+  const style = fixedHeight
+    ? { height: `${minHeight}px`, minHeight: `${minHeight}px`, maxHeight: `${minHeight}px` }
+    : { minHeight: `${minHeight}px` };
+
   return (
     <div
-      className={`relative ${className}`}
-      style={{ minHeight: `${minHeight}px` }}
+      className={`relative ${fixedHeight ? 'overflow-auto' : ''} ${className}`}
+      style={style}
     >
       {children}
     </div>

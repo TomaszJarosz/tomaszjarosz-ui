@@ -24,6 +24,8 @@ export interface BaseVisualizerLayoutProps {
   children: React.ReactNode;
   /** Minimum height for visualization area */
   minHeight?: number;
+  /** If true, visualization area has fixed height (prevents layout shifts) */
+  fixedHeight?: boolean;
 
   /** Side panel content (e.g., CodePanel, InterviewPanel) */
   sidePanel?: React.ReactNode;
@@ -75,6 +77,7 @@ export const BaseVisualizerLayout: React.FC<BaseVisualizerLayoutProps> = ({
   onShare,
   children,
   minHeight = 400,
+  fixedHeight = false,
   sidePanel,
   status,
   controls,
@@ -119,7 +122,7 @@ export const BaseVisualizerLayout: React.FC<BaseVisualizerLayoutProps> = ({
         {/* Visualization + Side Panel */}
         <div className={`flex gap-4 ${hasSidePanel ? 'flex-col lg:flex-row lg:items-start' : ''}`}>
           {/* Main Visualization Area */}
-          <VisualizationArea minHeight={minHeight} className="flex-1">
+          <VisualizationArea minHeight={minHeight} fixedHeight={fixedHeight} className="flex-1">
             {children}
 
             {/* Status Panel */}

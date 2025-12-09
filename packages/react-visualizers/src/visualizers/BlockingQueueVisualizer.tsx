@@ -470,7 +470,8 @@ const BlockingQueueVisualizerComponent: React.FC<
       badges={BADGES}
       gradient="cyan"
       className={className}
-      minHeight={350}
+      minHeight={420}
+      fixedHeight={true}
       status={{
         description,
         currentStep,
