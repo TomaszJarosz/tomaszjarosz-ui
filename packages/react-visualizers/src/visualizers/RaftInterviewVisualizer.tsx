@@ -439,14 +439,16 @@ const RaftInterviewVisualizerComponent: React.FC<RaftInterviewVisualizerProps> =
               </svg>
             </div>
 
-            {/* Message Type */}
-            {stepData.messageType && (
-              <div className="mb-4 text-center">
+            {/* Message Type - always visible container */}
+            <div className="mb-4 text-center min-h-[32px] flex items-center justify-center">
+              {stepData.messageType ? (
                 <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
                   📨 {stepData.messageType}
                 </span>
-              </div>
-            )}
+              ) : (
+                <span className="text-gray-400 text-xs italic">Message type will appear here...</span>
+              )}
+            </div>
 
             {/* Node Table */}
             <div className="mb-4 overflow-x-auto">

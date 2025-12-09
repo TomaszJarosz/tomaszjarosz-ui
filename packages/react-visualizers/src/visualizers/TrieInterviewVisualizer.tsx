@@ -468,14 +468,16 @@ const TrieInterviewVisualizerComponent: React.FC<TrieInterviewVisualizerProps> =
         )}
       </div>
 
-      {/* Matched Words */}
-      {stepData.matchedWords && stepData.matchedWords.length > 0 && stepData.operation !== 'done' && (
-        <div className="mt-2 p-2 bg-purple-50 rounded border border-purple-200">
+      {/* Matched Words - always visible container */}
+      <div className="mt-2 p-2 rounded border min-h-[36px] flex items-center justify-center bg-purple-50 border-purple-200">
+        {stepData.matchedWords && stepData.matchedWords.length > 0 && stepData.operation !== 'done' ? (
           <div className="text-xs text-purple-700">
             <span className="font-medium">Found:</span> {stepData.matchedWords.join(', ')}
           </div>
-        </div>
-      )}
+        ) : (
+          <span className="text-purple-400 text-xs italic">Matched words will appear here...</span>
+        )}
+      </div>
     </>
   );
 

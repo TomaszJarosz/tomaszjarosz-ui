@@ -378,9 +378,9 @@ const DPInterviewVisualizerComponent: React.FC<DPInterviewVisualizerProps> = ({
               </table>
             </div>
 
-            {/* Current Decision */}
-            {currentI > 0 && currentW > 0 && decision && (
-              <div className="mb-4 text-center">
+            {/* Current Decision - always visible container */}
+            <div className="mb-4 text-center min-h-[32px] flex items-center justify-center">
+              {currentI > 0 && currentW > 0 && decision ? (
                 <span className={`px-3 py-1 rounded-full font-bold text-sm ${
                   decision === 'take'
                     ? 'bg-green-100 text-green-700'
@@ -388,8 +388,10 @@ const DPInterviewVisualizerComponent: React.FC<DPInterviewVisualizerProps> = ({
                 }`}>
                   {decision === 'take' ? '✓ TAKE' : '✗ SKIP'}
                 </span>
-              </div>
-            )}
+              ) : (
+                <span className="text-gray-400 text-xs italic">Decision will appear here...</span>
+              )}
+            </div>
     </>
   );
 
