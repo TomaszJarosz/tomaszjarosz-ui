@@ -119,7 +119,7 @@ function App() {
 | `GCVisualizer` | JVM generational garbage collection |
 | `SQLJoinVisualizer` | SQL JOIN operations (INNER, LEFT, RIGHT, FULL) |
 
-### Interview Mode (28)
+### Interview Mode (34)
 
 Interview visualizers include built-in questions with multiple choice answers, hints, and detailed explanations. Perfect for interview preparation.
 
@@ -153,6 +153,12 @@ Interview visualizers include built-in questions with multiple choice answers, h
 | `EnumSetInterviewVisualizer` | Bit vector, O(1) ops, 35x memory savings vs HashSet |
 | `BlockingQueueInterviewVisualizer` | Producer-consumer, put/take blocking, implementations |
 | `CopyOnWriteInterviewVisualizer` | Lock-free reads, O(n) writes, snapshot iterators |
+| `GCInterviewVisualizer` | Generational GC, Minor/Major GC, heap layout, promotion |
+| `SQLJoinInterviewVisualizer` | INNER/LEFT/RIGHT/FULL JOIN, Nested Loop, Hash Join |
+| `ImmutableCollectionsInterviewVisualizer` | List.of(), thread safety, null handling, copyOf() |
+| `ListComparisonInterviewVisualizer` | ArrayList vs LinkedList, complexity, cache performance |
+| `HashTableInterviewVisualizer` | Chaining, load factor, rehashing, hashCode contract |
+| `SortingComparisonInterviewVisualizer` | Bubble vs Quick, stability, divide-and-conquer |
 
 ## Interview Mode Usage
 

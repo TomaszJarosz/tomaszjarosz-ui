@@ -63,6 +63,12 @@ export { LinkedHashMapInterviewVisualizer } from './visualizers/LinkedHashMapInt
 export { EnumSetInterviewVisualizer } from './visualizers/EnumSetInterviewVisualizer';
 export { BlockingQueueInterviewVisualizer } from './visualizers/BlockingQueueInterviewVisualizer';
 export { CopyOnWriteInterviewVisualizer } from './visualizers/CopyOnWriteInterviewVisualizer';
+export { GCInterviewVisualizer } from './visualizers/GCInterviewVisualizer';
+export { SQLJoinInterviewVisualizer } from './visualizers/SQLJoinInterviewVisualizer';
+export { ImmutableCollectionsInterviewVisualizer } from './visualizers/ImmutableCollectionsInterviewVisualizer';
+export { ListComparisonInterviewVisualizer } from './visualizers/ListComparisonInterviewVisualizer';
+export { HashTableInterviewVisualizer } from './visualizers/HashTableInterviewVisualizer';
+export { SortingComparisonInterviewVisualizer } from './visualizers/SortingComparisonInterviewVisualizer';
 
 // Concurrency Visualizers
 export { ConcurrentHashMapVisualizer } from './visualizers/ConcurrentHashMapVisualizer';
