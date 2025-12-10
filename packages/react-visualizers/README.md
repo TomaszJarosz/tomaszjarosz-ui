@@ -8,7 +8,7 @@ Interactive algorithm and data structure visualizers for React. Perfect for lear
 
 ## Features
 
-- **54 interactive visualizers** covering algorithms, data structures, and distributed systems
+- **55 interactive visualizers** covering algorithms, data structures, and distributed systems
 - **Interview Mode** with built-in questions, scoring, hints, and explanations
 - **Step-by-step animations** with playback controls (play, pause, step forward/back)
 - **Code highlighting** showing the current line being executed
@@ -119,7 +119,7 @@ function App() {
 | `GCVisualizer` | JVM generational garbage collection |
 | `SQLJoinVisualizer` | SQL JOIN operations (INNER, LEFT, RIGHT, FULL) |
 
-### Interview Mode (17)
+### Interview Mode (18)
 
 Interview visualizers include built-in questions with multiple choice answers, hints, and detailed explanations. Perfect for interview preparation.
 
@@ -142,6 +142,7 @@ Interview visualizers include built-in questions with multiple choice answers, h
 | `LinkedListInterviewVisualizer` | Two-pointer techniques, cycle detection, reversal |
 | `HeapInterviewVisualizer` | Heap property, HeapSort, time complexity, priority queues |
 | `SegmentTreeInterviewVisualizer` | Range queries, point updates, lazy propagation, space complexity |
+| `LRUCacheInterviewVisualizer` | HashMap + DLL, O(1) operations, eviction policy, thread-safety |
 
 ## Interview Mode Usage
 

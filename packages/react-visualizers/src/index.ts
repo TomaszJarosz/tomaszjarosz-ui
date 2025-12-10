@@ -42,6 +42,7 @@ export { AStarInterviewVisualizer } from './visualizers/AStarInterviewVisualizer
 export { SkipListInterviewVisualizer } from './visualizers/SkipListInterviewVisualizer';
 export { LinkedListInterviewVisualizer } from './visualizers/LinkedListInterviewVisualizer';
 export { SegmentTreeInterviewVisualizer } from './visualizers/SegmentTreeInterviewVisualizer';
+export { LRUCacheInterviewVisualizer } from './visualizers/LRUCacheInterviewVisualizer';
 export { HashTableVisualizer } from './visualizers/HashTableVisualizer';
 export { LinkedListVisualizer } from './visualizers/LinkedListVisualizer';
 export { LinkedHashMapVisualizer } from './visualizers/LinkedHashMapVisualizer';
