@@ -53,6 +53,10 @@ export { EnumSetVisualizer } from './visualizers/EnumSetVisualizer';
 export { PriorityQueueVisualizer } from './visualizers/PriorityQueueVisualizer';
 export { HeapVisualizer } from './visualizers/HeapVisualizer';
 export { HeapInterviewVisualizer } from './visualizers/HeapInterviewVisualizer';
+export { ArrayListInterviewVisualizer } from './visualizers/ArrayListInterviewVisualizer';
+export { BinarySearchInterviewVisualizer } from './visualizers/BinarySearchInterviewVisualizer';
+export { TopologicalSortInterviewVisualizer } from './visualizers/TopologicalSortInterviewVisualizer';
+export { ConcurrentHashMapInterviewVisualizer } from './visualizers/ConcurrentHashMapInterviewVisualizer';
 
 // Concurrency Visualizers
 export { ConcurrentHashMapVisualizer } from './visualizers/ConcurrentHashMapVisualizer';
