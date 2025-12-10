@@ -57,6 +57,12 @@ export { ArrayListInterviewVisualizer } from './visualizers/ArrayListInterviewVi
 export { BinarySearchInterviewVisualizer } from './visualizers/BinarySearchInterviewVisualizer';
 export { TopologicalSortInterviewVisualizer } from './visualizers/TopologicalSortInterviewVisualizer';
 export { ConcurrentHashMapInterviewVisualizer } from './visualizers/ConcurrentHashMapInterviewVisualizer';
+export { PriorityQueueInterviewVisualizer } from './visualizers/PriorityQueueInterviewVisualizer';
+export { ArrayDequeInterviewVisualizer } from './visualizers/ArrayDequeInterviewVisualizer';
+export { LinkedHashMapInterviewVisualizer } from './visualizers/LinkedHashMapInterviewVisualizer';
+export { EnumSetInterviewVisualizer } from './visualizers/EnumSetInterviewVisualizer';
+export { BlockingQueueInterviewVisualizer } from './visualizers/BlockingQueueInterviewVisualizer';
+export { CopyOnWriteInterviewVisualizer } from './visualizers/CopyOnWriteInterviewVisualizer';
 
 // Concurrency Visualizers
 export { ConcurrentHashMapVisualizer } from './visualizers/ConcurrentHashMapVisualizer';

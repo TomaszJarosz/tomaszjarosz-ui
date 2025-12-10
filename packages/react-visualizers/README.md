@@ -8,7 +8,7 @@ Interactive algorithm and data structure visualizers for React. Perfect for lear
 
 ## Features
 
-- **59 interactive visualizers** covering algorithms, data structures, and distributed systems
+- **65 interactive visualizers** covering algorithms, data structures, and distributed systems
 - **Interview Mode** with built-in questions, scoring, hints, and explanations
 - **Step-by-step animations** with playback controls (play, pause, step forward/back)
 - **Code highlighting** showing the current line being executed
@@ -119,7 +119,7 @@ function App() {
 | `GCVisualizer` | JVM generational garbage collection |
 | `SQLJoinVisualizer` | SQL JOIN operations (INNER, LEFT, RIGHT, FULL) |
 
-### Interview Mode (22)
+### Interview Mode (28)
 
 Interview visualizers include built-in questions with multiple choice answers, hints, and detailed explanations. Perfect for interview preparation.
 
@@ -147,6 +147,12 @@ Interview visualizers include built-in questions with multiple choice answers, h
 | `BinarySearchInterviewVisualizer` | O(log n), overflow prevention, invariant, lower/upper bound |
 | `TopologicalSortInterviewVisualizer` | Kahn's algorithm, in-degree, cycle detection, DAG ordering |
 | `ConcurrentHashMapInterviewVisualizer` | Segment locking, CAS operations, lock-free reads, atomic methods |
+| `PriorityQueueInterviewVisualizer` | Min-heap, sift-up/down, build heap O(n), iterator behavior |
+| `ArrayDequeInterviewVisualizer` | Circular buffer, bitwise indexing, stack/queue usage |
+| `LinkedHashMapInterviewVisualizer` | Insertion/access order, LRU cache, removeEldestEntry |
+| `EnumSetInterviewVisualizer` | Bit vector, O(1) ops, 35x memory savings vs HashSet |
+| `BlockingQueueInterviewVisualizer` | Producer-consumer, put/take blocking, implementations |
+| `CopyOnWriteInterviewVisualizer` | Lock-free reads, O(n) writes, snapshot iterators |
 
 ## Interview Mode Usage
 
