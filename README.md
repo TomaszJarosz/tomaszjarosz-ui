@@ -6,7 +6,7 @@ React UI component library - visualizers, markdown components, and article readi
 
 | Package | Description | Size |
 |---------|-------------|------|
-| [@tomaszjarosz/react-ui](./packages/react-ui) | Button, Badge, Card, Alert, Spinner, EmptyState | 3 kB gzip |
+| [@tomaszjarosz/react-ui](./packages/react-ui) | UI components + hooks (Button, Badge, Breadcrumbs, etc.) | 5 kB gzip |
 | [@tomaszjarosz/react-visualizers](./packages/react-visualizers) | Algorithm & data structure visualizers | 55 kB gzip |
 | [@tomaszjarosz/react-markdown](./packages/react-markdown) | Code blocks, callouts, diagrams | 374 kB gzip |
 | [@tomaszjarosz/react-article](./packages/react-article) | Reading progress, TOC, bookmarks | 4 kB gzip |

@@ -1,6 +1,6 @@
 # @tomaszjarosz/react-ui
 
-React UI components library - Badge, Button, Card, Alert, LoadingSpinner, and EmptyState.
+React UI components library - Badge, Button, Card, Alert, LoadingSpinner, EmptyState, Breadcrumbs, CollapsibleSection, and utility hooks.
 
 ## Installation
 
@@ -100,6 +100,109 @@ function App() {
   description="Start writing your first article"
   action={<Button>Create Article</Button>}
 />
+```
+
+### Breadcrumbs
+
+Router-agnostic breadcrumbs component.
+
+```tsx
+// With plain anchors (default)
+<Breadcrumbs
+  items={[
+    { label: 'Blog', href: '/blog' },
+    { label: 'Article', isCurrent: true }
+  ]}
+/>
+
+// With React Router
+import { Link } from 'react-router-dom';
+<Breadcrumbs
+  linkComponent={Link}
+  items={[{ label: 'Blog', href: '/blog' }]}
+/>
+
+// With Next.js
+import Link from 'next/link';
+<Breadcrumbs linkComponent={Link} items={items} />
+```
+
+### CollapsibleSection
+
+Collapsible on mobile, always expanded on desktop.
+
+```tsx
+import { TrendingUp } from 'lucide-react';
+
+<CollapsibleSection
+  title="Popular Tags"
+  icon={TrendingUp}
+  defaultExpanded={false}
+  actionButton={<button>View all</button>}
+>
+  <TagsList />
+</CollapsibleSection>
+```
+
+## Hooks
+
+### useInView
+
+Intersection Observer hook for visibility detection.
+
+```tsx
+const [ref, isInView] = useInView({ threshold: 0.5, triggerOnce: true });
+
+return (
+  <div ref={ref} className={isInView ? 'animate-fadeIn' : 'opacity-0'}>
+    Content
+  </div>
+);
+```
+
+### useLocalStorage
+
+Type-safe localStorage with cross-tab sync.
+
+```tsx
+const { value, setValue, removeValue, error } = useLocalStorage('user-prefs', { theme: 'dark' });
+
+// Update
+setValue({ theme: 'light' });
+
+// Functional update
+setValue(prev => ({ ...prev, theme: 'light' }));
+
+// Remove
+removeValue();
+```
+
+### useDebounce
+
+Debounce values for search inputs or API calls.
+
+```tsx
+const [searchTerm, setSearchTerm] = useState('');
+const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+useEffect(() => {
+  searchAPI(debouncedSearchTerm);
+}, [debouncedSearchTerm]);
+```
+
+### useEventListener
+
+Type-safe event listeners with automatic cleanup.
+
+```tsx
+// Window scroll event
+useEventListener('scroll', handleScroll);
+
+// Keyboard event on document
+useEventListener('keydown', handleKeyDown, document);
+
+// Conditionally enabled
+useEventListener('mousemove', handleMove, window, { enabled: isTracking });
 ```
 
 ## Requirements

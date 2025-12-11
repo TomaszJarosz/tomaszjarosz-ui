@@ -27,3 +27,26 @@ export type {
   EmptyStateSize,
   EmptyStateVariant,
 } from './EmptyState';
+
+export { Breadcrumbs } from './Breadcrumbs';
+export type { BreadcrumbsProps, BreadcrumbItem } from './Breadcrumbs';
+
+export { CollapsibleSection } from './CollapsibleSection';
+export type { CollapsibleSectionProps } from './CollapsibleSection';
+
+// Hooks
+export {
+  useInView,
+  useLocalStorage,
+  getLocalStorageValue,
+  setLocalStorageValue,
+  useDebounce,
+  useEventListener,
+} from './hooks';
+
+export type {
+  UseInViewOptions,
+  UseLocalStorageOptions,
+  UseLocalStorageReturn,
+  UseEventListenerOptions,
+} from './hooks';
