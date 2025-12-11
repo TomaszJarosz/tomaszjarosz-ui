@@ -62,9 +62,28 @@
         "react-dom": ">=17.0.0",
       },
     },
+    "packages/react-ui": {
+      "name": "@tomaszjarosz/react-ui",
+      "version": "0.1.0",
+      "dependencies": {
+        "lucide-react": "^0.468.0",
+      },
+      "devDependencies": {
+        "@vitejs/plugin-react": "^4.3.4",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "typescript": "^5.7.2",
+        "vite": "^6.0.3",
+        "vite-plugin-dts": "^4.3.0",
+      },
+      "peerDependencies": {
+        "react": ">=17.0.0",
+        "react-dom": ">=17.0.0",
+      },
+    },
     "packages/react-visualizers": {
       "name": "@tomaszjarosz/react-visualizers",
-      "version": "0.2.14",
+      "version": "0.4.20",
       "dependencies": {
         "lucide-react": "^0.468.0",
       },
@@ -442,6 +461,8 @@
     "@tomaszjarosz/react-article": ["@tomaszjarosz/react-article@workspace:packages/react-article"],
 
     "@tomaszjarosz/react-markdown": ["@tomaszjarosz/react-markdown@workspace:packages/react-markdown"],
+
+    "@tomaszjarosz/react-ui": ["@tomaszjarosz/react-ui@workspace:packages/react-ui"],
 
     "@tomaszjarosz/react-visualizers": ["@tomaszjarosz/react-visualizers@workspace:packages/react-visualizers"],
 
