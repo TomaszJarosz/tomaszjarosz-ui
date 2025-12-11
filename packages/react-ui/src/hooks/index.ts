@@ -8,3 +8,9 @@ export { useDebounce } from './useDebounce';
 
 export { useEventListener } from './useEventListener';
 export type { UseEventListenerOptions } from './useEventListener';
+
+export { useKeyboardNavigation } from './useKeyboardNavigation';
+export type {
+  UseKeyboardNavigationOptions,
+  UseKeyboardNavigationReturn,
+} from './useKeyboardNavigation';

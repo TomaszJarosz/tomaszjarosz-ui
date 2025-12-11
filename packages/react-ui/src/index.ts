@@ -34,6 +34,15 @@ export type { BreadcrumbsProps, BreadcrumbItem } from './Breadcrumbs';
 export { CollapsibleSection } from './CollapsibleSection';
 export type { CollapsibleSectionProps } from './CollapsibleSection';
 
+export { FadeIn } from './FadeIn';
+export type { FadeInProps } from './FadeIn';
+
+export { BackToTop } from './BackToTop';
+export type { BackToTopProps } from './BackToTop';
+
+export { SkipLink } from './SkipLink';
+export type { SkipLinkProps } from './SkipLink';
+
 // Hooks
 export {
   useInView,
@@ -42,6 +51,7 @@ export {
   setLocalStorageValue,
   useDebounce,
   useEventListener,
+  useKeyboardNavigation,
 } from './hooks';
 
 export type {
@@ -49,4 +59,6 @@ export type {
   UseLocalStorageOptions,
   UseLocalStorageReturn,
   UseEventListenerOptions,
+  UseKeyboardNavigationOptions,
+  UseKeyboardNavigationReturn,
 } from './hooks';

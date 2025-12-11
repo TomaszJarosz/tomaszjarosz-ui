@@ -205,6 +205,68 @@ useEventListener('keydown', handleKeyDown, document);
 useEventListener('mousemove', handleMove, window, { enabled: isTracking });
 ```
 
+### useKeyboardNavigation
+
+Arrow key navigation for lists, dropdowns, search results.
+
+```tsx
+const containerRef = useRef<HTMLDivElement>(null);
+const { selectedIndex, resetSelection } = useKeyboardNavigation({
+  itemCount: items.length,
+  onSelect: (index) => handleSelect(items[index]),
+  isEnabled: isOpen,
+  containerRef,
+});
+
+return (
+  <div ref={containerRef}>
+    {items.map((item, i) => (
+      <div key={item.id} data-item className={i === selectedIndex ? 'selected' : ''}>
+        {item.label}
+      </div>
+    ))}
+  </div>
+);
+```
+
+## Animation Components
+
+### FadeIn
+
+Scroll-triggered fade-in animation wrapper.
+
+```tsx
+<FadeIn delay={0.2} triggerOnce>
+  <h1>Animated Content</h1>
+</FadeIn>
+
+// Staggered animation
+{items.map((item, i) => (
+  <FadeIn key={item.id} delay={i * 0.1}>
+    <Card>{item.title}</Card>
+  </FadeIn>
+))}
+```
+
+### BackToTop
+
+Floating button to scroll back to top.
+
+```tsx
+<BackToTop />
+<BackToTop threshold={500} />
+```
+
+### SkipLink
+
+Accessibility skip link for keyboard users.
+
+```tsx
+<SkipLink href="#main-content">Skip to main content</SkipLink>
+<Header />
+<main id="main-content">...</main>
+```
+
 ## Requirements
 
 - React 17+ or 18+
