@@ -267,6 +267,40 @@ Accessibility skip link for keyboard users.
 <main id="main-content">...</main>
 ```
 
+## Date Utilities
+
+Zero-dependency date formatting using native Intl API.
+
+```tsx
+import {
+  formatDate,
+  formatDateShort,
+  getRelativeTime,
+  isToday,
+  DATE_FORMATS,
+  LOCALES,
+} from '@tomaszjarosz/react-ui';
+
+// Basic formatting
+formatDate('2025-12-11') // "December 11, 2025"
+formatDateShort('2025-12-11') // "Dec 11, 2025"
+
+// With locale
+formatDate('2025-12-11', DATE_FORMATS.DEFAULT, LOCALES.PL) // "11 grudnia 2025"
+
+// Relative time
+getRelativeTime(new Date(Date.now() - 3600000)) // "1 hour ago"
+
+// Date checks
+isToday(new Date()) // true
+isYesterday(new Date(Date.now() - 86400000)) // true
+isPast('2020-01-01') // true
+isFuture('2030-01-01') // true
+
+// Difference
+diffInDays('2025-12-11', '2025-12-01') // 10
+```
+
 ## Requirements
 
 - React 17+ or 18+

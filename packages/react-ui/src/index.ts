@@ -62,3 +62,23 @@ export type {
   UseKeyboardNavigationOptions,
   UseKeyboardNavigationReturn,
 } from './hooks';
+
+// Utilities
+export {
+  // Date formatting
+  DATE_FORMATS,
+  LOCALES,
+  parseDate,
+  formatDate,
+  formatDateTime,
+  formatDateShort,
+  formatDateNumeric,
+  getRelativeTime,
+  isToday,
+  isYesterday,
+  isPast,
+  isFuture,
+  diffInDays,
+} from './utils';
+
+export type { DateInput, LocaleKey } from './utils';
