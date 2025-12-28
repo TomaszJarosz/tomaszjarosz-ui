@@ -18,6 +18,7 @@ export default defineConfig({
           mkdirSync("dist");
         }
         copyFileSync("src/styles.css", "dist/styles.css");
+        copyFileSync("src/tokens.css", "dist/tokens.css");
       },
     },
   ],
