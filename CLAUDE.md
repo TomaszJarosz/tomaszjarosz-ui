@@ -63,3 +63,38 @@ npm publish --access public
 2. **Visualizers** - Use Storybook at localhost:6006 for development
 3. **Publishing** - Each package is published independently to npm
 4. **Blog integration** - Blog imports these packages via npm
+
+## Claude Code
+
+### Przed rozpoczęciem
+1. Przeczytaj `.claude/context.md`
+2. Sprawdź `.claude/memory/publish-log.md`
+
+### Po zakończeniu
+**ZAWSZE aktualizuj `.claude/context.md`**
+
+### Komendy Claude Code
+| Komenda | Opis |
+|---------|------|
+| `/start` | Rozpocznij sesję |
+| `/publish` | Publikuj pakiety npm |
+| `/test` | Uruchom testy |
+| `/storybook` | Uruchom Storybook |
+| `/analyze bundle-size` | Analiza rozmiaru bundli |
+| `/check breaking-changes` | Wykryj breaking changes |
+| `/audit dependencies` | Audyt zależności |
+| `/koniec` | Zakończ sesję |
+
+### Agenty (8)
+- `pre-publish`, `post-publish` - publikacja npm
+- `test-runner` - uruchamianie testów
+- `storybook-checker` - weryfikacja Storybook
+- `convention-check` - konwencje komponentów
+- `bundle-size-analyzer` - rozmiar bundli
+- `breaking-changes-detector` - breaking changes
+- `dependency-audit` - bezpieczeństwo deps
+
+### Memory (5)
+- `publish-log.md`, `patterns.md`
+- `bundle-sizes.md`, `breaking-changes.md`
+- `dependency-audit.md`

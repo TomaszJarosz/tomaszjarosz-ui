@@ -13,12 +13,15 @@
 - `react-components` - React component patterns
 - `monorepo` - Turborepo + Changesets workflow
 
-### Agents (5)
+### Agents (8)
 - `pre-publish` - checklist przed publikacją npm
 - `post-publish` - weryfikacja po publikacji
 - `test-runner` - uruchamianie testów
 - `storybook-checker` - sprawdzenie Storybook
 - `convention-check` - zgodność z konwencjami
+- `bundle-size-analyzer` - analiza rozmiarów bundli
+- `breaking-changes-detector` - wykrywanie breaking changes
+- `dependency-audit` - audyt zależności
 
 ### Commands (5)
 - `/start` - rozpocznij sesję
@@ -27,9 +30,12 @@
 - `/storybook` - uruchom Storybook
 - `/koniec` - zakończ sesję
 
-### Memory (2)
+### Memory (5)
 - `publish-log.md` - historia publikacji npm
 - `patterns.md` - lessons learned
+- `bundle-sizes.md` - rozmiary bundli
+- `breaking-changes.md` - historia breaking changes
+- `dependency-audit.md` - audyty zależności
 
 ## Projekt
 
