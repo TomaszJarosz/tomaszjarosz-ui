@@ -36,7 +36,6 @@ coverage/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
-.claude/
 
 *storybook.log
 storybook-static
