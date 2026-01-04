@@ -426,7 +426,7 @@ const TreeSetInterviewVisualizerComponent: React.FC<TreeSetInterviewVisualizerPr
       <div className="mb-4">
         <div className="bg-gray-50 rounded-lg p-2 overflow-x-auto">
           {tree ? (
-            <svg width="300" height="250" className="mx-auto">
+            <svg viewBox="0 0 300 250" className="w-full max-w-[300px] h-auto mx-auto">
               {renderTree(tree)}
             </svg>
           ) : (

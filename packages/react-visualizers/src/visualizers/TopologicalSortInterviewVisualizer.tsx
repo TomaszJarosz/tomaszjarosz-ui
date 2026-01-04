@@ -335,7 +335,7 @@ const TopologicalSortInterviewVisualizerComponent: React.FC<TopologicalSortInter
       </div>
 
       <div className="mb-4">
-        <svg width="220" height="240" className="mx-auto bg-gray-50 rounded-lg">
+        <svg viewBox="0 0 220 240" className="w-full max-w-[220px] h-auto mx-auto bg-gray-50 rounded-lg">
           {stepData.edges.map(([from, to], idx) => {
             const fromNode = stepData.nodes.find((n) => n.id === from)!;
             const toNode = stepData.nodes.find((n) => n.id === to)!;

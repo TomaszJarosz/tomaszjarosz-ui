@@ -318,7 +318,7 @@ const TopologicalSortVisualizerComponent: React.FC<TopologicalSortVisualizerProp
 
             {/* Graph Visualization */}
             <div className="mb-4">
-              <svg width="340" height="300" className="mx-auto bg-gray-50 rounded-lg">
+              <svg viewBox="0 0 340 300" className="w-full max-w-[340px] h-auto mx-auto bg-gray-50 rounded-lg">
                 {/* Draw edges */}
                 {stepData.edges.map(([from, to], idx) => {
                   const fromNode = stepData.nodes.find((n) => n.id === from)!;

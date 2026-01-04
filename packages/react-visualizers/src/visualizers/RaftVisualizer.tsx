@@ -356,7 +356,7 @@ const RaftVisualizerComponent: React.FC<RaftVisualizerProps> = ({
 
       {/* Cluster Visualization */}
       <div className="mb-4 flex justify-center">
-        <svg width="300" height="260" className="overflow-visible">
+        <svg viewBox="0 0 300 260" className="w-full max-w-[300px] h-auto overflow-visible">
           {/* Connection lines */}
           {highlightEdge && (
             <line

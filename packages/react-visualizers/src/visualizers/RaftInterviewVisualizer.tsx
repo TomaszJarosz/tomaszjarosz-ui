@@ -386,7 +386,7 @@ const RaftInterviewVisualizerComponent: React.FC<RaftInterviewVisualizerProps> =
 
             {/* Cluster Visualization */}
             <div className="mb-4 flex justify-center">
-              <svg width="240" height="200" className="overflow-visible">
+              <svg viewBox="0 0 240 200" className="w-full max-w-[240px] h-auto overflow-visible">
                 {/* Edge highlight */}
                 {highlightEdge && (
                   <line

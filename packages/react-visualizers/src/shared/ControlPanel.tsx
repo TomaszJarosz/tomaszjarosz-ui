@@ -119,9 +119,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   const speedLabelId = React.useId();
 
   return (
-    <div className="flex items-center justify-between flex-wrap gap-3" role="toolbar" aria-label="Playback controls">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3" role="toolbar" aria-label="Playback controls">
       {/* Playback Controls */}
-      <div className="flex items-center gap-2" role="group" aria-label="Navigation">
+      <div className="flex items-center gap-2 flex-wrap" role="group" aria-label="Navigation">
         {isPlaying && (
           <span
             className={`flex items-center gap-1 text-xs ${colors.playing} font-medium`}

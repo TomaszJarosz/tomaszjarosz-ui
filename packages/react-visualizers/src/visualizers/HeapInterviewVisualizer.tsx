@@ -355,7 +355,7 @@ const HeapInterviewVisualizerComponent: React.FC<HeapInterviewVisualizerProps> =
       {/* Tree Visualization */}
       <div className="mb-4 bg-gray-50 rounded-lg p-2 min-h-[160px] flex items-center justify-center">
         {array.length > 0 ? (
-          <svg width="280" height={Math.max(Math.floor(Math.log2(array.length)) * 50 + 60, 80)} className="mx-auto">
+          <svg viewBox={`0 0 280 ${Math.max(Math.floor(Math.log2(array.length)) * 50 + 60, 80)}`} className="w-full max-w-[280px] h-auto mx-auto">
             {/* Edges */}
             {array.map((_, idx) => {
               if (idx === 0) return null;

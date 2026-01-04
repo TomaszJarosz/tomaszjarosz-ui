@@ -408,7 +408,7 @@ const ConsistentHashingVisualizerComponent: React.FC<ConsistentHashingVisualizer
 
       {/* Hash Ring SVG */}
       <div className="mb-4 flex justify-center">
-        <svg width="300" height="300" className="overflow-visible">
+        <svg viewBox="0 0 300 300" className="w-full max-w-[300px] h-auto overflow-visible">
           {/* Ring circle */}
           <circle
             cx={CENTER.x}

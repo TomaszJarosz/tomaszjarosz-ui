@@ -418,9 +418,8 @@ const HeapVisualizerComponent: React.FC<HeapVisualizerProps> = ({
         </div>
         <div className="bg-gray-50 rounded-lg p-2 overflow-x-auto">
           <svg
-            width="320"
-            height={Math.max(Math.floor(Math.log2(array.length)) * 55 + 80, 120)}
-            className="mx-auto"
+            viewBox={`0 0 320 ${Math.max(Math.floor(Math.log2(array.length)) * 55 + 80, 120)}`}
+            className="w-full max-w-[320px] h-auto mx-auto"
           >
             {/* Draw edges */}
             {array.map((_, idx) => {

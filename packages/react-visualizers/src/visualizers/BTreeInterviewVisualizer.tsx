@@ -464,7 +464,7 @@ const BTreeInterviewVisualizerComponent: React.FC<BTreeInterviewVisualizerProps>
       <div className="mb-4">
         <div className="bg-gray-50 rounded-lg p-2 overflow-x-auto">
           {tree ? (
-            <svg width="400" height="200" className="mx-auto">
+            <svg viewBox="0 0 400 200" className="w-full max-w-[400px] h-auto mx-auto">
               {renderNode(tree, 200, 20, 350)}
             </svg>
           ) : (

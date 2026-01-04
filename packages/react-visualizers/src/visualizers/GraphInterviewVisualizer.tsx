@@ -394,7 +394,7 @@ const GraphInterviewVisualizerComponent: React.FC<GraphInterviewVisualizerProps>
 
       {/* Graph Visualization */}
       <div className="mb-4">
-        <svg width="310" height="220" className="mx-auto">
+        <svg viewBox="0 0 310 220" className="w-full max-w-[310px] h-auto mx-auto">
           {/* Edges */}
           {EDGES.map((edge, idx) => {
             const from = NODES.find((n) => n.id === edge.from)!;
