@@ -39,3 +39,4 @@ pnpm-lock.yaml
 
 *storybook.log
 storybook-static
+.claude-backup/

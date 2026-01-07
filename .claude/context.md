@@ -4,73 +4,39 @@
 
 ## Ostatnia sesja
 
-- **Data**: 2026-01-04
-- **Co zrobiono**: Kompletny Claude Code setup z 8 agentami, 5 komendami, 5 plikami memory
+- **Data**: 2026-01-07
+- **Co zrobiono**: Uproszczenie .claude/ structure
 
-## Claude Code Setup
+## Status
 
-### Skills (2)
-- `react-components` - React component patterns
-- `monorepo` - Turborepo + Changesets workflow
+**PUBLISHED** - NPM @tomaszjarosz/*
 
-### Agents (8)
-- `pre-publish` - checklist przed publikacją npm
-- `post-publish` - weryfikacja po publikacji
-- `test-runner` - uruchamianie testów
-- `storybook-checker` - sprawdzenie Storybook
-- `convention-check` - zgodność z konwencjami
-- `bundle-size-analyzer` - analiza rozmiarów bundli
-- `breaking-changes-detector` - wykrywanie breaking changes
-- `dependency-audit` - audyt zależności
-
-### Commands (5)
-- `/start` - rozpocznij sesję
-- `/publish` - publikuj pakiety na npm
-- `/test` - uruchom testy
-- `/storybook` - uruchom Storybook
-- `/koniec` - zakończ sesję
-
-### Memory (5)
-- `publish-log.md` - historia publikacji npm
-- `patterns.md` - lessons learned
-- `bundle-sizes.md` - rozmiary bundli
-- `breaking-changes.md` - historia breaking changes
-- `dependency-audit.md` - audyty zależności
-
-## Projekt
-
-**tomaszjarosz-ui** - biblioteka komponentów React
-- NPM: @tomaszjarosz/*
-- Status: PUBLISHED
+Biblioteka komponentów React.
 
 ## Packages
 
 | Package | Size | Opis |
 |---------|------|------|
-| `@tomaszjarosz/react-ui` | 7kB | UI components, hooks, animations |
+| `@tomaszjarosz/react-ui` | 7kB | UI components, hooks |
 | `@tomaszjarosz/react-visualizers` | 55kB | Algorithm visualizations |
 | `@tomaszjarosz/react-markdown` | 374kB | Markdown components |
-| `@tomaszjarosz/react-article` | 4kB | Article components (TOC, progress) |
+| `@tomaszjarosz/react-article` | 4kB | Article components |
 
 ## Stack
 
-- React 17+/18+/19 (peer dependency)
-- TypeScript 5.7+
-- Tailwind CSS (peer dependency)
-- Turborepo (monorepo)
-- Changesets (versioning)
-- Storybook (visualizers)
-- Bun 1.3.3 (package manager)
+| | |
+|---|---|
+| React | 17+/18+/19 (peer) |
+| TypeScript | 5.7+ |
+| Monorepo | Turborepo |
+| Versioning | Changesets |
+| Package manager | Bun 1.3.3 |
 
-## Notatki
+## Publish workflow
 
-### Workflow publikacji
-1. `changeset` - dodaj changeset
-2. `changeset version` - bump versions
-3. `bun run build` - build wszystkich packages
-4. `changeset publish` - publikuj na npm
-
-### Ważne
-- Każdy package ma osobne wersjonowanie
-- Storybook tylko dla react-visualizers
-- GitHub Actions dla Chromatic
+```bash
+changeset                 # Dodaj changeset
+changeset version         # Bump versions
+bun run build             # Build all
+changeset publish         # Publish to npm
+```
